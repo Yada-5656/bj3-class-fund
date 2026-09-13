@@ -26,6 +26,9 @@ import {
   CheckCircle2,
   KeyRound,
   Coins,
+  ChevronRight,
+  ArrowRight,
+  LayoutGrid,
 } from "lucide-react";
 
 export default function TreasurerDashboardPage({
@@ -39,7 +42,8 @@ export default function TreasurerDashboardPage({
   const displayName = slugToDisplayName(roomSlug);
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
-  const [activeTab, setActiveTab] = useState<"checkin" | "transactions" | "settings">("checkin");
+  // Default to "menu" so the user is greeted with 2 main choice buttons first!
+  const [activeTab, setActiveTab] = useState<"menu" | "checkin" | "transactions" | "settings">("menu");
 
   // Modals state
   const [txModalOpen, setTxModalOpen] = useState(false);
@@ -68,15 +72,15 @@ export default function TreasurerDashboardPage({
     );
   }
 
-  // Handle student check-in save
+  // Handle student check-in save with custom selected date
   const handleSaveStudents = async (
     updatedStudents: Student[],
-    recordTransaction: boolean
+    recordTransaction: boolean,
+    selectedDate: string
   ) => {
     let updatedTx = [...roomData.transactions];
 
     if (recordTransaction) {
-      // Calculate newly paid students
       const prevPaidMap = new Map(roomData.students.map((s) => [s.id, s.isPaid]));
       const newlyPaidCount = updatedStudents.filter(
         (s) => s.isPaid && !prevPaidMap.get(s.id)
@@ -92,7 +96,7 @@ export default function TreasurerDashboardPage({
           category: "เงินห้อง",
           description: `บันทึกเก็บเงินห้อง (${newlyPaidCount} คน x ${fee} บาท)`,
           amount: total,
-          date: new Date().toISOString().split("T")[0],
+          date: selectedDate || new Date().toISOString().split("T")[0],
           createdAt: new Date().toISOString(),
         };
         updatedTx.unshift(newRecord);
@@ -121,7 +125,6 @@ export default function TreasurerDashboardPage({
     let updatedTx = [...roomData.transactions];
 
     if (formData.id) {
-      // Edit existing
       updatedTx = updatedTx.map((t) =>
         t.id === formData.id
           ? {
@@ -135,7 +138,6 @@ export default function TreasurerDashboardPage({
           : t
       );
     } else {
-      // Add new
       const newTx: Transaction = {
         id: `tx-${roomSlug}-${Date.now()}`,
         roomId: roomSlug,
@@ -199,81 +201,189 @@ export default function TreasurerDashboardPage({
     router.push(`/${roomSlug}`);
   };
 
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
+  // -------------------------------------------------------------
+  // VIEW 1: Main Menu Portal (2 Big Choice Buttons before entering)
+  // -------------------------------------------------------------
+  if (activeTab === "menu") {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn py-4">
+        {/* Top Breadcrumb & Lock Button */}
+        <div className="flex items-center justify-between">
           <Link
             href={`/${roomSlug}`}
-            className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941] mb-2"
+            className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941] transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>กลับหน้าแดชบอร์ด</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>กลับสู่หน้าแดชบอร์ด</span>
           </Link>
+
+          <button
+            onClick={handleLockSession}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span>ออกจากระบบเหรัญญิก</span>
+          </button>
+        </div>
+
+        {/* Header Title */}
+        <div className="text-center space-y-2 py-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#C084FC] to-[#A855F7] text-white shadow-pastel mb-1">
+            <ShieldCheck className="w-7 h-7" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#332941]">
+            ระบบจัดการเงินห้อง (เหรัญญิก {displayName})
+          </h1>
+          <p className="text-sm text-[#7B708A]">
+            กรุณาเลือกหน้าที่ต้องการเข้าใช้งาน
+          </p>
+        </div>
+
+        {/* 2 Main Choice Cards (Crucial Requirement) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          {/* Card 1: Check-in Page Button */}
+          <div
+            onClick={() => setActiveTab("checkin")}
+            className="pastel-card p-6 sm:p-8 bg-gradient-to-br from-white via-[#F0FDF4]/30 to-[#DCFCE7]/40 border-2 border-[#BBF7D0] hover:border-[#22C55E] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
+          >
+            <div className="space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <CheckSquare className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#16A34A] transition-colors">
+                  หน้าเช็คชื่อจ่ายเงินห้อง
+                </h2>
+                <p className="text-xs sm:text-sm text-[#7B708A] mt-2 leading-relaxed">
+                  เช็คชื่อนักเรียนที่ชำระค่าห้องเรียนประจำวัน/สัปดาห์ มีระบบเปลี่ยนวันที่เช็คชื่อ และแสดงรายชื่อเรียงเป็นแนวตั้งดูง่าย
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#16A34A]">
+              <span>เข้าสู่หน้าเช็คชื่อ</span>
+              <div className="w-8 h-8 rounded-xl bg-[#22C55E] text-white flex items-center justify-center group-hover:translate-x-1 transition-transform shadow-xs">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Other Transactions Page Button */}
+          <div
+            onClick={() => setActiveTab("transactions")}
+            className="pastel-card p-6 sm:p-8 bg-gradient-to-br from-white via-[#FAF5FF]/50 to-[#F3E8FF]/60 border-2 border-[#E9D5FF] hover:border-[#C084FC] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
+          >
+            <div className="space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <Receipt className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#9333EA] transition-colors">
+                  หน้ารายการอื่นๆ (รายรับ - รายจ่าย)
+                </h2>
+                <p className="text-xs sm:text-sm text-[#7B708A] mt-2 leading-relaxed">
+                  บันทึกรายการรายรับและรายจ่ายอื่นๆ ของห้องเรียน เช่น ซื้ออุปกรณ์ทำความสะอาด, ค่าพิมพ์เอกสารชีทเรียน, เงินสนับสนุน
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-6 mt-4 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#9333EA]">
+              <span>เข้าสู่หน้ารายการอื่นๆ</span>
+              <div className="w-8 h-8 rounded-xl bg-[#C084FC] text-white flex items-center justify-center group-hover:translate-x-1 transition-transform shadow-xs">
+                <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary Option: Room Settings */}
+        <div className="pt-4 text-center">
+          <button
+            onClick={() => setActiveTab("settings")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-[#7B708A] hover:text-[#332941] bg-white border border-[#EFE8F6] shadow-xs hover:bg-[#F8F5FB] transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5 text-[#C084FC]" />
+            <span>การตั้งค่าห้องเรียน (เปลี่ยน PIN / อัตราค่าห้อง)</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // VIEW 2: Inside Specific Management Views (Check-in, Transactions, Settings)
+  // -------------------------------------------------------------
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Top Header with Back to Menu Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            {/* Crucial: Back to 2-Button Choice Menu */}
+            <button
+              onClick={() => setActiveTab("menu")}
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-[#9333EA] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] rounded-xl transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>กลับหน้าเลือกเมนู</span>
+            </button>
+
+            <Link
+              href={`/${roomSlug}`}
+              className="text-xs text-[#7B708A] hover:text-[#332941] transition-colors"
+            >
+              หน้าแดชบอร์ด
+            </Link>
+          </div>
+
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-[#332941]">
-              ระบบจัดการเงินห้อง (เหรัญญิก {displayName})
+              {activeTab === "checkin" && `หน้าเช็คชื่อจ่ายเงินห้อง (${displayName})`}
+              {activeTab === "transactions" && `หน้ารายการอื่นๆ รายรับ - รายจ่าย (${displayName})`}
+              {activeTab === "settings" && `ตั้งค่าห้องเรียน (${displayName})`}
             </h1>
           </div>
-          <p className="text-xs text-[#7B708A] mt-1">
-            เช็คชื่อชำระเงินห้องประจำสัปดาห์ และบันทึกรายรับ-รายจ่าย
-          </p>
         </div>
 
-        {/* Lock Session Button */}
-        <button
-          onClick={handleLockSession}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors self-start sm:self-auto"
-        >
-          <Lock className="w-3.5 h-3.5" />
-          <span>ออกจากระบบเหรัญญิก</span>
-        </button>
+        {/* Quick Tab Switcher & Lock Button */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#EFE8F6] shadow-xs">
+            <button
+              onClick={() => setActiveTab("checkin")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                activeTab === "checkin"
+                  ? "bg-[#22C55E] text-white shadow-xs"
+                  : "text-[#7B708A] hover:text-[#332941]"
+              }`}
+            >
+              เช็คชื่อค่าห้อง
+            </button>
+            <button
+              onClick={() => setActiveTab("transactions")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+                activeTab === "transactions"
+                  ? "bg-[#C084FC] text-white shadow-xs"
+                  : "text-[#7B708A] hover:text-[#332941]"
+              }`}
+            >
+              รายการอื่นๆ
+            </button>
+          </div>
+
+          <button
+            onClick={handleLockSession}
+            className="p-2 text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
+            title="ออกจากระบบเหรัญญิก"
+          >
+            <Lock className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Tabs Selector */}
-      <div className="flex items-center gap-2 border-b border-[#EFE8F6] pb-1 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab("checkin")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-            activeTab === "checkin"
-              ? "bg-[#C084FC] text-white shadow-pastel"
-              : "text-[#7B708A] hover:bg-white/80 hover:text-[#332941]"
-          }`}
-        >
-          <CheckSquare className="w-4 h-4" />
-          <span>เช็คชื่อจ่ายเงินห้อง</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("transactions")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-            activeTab === "transactions"
-              ? "bg-[#C084FC] text-white shadow-pastel"
-              : "text-[#7B708A] hover:bg-white/80 hover:text-[#332941]"
-          }`}
-        >
-          <Receipt className="w-4 h-4" />
-          <span>บันทึกรายรับ - รายจ่าย</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("settings")}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-            activeTab === "settings"
-              ? "bg-[#C084FC] text-white shadow-pastel"
-              : "text-[#7B708A] hover:bg-white/80 hover:text-[#332941]"
-          }`}
-        >
-          <Settings className="w-4 h-4" />
-          <span>ตั้งค่าห้องเรียน</span>
-        </button>
-      </div>
-
-      {/* TAB 1: Check-in System */}
+      {/* SUB-VIEW 1: Check-in Class Fund (Date Picker + Vertical Column List) */}
       {activeTab === "checkin" && (
         <div className="space-y-4">
           <StudentList
@@ -285,13 +395,13 @@ export default function TreasurerDashboardPage({
         </div>
       )}
 
-      {/* TAB 2: Income / Expense Records */}
+      {/* SUB-VIEW 2: Other Transactions (Income / Expense Records) */}
       {activeTab === "transactions" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-base text-[#332941]">
-                จัดการรายการรายรับ - รายจ่าย
+                หน้ารายการอื่นๆ (รายรับ - รายจ่าย)
               </h3>
               <p className="text-xs text-[#7B708A]">
                 เพิ่ม ลบ หรือแก้ไขรายการเงินห้อง (เช่น ซื้ออุปกรณ์, ค่าเอกสารชีท)
@@ -323,7 +433,7 @@ export default function TreasurerDashboardPage({
         </div>
       )}
 
-      {/* TAB 3: Settings */}
+      {/* SUB-VIEW 3: Room Settings */}
       {activeTab === "settings" && (
         <div className="pastel-card p-6 max-w-lg bg-white shadow-pastel">
           <h3 className="text-base font-bold text-[#332941] mb-1">
