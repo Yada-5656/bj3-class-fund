@@ -35,7 +35,7 @@ export default function RoomHistoryPage({
   if (!roomData) {
     return (
       <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
-        กำลังโหลดประวัติเงินห้อง {displayName}...
+        กำลังโหลด...
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default function RoomHistoryPage({
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Header and Back navigation */}
+      {/* Header (Minimalist) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <Link
@@ -58,34 +58,29 @@ export default function RoomHistoryPage({
             className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941] mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>กลับหน้าแดชบอร์ด</span>
+            <span>แดชบอร์ด</span>
           </Link>
           <h1 className="text-xl sm:text-2xl font-bold text-[#332941] flex items-center gap-2">
             <History className="w-6 h-6 text-[#C084FC]" />
-            <span>ประวัติรายรับ - รายจ่ายห้อง {displayName}</span>
+            <span>ประวัติเงินห้อง ({displayName})</span>
           </h1>
-          <p className="text-xs text-[#7B708A] mt-1">
-            รายการบันทึกทั้งหมด พร้อมตัวกรองและค้นหา (วันที่แสดงแบบ พ.ศ.)
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/${roomSlug}/treasurer`}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>จัดการเงินห้อง (เหรัญญิก)</span>
-          </Link>
-        </div>
+        <Link
+          href={`/${roomSlug}/treasurer`}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all self-start sm:self-auto"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>เหรัญญิก</span>
+        </Link>
       </div>
 
-      {/* Summary Mini Bar */}
+      {/* Summary Mini Bar (Minimalist) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="pastel-card p-4 flex items-center justify-between">
+        <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">รายการทั้งหมด</span>
-            <div className="text-lg font-bold text-[#332941]">
+            <span className="text-xs text-[#7B708A]">ทั้งหมด</span>
+            <div className="text-base font-bold text-[#332941]">
               {transactions.length} รายการ
             </div>
           </div>
@@ -94,10 +89,10 @@ export default function RoomHistoryPage({
           </div>
         </div>
 
-        <div className="pastel-card p-4 flex items-center justify-between">
+        <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">ยอดรวมรายรับ + เงินห้อง</span>
-            <div className="text-lg font-bold text-[#059669]">
+            <span className="text-xs text-[#7B708A]">รายรับรวม</span>
+            <div className="text-base font-bold text-[#059669]">
               +{formatCurrency(totalIncome)}
             </div>
           </div>
@@ -106,10 +101,10 @@ export default function RoomHistoryPage({
           </div>
         </div>
 
-        <div className="pastel-card p-4 flex items-center justify-between">
+        <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">ยอดรวมรายจ่ายทั้งหมด</span>
-            <div className="text-lg font-bold text-[#E11D48]">
+            <span className="text-xs text-[#7B708A]">รายจ่ายรวม</span>
+            <div className="text-base font-bold text-[#E11D48]">
               -{formatCurrency(totalExpense)}
             </div>
           </div>

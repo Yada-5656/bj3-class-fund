@@ -26,9 +26,7 @@ import {
   CheckCircle2,
   KeyRound,
   Coins,
-  ChevronRight,
   ArrowRight,
-  LayoutGrid,
 } from "lucide-react";
 
 export default function TreasurerDashboardPage({
@@ -42,7 +40,6 @@ export default function TreasurerDashboardPage({
   const displayName = slugToDisplayName(roomSlug);
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
-  // Default to "menu" so the user is greeted with 2 main choice buttons first!
   const [activeTab, setActiveTab] = useState<"menu" | "checkin" | "transactions" | "settings">("menu");
 
   // Modals state
@@ -67,7 +64,7 @@ export default function TreasurerDashboardPage({
   if (!roomData) {
     return (
       <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
-        กำลังโหลดระบบเหรัญญิก {displayName}...
+        กำลังโหลด...
       </div>
     );
   }
@@ -94,7 +91,7 @@ export default function TreasurerDashboardPage({
           roomId: roomSlug,
           type: "fund",
           category: "เงินห้อง",
-          description: `บันทึกเก็บเงินห้อง (${newlyPaidCount} คน x ${fee} บาท)`,
+          description: `เก็บเงินห้อง (${newlyPaidCount} คน x ${fee} บาท)`,
           amount: total,
           date: selectedDate || new Date().toISOString().split("T")[0],
           createdAt: new Date().toISOString(),
@@ -191,7 +188,7 @@ export default function TreasurerDashboardPage({
 
     setRoomData(nextData);
     saveRoomToClientStorage(roomSlug, nextData);
-    setSettingsNotice("บันทึกการตั้งค่าเรียบร้อยแล้ว!");
+    setSettingsNotice("บันทึกการตั้งค่าเรียบร้อยแล้ว");
     setTimeout(() => setSettingsNotice(null), 3000);
   };
 
@@ -202,65 +199,57 @@ export default function TreasurerDashboardPage({
   };
 
   // -------------------------------------------------------------
-  // VIEW 1: Main Menu Portal (2 Big Choice Buttons before entering)
+  // VIEW 1: Main Menu Portal (Clean Minimalist 2-Card Choice)
   // -------------------------------------------------------------
   if (activeTab === "menu") {
     return (
       <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn py-4">
-        {/* Top Breadcrumb & Lock Button */}
+        {/* Top Navigation */}
         <div className="flex items-center justify-between">
           <Link
             href={`/${roomSlug}`}
-            className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#7B708A] hover:text-[#332941] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>กลับสู่หน้าแดชบอร์ด</span>
+            <span>แดชบอร์ด</span>
           </Link>
 
           <button
             onClick={handleLockSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
           >
             <Lock className="w-3.5 h-3.5" />
-            <span>ออกจากระบบเหรัญญิก</span>
+            <span>ออกจากระบบ</span>
           </button>
         </div>
 
-        {/* Header Title */}
-        <div className="text-center space-y-2 py-3">
+        {/* Header Title (Minimal - No explanation paragraphs) */}
+        <div className="text-center space-y-2 py-4">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-3xl bg-gradient-to-tr from-[#C084FC] to-[#A855F7] text-white shadow-pastel mb-1">
             <ShieldCheck className="w-7 h-7" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#332941]">
-            ระบบจัดการเงินห้อง (เหรัญญิก {displayName})
+            ระบบเหรัญญิก ({displayName})
           </h1>
-          <p className="text-sm text-[#7B708A]">
-            กรุณาเลือกหน้าที่ต้องการเข้าใช้งาน
-          </p>
         </div>
 
-        {/* 2 Main Choice Cards (Crucial Requirement) */}
+        {/* 2 Main Choice Cards (Clean & Minimalist) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           {/* Card 1: Check-in Page Button */}
           <div
             onClick={() => setActiveTab("checkin")}
-            className="pastel-card p-6 sm:p-8 bg-gradient-to-br from-white via-[#F0FDF4]/30 to-[#DCFCE7]/40 border-2 border-[#BBF7D0] hover:border-[#22C55E] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
+            className="pastel-card p-6 sm:p-8 bg-white border-2 border-[#BBF7D0] hover:border-[#22C55E] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0] flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                 <CheckSquare className="w-7 h-7" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#16A34A] transition-colors">
-                  หน้าเช็คชื่อจ่ายเงินห้อง
-                </h2>
-                <p className="text-xs sm:text-sm text-[#7B708A] mt-2 leading-relaxed">
-                  เช็คชื่อนักเรียนที่ชำระค่าห้องเรียนประจำวัน/สัปดาห์ มีระบบเปลี่ยนวันที่เช็คชื่อ และแสดงรายชื่อเรียงเป็นแนวตั้งดูง่าย
-                </p>
-              </div>
+              <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#16A34A] transition-colors">
+                เช็คชื่อจ่ายเงินห้อง
+              </h2>
             </div>
 
-            <div className="pt-6 mt-4 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#16A34A]">
+            <div className="pt-6 mt-6 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#16A34A]">
               <span>เข้าสู่หน้าเช็คชื่อ</span>
               <div className="w-8 h-8 rounded-xl bg-[#22C55E] text-white flex items-center justify-center group-hover:translate-x-1 transition-transform shadow-xs">
                 <ArrowRight className="w-4 h-4" />
@@ -271,23 +260,18 @@ export default function TreasurerDashboardPage({
           {/* Card 2: Other Transactions Page Button */}
           <div
             onClick={() => setActiveTab("transactions")}
-            className="pastel-card p-6 sm:p-8 bg-gradient-to-br from-white via-[#FAF5FF]/50 to-[#F3E8FF]/60 border-2 border-[#E9D5FF] hover:border-[#C084FC] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
+            className="pastel-card p-6 sm:p-8 bg-white border-2 border-[#E9D5FF] hover:border-[#C084FC] hover:shadow-pastel cursor-pointer transition-all group flex flex-col justify-between"
           >
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center group-hover:scale-105 transition-transform flex-shrink-0">
                 <Receipt className="w-7 h-7" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#9333EA] transition-colors">
-                  หน้ารายการอื่นๆ (รายรับ - รายจ่าย)
-                </h2>
-                <p className="text-xs sm:text-sm text-[#7B708A] mt-2 leading-relaxed">
-                  บันทึกรายการรายรับและรายจ่ายอื่นๆ ของห้องเรียน เช่น ซื้ออุปกรณ์ทำความสะอาด, ค่าพิมพ์เอกสารชีทเรียน, เงินสนับสนุน
-                </p>
-              </div>
+              <h2 className="text-xl font-bold text-[#332941] group-hover:text-[#9333EA] transition-colors">
+                รายการอื่นๆ (รายรับ - รายจ่าย)
+              </h2>
             </div>
 
-            <div className="pt-6 mt-4 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#9333EA]">
+            <div className="pt-6 mt-6 border-t border-[#EFE8F6] flex items-center justify-between text-sm font-bold text-[#9333EA]">
               <span>เข้าสู่หน้ารายการอื่นๆ</span>
               <div className="w-8 h-8 rounded-xl bg-[#C084FC] text-white flex items-center justify-center group-hover:translate-x-1 transition-transform shadow-xs">
                 <ArrowRight className="w-4 h-4" />
@@ -296,14 +280,14 @@ export default function TreasurerDashboardPage({
           </div>
         </div>
 
-        {/* Secondary Option: Room Settings */}
-        <div className="pt-4 text-center">
+        {/* Minimal Settings Link */}
+        <div className="pt-2 text-center">
           <button
             onClick={() => setActiveTab("settings")}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-[#7B708A] hover:text-[#332941] bg-white border border-[#EFE8F6] shadow-xs hover:bg-[#F8F5FB] transition-colors"
           >
             <Settings className="w-3.5 h-3.5 text-[#C084FC]" />
-            <span>การตั้งค่าห้องเรียน (เปลี่ยน PIN / อัตราค่าห้อง)</span>
+            <span>ตั้งค่าห้องเรียน</span>
           </button>
         </div>
       </div>
@@ -311,59 +295,44 @@ export default function TreasurerDashboardPage({
   }
 
   // -------------------------------------------------------------
-  // VIEW 2: Inside Specific Management Views (Check-in, Transactions, Settings)
+  // VIEW 2: Inside Specific Views (Check-in, Transactions, Settings)
   // -------------------------------------------------------------
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Top Header with Back to Menu Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            {/* Crucial: Back to 2-Button Choice Menu */}
-            <button
-              onClick={() => setActiveTab("menu")}
-              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-[#9333EA] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] rounded-xl transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>กลับหน้าเลือกเมนู</span>
-            </button>
+      {/* Clean Minimal Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-[#EFE8F6]">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setActiveTab("menu")}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#9333EA] bg-white hover:bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl shadow-xs transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>เลือกเมนู</span>
+          </button>
 
-            <Link
-              href={`/${roomSlug}`}
-              className="text-xs text-[#7B708A] hover:text-[#332941] transition-colors"
-            >
-              หน้าแดชบอร์ด
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#332941]">
-              {activeTab === "checkin" && `หน้าเช็คชื่อจ่ายเงินห้อง (${displayName})`}
-              {activeTab === "transactions" && `หน้ารายการอื่นๆ รายรับ - รายจ่าย (${displayName})`}
-              {activeTab === "settings" && `ตั้งค่าห้องเรียน (${displayName})`}
-            </h1>
-          </div>
+          <h1 className="text-lg sm:text-xl font-bold text-[#332941]">
+            {activeTab === "checkin" && `เช็คชื่อจ่ายเงินห้อง (${displayName})`}
+            {activeTab === "transactions" && `รายการอื่นๆ (${displayName})`}
+            {activeTab === "settings" && `ตั้งค่าห้องเรียน (${displayName})`}
+          </h1>
         </div>
 
-        {/* Quick Tab Switcher & Lock Button */}
+        {/* Quick Switcher & Lock Button */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#EFE8F6] shadow-xs">
             <button
               onClick={() => setActiveTab("checkin")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
                 activeTab === "checkin"
                   ? "bg-[#22C55E] text-white shadow-xs"
                   : "text-[#7B708A] hover:text-[#332941]"
               }`}
             >
-              เช็คชื่อค่าห้อง
+              เช็คชื่อ
             </button>
             <button
               onClick={() => setActiveTab("transactions")}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
                 activeTab === "transactions"
                   ? "bg-[#C084FC] text-white shadow-xs"
                   : "text-[#7B708A] hover:text-[#332941]"
@@ -375,15 +344,15 @@ export default function TreasurerDashboardPage({
 
           <button
             onClick={handleLockSession}
-            className="p-2 text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
-            title="ออกจากระบบเหรัญญิก"
+            className="p-1.5 text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
+            title="ออกจากระบบ"
           >
             <Lock className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* SUB-VIEW 1: Check-in Class Fund (Date Picker + Vertical Column List) */}
+      {/* SUB-VIEW 1: Check-in Class Fund */}
       {activeTab === "checkin" && (
         <div className="space-y-4">
           <StudentList
@@ -395,18 +364,13 @@ export default function TreasurerDashboardPage({
         </div>
       )}
 
-      {/* SUB-VIEW 2: Other Transactions (Income / Expense Records) */}
+      {/* SUB-VIEW 2: Other Transactions (Minimal) */}
       {activeTab === "transactions" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-[#332941]">
-                หน้ารายการอื่นๆ (รายรับ - รายจ่าย)
-              </h3>
-              <p className="text-xs text-[#7B708A]">
-                เพิ่ม ลบ หรือแก้ไขรายการเงินห้อง (เช่น ซื้ออุปกรณ์, ค่าเอกสารชีท)
-              </p>
-            </div>
+            <h3 className="font-bold text-base text-[#332941]">
+              รายการอื่นๆ (รายรับ - รายจ่าย)
+            </h3>
 
             <button
               onClick={() => {
@@ -416,7 +380,7 @@ export default function TreasurerDashboardPage({
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>เพิ่มรายการใหม่</span>
+              <span>เพิ่มรายการ</span>
             </button>
           </div>
 
@@ -433,18 +397,15 @@ export default function TreasurerDashboardPage({
         </div>
       )}
 
-      {/* SUB-VIEW 3: Room Settings */}
+      {/* SUB-VIEW 3: Room Settings (Minimal) */}
       {activeTab === "settings" && (
-        <div className="pastel-card p-6 max-w-lg bg-white shadow-pastel">
-          <h3 className="text-base font-bold text-[#332941] mb-1">
-            การตั้งค่าห้องเรียน {displayName}
+        <div className="pastel-card p-6 max-w-md bg-white shadow-pastel mx-auto">
+          <h3 className="text-base font-bold text-[#332941] mb-4">
+            ตั้งค่าห้องเรียน ({displayName})
           </h3>
-          <p className="text-xs text-[#7B708A] mb-4">
-            ปรับเปลี่ยนรหัส PIN และอัตราค่าห้องเรียนประจำสัปดาห์
-          </p>
 
           {settingsNotice && (
-            <div className="mb-4 p-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl text-xs text-[#065F46] flex items-center gap-2">
+            <div className="mb-4 p-2.5 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl text-xs text-[#065F46] flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] flex-shrink-0" />
               <span>{settingsNotice}</span>
             </div>
@@ -454,19 +415,16 @@ export default function TreasurerDashboardPage({
             <div>
               <label className="flex items-center gap-1.5 font-semibold text-[#7B708A] mb-1">
                 <KeyRound className="w-3.5 h-3.5 text-[#C084FC]" />
-                <span>รหัส PIN เหรัญญิก (4 หลัก)</span>
+                <span>รหัส PIN เหรัญญิก</span>
               </label>
               <input
                 type="text"
                 maxLength={6}
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value)}
-                placeholder="เช่น 1234"
+                placeholder="1234"
                 className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
               />
-              <p className="text-[11px] text-[#9E94AD] mt-1">
-                รหัสนี้ใช้สำหรับเข้าสู่หน้าระบบเหรัญญิกของห้อง {displayName}
-              </p>
             </div>
 
             <div>
@@ -483,16 +441,13 @@ export default function TreasurerDashboardPage({
                 placeholder="20"
                 className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
               />
-              <p className="text-[11px] text-[#9E94AD] mt-1">
-                ใช้คำนวณยอดเงินรวมเมื่อนักเรียนชำระค่าห้อง
-              </p>
             </div>
 
             <button
               type="submit"
               className="w-full py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-colors"
             >
-              บันทึกการตั้งค่า
+              บันทึก
             </button>
           </form>
         </div>
@@ -512,8 +467,8 @@ export default function TreasurerDashboardPage({
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         isOpen={!!deleteId}
-        title="ยืนยันการลบรายการ"
-        message="คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้? เมื่อลบแล้วยอดเงินคงเหลือจะถูกคำนวณใหม่"
+        title="ยืนยันการลบ"
+        message="ต้องการลบรายการนี้ใช่หรือไม่?"
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteId(null)}
       />

@@ -98,11 +98,8 @@ export default function PinModal({
         {/* Title */}
         <div>
           <h2 className="text-lg font-bold text-[#332941]">
-            เข้าสู่ระบบเหรัญญิก ({displayName})
+            เหรัญญิก ({displayName})
           </h2>
-          <p className="text-xs text-[#7B708A] mt-1">
-            กรุณาระบุรหัส PIN 4 หลักเพื่อเข้าจัดการเงินห้อง
-          </p>
         </div>
 
         {/* PIN Indicators (4 Dots) */}
@@ -165,14 +162,14 @@ export default function PinModal({
         {/* Demo Hint & Back Button */}
         <div className="pt-2 border-t border-[#F1EDF7] space-y-2">
           <p className="text-[11px] text-[#9E94AD]">
-            💡 รหัส PIN เริ่มต้นทดสอบ: <span className="font-semibold text-[#9333EA]">1234</span>
+            PIN: <span className="font-semibold text-[#9333EA]">1234</span>
           </p>
           <Link
             href={`/${roomSlug}`}
             className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941]"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>กลับสู่หน้าแดชบอร์ด</span>
+            <span>แดชบอร์ด</span>
           </Link>
         </div>
       </div>
