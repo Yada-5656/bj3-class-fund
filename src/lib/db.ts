@@ -1,4 +1,5 @@
 import { ALL_ROOMS, findRoom } from "./rooms";
+import realStudentsData from "./real_students.json";
 
 export interface Student {
   id: string;
@@ -42,25 +43,44 @@ export interface RoomSummary {
   unpaidStudents: Student[];
 }
 
-// Generate realistic initial mock data for any room
+// Generate realistic initial data for any of the 77 rooms using extracted real student roster
 export function createDefaultRoomData(roomSlug: string): RoomData {
   const room = findRoom(roomSlug);
   const displayName = room ? room.displayName : `ม.${roomSlug.replace("-", "/")}`;
 
-  // 35 Mock students without real names as requested
+  // Load real student roster from extracted BJ3 school data
+  const rawList = (realStudentsData as Record<string, { rollNumber: number; name: string }[]>)[roomSlug];
   const students: Student[] = [];
-  const studentCount = 35;
-  for (let i = 1; i <= studentCount; i++) {
-    // 25 paid, 10 unpaid initially to provide realistic demo data
-    const isPaid = i <= 25;
-    students.push({
-      id: `${roomSlug}-${i.toString().padStart(2, "0")}`,
-      rollNumber: i,
-      name: `เลขที่ ${i} (Student ${i})`,
-      isPaid,
-      paidDate: isPaid ? "2024-09-02" : undefined,
-    });
+
+  if (rawList && rawList.length > 0) {
+    for (let i = 0; i < rawList.length; i++) {
+      const item = rawList[i];
+      // Seed initial status: first 70% paid, rest unpaid for realistic dashboard demonstration
+      const isPaid = i < Math.floor(rawList.length * 0.7);
+      students.push({
+        id: `${roomSlug}-${item.rollNumber.toString().padStart(2, "0")}`,
+        rollNumber: item.rollNumber,
+        name: item.name,
+        isPaid,
+        paidDate: isPaid ? "2024-09-02" : undefined,
+      });
+    }
+  } else {
+    // Fallback if room key is not found
+    for (let i = 1; i <= 35; i++) {
+      const isPaid = i <= 25;
+      students.push({
+        id: `${roomSlug}-${i.toString().padStart(2, "0")}`,
+        rollNumber: i,
+        name: `เลขที่ ${i}`,
+        isPaid,
+        paidDate: isPaid ? "2024-09-02" : undefined,
+      });
+    }
   }
+
+  const paidCount = students.filter((s) => s.isPaid).length;
+  const initialFundCollected = paidCount * 20;
 
   // Realistic starter transactions
   const transactions: Transaction[] = [
@@ -69,8 +89,8 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
       roomId: roomSlug,
       type: "fund",
       category: "เงินห้องประจำสัปดาห์",
-      description: `เก็บเงินห้องประจำสัปดาห์ที่ 1 (25 คน x 20 บาท)`,
-      amount: 500,
+      description: `เก็บเงินห้องประจำสัปดาห์ (${paidCount} คน x 20 บาท)`,
+      amount: initialFundCollected,
       date: "2024-09-02",
       createdAt: new Date("2024-09-02T08:30:00Z").toISOString(),
     },
@@ -158,8 +178,8 @@ export function calculateSummary(roomData: RoomData): RoomSummary {
   };
 }
 
-// Client-side LocalStorage sync helpers so demo modifications persist across page reloads on Vercel
-const STORAGE_PREFIX = "bj3_class_fund_room_";
+// Client-side LocalStorage sync helpers with versioned key
+const STORAGE_PREFIX = "bj3_class_fund_room_v3_";
 
 export function loadRoomFromClientStorage(roomSlug: string): RoomData {
   if (typeof window === "undefined") {
