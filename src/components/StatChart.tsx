@@ -3,17 +3,8 @@
 import React, { useState, useMemo } from "react";
 import { Transaction } from "@/lib/db";
 import { formatCurrency } from "@/lib/utils";
-import {
-  TrendingUp,
-  TrendingDown,
-  Calendar,
-  Layers,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Info,
-} from "lucide-react";
 
-type Timeframe = "week" | "month" | "term";
+type Timeframe = "day" | "week" | "month";
 
 interface DataPoint {
   label: string;
@@ -51,12 +42,12 @@ function createSmoothPath(points: { x: number; y: number }[]): string {
 }
 
 export default function StatChart({ transactions }: StatChartProps) {
-  const [timeframe, setTimeframe] = useState<Timeframe>("week");
+  // Default timeframe is now "day" or "week", let's default to "day" as first button
+  const [timeframe, setTimeframe] = useState<Timeframe>("day");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // Compute aggregated data points based on timeframe and transactions
   const data: DataPoint[] = useMemo(() => {
-    // Total income and expense from actual transactions
     const realIncomeTxs = transactions.filter(
       (t) => t.type === "income" || t.type === "fund"
     );
@@ -71,8 +62,8 @@ export default function StatChart({ transactions }: StatChartProps) {
       0
     );
 
-    if (timeframe === "week") {
-      // 7 Days of current week (จันทร์ - อาทิตย์)
+    if (timeframe === "day") {
+      // รายวัน (7 วันในสัปดาห์ / วันทำการล่าสุด)
       const days = [
         { label: "จ.", fullLabel: "วันจันทร์", incomeRatio: 0.35, expenseRatio: 0.15 },
         { label: "อ.", fullLabel: "วันอังคาร", incomeRatio: 0.15, expenseRatio: 0.25 },
@@ -83,18 +74,29 @@ export default function StatChart({ transactions }: StatChartProps) {
         { label: "อา.", fullLabel: "วันอาทิตย์", incomeRatio: 0.0, expenseRatio: 0.0 },
       ];
 
-      return days.map((d) => {
-        const inc = Math.round(totalRealIncome * d.incomeRatio);
-        const exp = Math.round(totalRealExpense * d.expenseRatio);
-        return {
-          label: d.label,
-          fullLabel: d.fullLabel,
-          income: inc,
-          expense: exp,
-        };
-      });
-    } else if (timeframe === "month") {
-      // Academic Semester Months (พ.ค. - ต.ค.)
+      return days.map((d) => ({
+        label: d.label,
+        fullLabel: d.fullLabel,
+        income: Math.round(totalRealIncome * d.incomeRatio),
+        expense: Math.round(totalRealExpense * d.expenseRatio),
+      }));
+    } else if (timeframe === "week") {
+      // รายสัปดาห์ (สัปดาห์ที่ 1 - 4)
+      const weeks = [
+        { label: "สัปดาห์ 1", fullLabel: "สัปดาห์ที่ 1", incomeRatio: 0.40, expenseRatio: 0.25 },
+        { label: "สัปดาห์ 2", fullLabel: "สัปดาห์ที่ 2", incomeRatio: 0.25, expenseRatio: 0.30 },
+        { label: "สัปดาห์ 3", fullLabel: "สัปดาห์ที่ 3", incomeRatio: 0.20, expenseRatio: 0.25 },
+        { label: "สัปดาห์ 4", fullLabel: "สัปดาห์ที่ 4", incomeRatio: 0.15, expenseRatio: 0.20 },
+      ];
+
+      return weeks.map((w) => ({
+        label: w.label,
+        fullLabel: w.fullLabel,
+        income: Math.round(totalRealIncome * w.incomeRatio),
+        expense: Math.round(totalRealExpense * w.expenseRatio),
+      }));
+    } else {
+      // รายเดือน (พ.ค. - ต.ค. ภาคเรียนที่ 1)
       const months = [
         { label: "พ.ค.", fullLabel: "พฤษภาคม", incomeRatio: 0.30, expenseRatio: 0.25 },
         { label: "มิ.ย.", fullLabel: "มิถุนายน", incomeRatio: 0.20, expenseRatio: 0.15 },
@@ -110,23 +112,6 @@ export default function StatChart({ transactions }: StatChartProps) {
         income: Math.round(totalRealIncome * m.incomeRatio),
         expense: Math.round(totalRealExpense * m.expenseRatio),
       }));
-    } else {
-      // Academic Terms comparison (เทอม 1 vs เทอม 2)
-      const terms = [
-        { label: "เทอม 1 (ต้น)", fullLabel: "ภาคเรียนที่ 1 (ช่วงเปิดเทอม)", incomeRatio: 0.35, expenseRatio: 0.25 },
-        { label: "เทอม 1 (กลาง)", fullLabel: "ภาคเรียนที่ 1 (ช่วงกลางภาค)", incomeRatio: 0.20, expenseRatio: 0.30 },
-        { label: "เทอม 1 (ปลาย)", fullLabel: "ภาคเรียนที่ 1 (ช่วงสอบปลายภาค)", incomeRatio: 0.15, expenseRatio: 0.15 },
-        { label: "เทอม 2 (ต้น)", fullLabel: "ภาคเรียนที่ 2 (ช่วงเปิดเทอม)", incomeRatio: 0.15, expenseRatio: 0.15 },
-        { label: "เทอม 2 (กลาง)", fullLabel: "ภาคเรียนที่ 2 (ช่วงกลางภาค)", incomeRatio: 0.10, expenseRatio: 0.10 },
-        { label: "เทอม 2 (ปลาย)", fullLabel: "ภาคเรียนที่ 2 (ช่วงสอบปลายภาค)", incomeRatio: 0.05, expenseRatio: 0.05 },
-      ];
-
-      return terms.map((t) => ({
-        label: t.label,
-        fullLabel: t.fullLabel,
-        income: Math.round(totalRealIncome * t.incomeRatio),
-        expense: Math.round(totalRealExpense * t.expenseRatio),
-      }));
     }
   }, [timeframe, transactions]);
 
@@ -140,7 +125,6 @@ export default function StatChart({ transactions }: StatChartProps) {
   const innerWidth = chartWidth - paddingX * 2;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
 
-  // Find max value for Y-axis scale (minimum 200 to keep pleasant scale)
   const maxVal = useMemo(() => {
     const highest = Math.max(
       ...data.map((d) => Math.max(d.income, d.expense)),
@@ -149,7 +133,6 @@ export default function StatChart({ transactions }: StatChartProps) {
     return Math.ceil(highest / 100) * 100 || 500;
   }, [data]);
 
-  // Calculate coordinates for points
   const points = useMemo(() => {
     const step = innerWidth / (data.length - 1 || 1);
 
@@ -166,7 +149,6 @@ export default function StatChart({ transactions }: StatChartProps) {
     return { incomePoints, expensePoints };
   }, [data, innerWidth, innerHeight, maxVal, paddingX, paddingTop]);
 
-  // Generate SVG path strings
   const incomeLinePath = useMemo(
     () => createSmoothPath(points.incomePoints),
     [points.incomePoints]
@@ -176,7 +158,6 @@ export default function StatChart({ transactions }: StatChartProps) {
     [points.expensePoints]
   );
 
-  // Generate Area Fill paths
   const incomeAreaPath = useMemo(() => {
     if (points.incomePoints.length === 0) return "";
     const first = points.incomePoints[0];
@@ -193,7 +174,6 @@ export default function StatChart({ transactions }: StatChartProps) {
     return `${expenseLinePath} L ${last.x.toFixed(1)} ${bottom} L ${first.x.toFixed(1)} ${bottom} Z`;
   }, [expenseLinePath, points.expensePoints, paddingTop, innerHeight]);
 
-  // Calculate totals for active period
   const totalPeriodIncome = useMemo(
     () => data.reduce((sum, d) => sum + d.income, 0),
     [data]
@@ -213,11 +193,11 @@ export default function StatChart({ transactions }: StatChartProps) {
               เปรียบเทียบรายรับและรายจ่าย
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF]">
-              {timeframe === "week"
+              {timeframe === "day"
+                ? "รายวัน"
+                : timeframe === "week"
                 ? "รายสัปดาห์"
-                : timeframe === "month"
-                ? "รายเดือน"
-                : "รายเทอม"}
+                : "รายเดือน"}
             </span>
           </div>
         </div>
@@ -248,13 +228,11 @@ export default function StatChart({ transactions }: StatChartProps) {
           className="w-full h-auto overflow-visible select-none"
         >
           <defs>
-            {/* Income Gradient (Mint) */}
             <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
               <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
             </linearGradient>
 
-            {/* Expense Gradient (Coral) */}
             <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.22" />
               <stop offset="100%" stopColor="#F43F5E" stopOpacity="0.02" />
@@ -320,7 +298,6 @@ export default function StatChart({ transactions }: StatChartProps) {
 
             return (
               <g key={i}>
-                {/* Vertical hover guide line */}
                 {isHovered && (
                   <line
                     x1={incPt.x}
@@ -334,7 +311,6 @@ export default function StatChart({ transactions }: StatChartProps) {
                   />
                 )}
 
-                {/* Income point */}
                 <circle
                   cx={incPt.x}
                   cy={incPt.y}
@@ -345,7 +321,6 @@ export default function StatChart({ transactions }: StatChartProps) {
                   className="transition-all duration-200"
                 />
 
-                {/* Expense point */}
                 <circle
                   cx={expPt.x}
                   cy={expPt.y}
@@ -356,7 +331,6 @@ export default function StatChart({ transactions }: StatChartProps) {
                   className="transition-all duration-200"
                 />
 
-                {/* X-Axis Labels */}
                 <text
                   x={incPt.x}
                   y={paddingTop + innerHeight + 18}
@@ -369,7 +343,6 @@ export default function StatChart({ transactions }: StatChartProps) {
                   {d.label}
                 </text>
 
-                {/* Invisible hover hotspot */}
                 <rect
                   x={incPt.x - (innerWidth / (data.length - 1 || 1)) / 2}
                   y={0}
@@ -412,8 +385,23 @@ export default function StatChart({ transactions }: StatChartProps) {
         )}
       </div>
 
-      {/* Crucial Requirement: 3 Selector Buttons at Bottom as in Sketch [ รายสัปดาห์ ] [ รายเดือน ] [ รายเทอม ] */}
+      {/* Crucial Requirement: 3 Selector Buttons at Bottom: [ รายวัน ] [ รายสัปดาห์ ] [ รายเดือน ] */}
       <div className="flex items-center justify-center gap-2 pt-1">
+        <button
+          type="button"
+          onClick={() => {
+            setTimeframe("day");
+            setHoveredIndex(null);
+          }}
+          className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+            timeframe === "day"
+              ? "bg-[#C084FC] text-white shadow-pastel scale-102"
+              : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
+          }`}
+        >
+          รายวัน
+        </button>
+
         <button
           type="button"
           onClick={() => {
@@ -442,21 +430,6 @@ export default function StatChart({ transactions }: StatChartProps) {
           }`}
         >
           รายเดือน
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setTimeframe("term");
-            setHoveredIndex(null);
-          }}
-          className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            timeframe === "term"
-              ? "bg-[#C084FC] text-white shadow-pastel scale-102"
-              : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
-          }`}
-        >
-          รายเทอม
         </button>
       </div>
     </div>

@@ -229,12 +229,7 @@ export default function RoomDashboardPage({
               </div>
 
               {/* Transaction History Table */}
-              <div className="space-y-2 pt-2 border-t border-[#F1EDF7]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#7B708A]">
-                    ประวัติรายการเงินห้องทั้งหมด ({roomData.transactions.length} รายการ)
-                  </span>
-                </div>
+              <div className="pt-2 border-t border-[#F1EDF7]">
                 <TransactionTable
                   transactions={roomData.transactions}
                   showFilters={true}
