@@ -462,6 +462,7 @@ export default function TreasurerDashboardPage({
         }}
         onSubmit={handleSaveTransaction}
         initialData={editingTransaction}
+        roomSlug={roomSlug}
       />
 
       {/* Delete Confirmation Modal */}

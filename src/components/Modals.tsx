@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
 import { Transaction } from "@/lib/db";
 import { getTodayISODate } from "@/lib/utils";
 import { X, Plus, AlertTriangle } from "lucide-react";
@@ -17,6 +18,7 @@ interface TransactionModalProps {
     date: string;
   }) => void;
   initialData?: Transaction | null;
+  roomSlug?: string;
 }
 
 export function TransactionModal({
@@ -24,7 +26,12 @@ export function TransactionModal({
   onClose,
   onSubmit,
   initialData,
+  roomSlug: propsRoomSlug,
 }: TransactionModalProps) {
+  const routeParams = useParams();
+  const roomSlug =
+    propsRoomSlug || (routeParams?.room as string) || "default";
+
   // Default to "income" on entry as requested: "ตอนเข้ามาให้เซตไว้ที่หน้ารายรับ"
   const [type, setType] = useState<"income" | "expense">("income");
   const [description, setDescription] = useState("");
@@ -33,32 +40,37 @@ export function TransactionModal({
   const [date, setDate] = useState(getTodayISODate());
   const [error, setError] = useState<string | null>(null);
 
-  // Preset shortcuts:
+  // Preset shortcuts strictly isolated PER ROOM (ห้องแต่ละห้องแยกจากกันอย่างชัดเจน):
   // "รายรับให้มีขึ้นเป็นชุดผิดกับมาสาย รายจ่ายไม่ต้อง ให้เหรัญญิกไปเพิ่มเอาเอง"
   const [incomePresets, setIncomePresets] = useState<string[]>(["ชุดผิด", "มาสาย"]);
   const [expensePresets, setExpensePresets] = useState<string[]>([]);
   const [isAddingPreset, setIsAddingPreset] = useState(false);
   const [newPresetName, setNewPresetName] = useState("");
 
-  // Load custom presets from localStorage on client mount
+  // Load custom presets isolated by roomSlug from localStorage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedIncome = localStorage.getItem("bj3_income_presets");
+    if (typeof window !== "undefined" && roomSlug) {
+      const savedIncome = localStorage.getItem(`bj3_income_presets_${roomSlug}`);
       if (savedIncome) {
         try {
           const parsed = JSON.parse(savedIncome);
           if (Array.isArray(parsed)) setIncomePresets(parsed);
         } catch (e) {}
+      } else {
+        setIncomePresets(["ชุดผิด", "มาสาย"]);
       }
-      const savedExpense = localStorage.getItem("bj3_expense_presets");
+
+      const savedExpense = localStorage.getItem(`bj3_expense_presets_${roomSlug}`);
       if (savedExpense) {
         try {
           const parsed = JSON.parse(savedExpense);
           if (Array.isArray(parsed)) setExpensePresets(parsed);
         } catch (e) {}
+      } else {
+        setExpensePresets([]);
       }
     }
-  }, []);
+  }, [roomSlug, isOpen]);
 
   // Reset form every time the modal is opened
   useEffect(() => {
@@ -89,6 +101,7 @@ export function TransactionModal({
     isLongPressRef.current = false;
     longPressTimerRef.current = setTimeout(() => {
       isLongPressRef.current = true;
+      // Requirement: "ไอตรงนี้ไม่ต้องถาม ลบเลย" -> delete immediately without confirm prompt
       handleDeletePreset(preset);
     }, 550);
   };
@@ -111,7 +124,7 @@ export function TransactionModal({
     }
   };
 
-  // Add new preset chip
+  // Add new preset chip (Isolated by roomSlug)
   const handleAddPreset = () => {
     const trimmed = newPresetName.trim();
     if (!trimmed) {
@@ -124,7 +137,10 @@ export function TransactionModal({
         const next = [...incomePresets, trimmed];
         setIncomePresets(next);
         if (typeof window !== "undefined") {
-          localStorage.setItem("bj3_income_presets", JSON.stringify(next));
+          localStorage.setItem(
+            `bj3_income_presets_${roomSlug}`,
+            JSON.stringify(next)
+          );
         }
       }
     } else {
@@ -132,7 +148,10 @@ export function TransactionModal({
         const next = [...expensePresets, trimmed];
         setExpensePresets(next);
         if (typeof window !== "undefined") {
-          localStorage.setItem("bj3_expense_presets", JSON.stringify(next));
+          localStorage.setItem(
+            `bj3_expense_presets_${roomSlug}`,
+            JSON.stringify(next)
+          );
         }
       }
     }
@@ -140,24 +159,25 @@ export function TransactionModal({
     setIsAddingPreset(false);
   };
 
-  // Delete preset chip on long-press or click delete
+  // Delete preset chip immediately without confirm: "ไอตรงนี้ไม่ต้องถาม ลบเลย"
   const handleDeletePreset = (presetToDelete: string) => {
-    const confirmed = window.confirm(
-      `ต้องการลบ "${presetToDelete}" ออกจากรายการบันทึกใช่หรือไม่?`
-    );
-    if (!confirmed) return;
-
     if (type === "income") {
       const next = incomePresets.filter((p) => p !== presetToDelete);
       setIncomePresets(next);
       if (typeof window !== "undefined") {
-        localStorage.setItem("bj3_income_presets", JSON.stringify(next));
+        localStorage.setItem(
+          `bj3_income_presets_${roomSlug}`,
+          JSON.stringify(next)
+        );
       }
     } else {
       const next = expensePresets.filter((p) => p !== presetToDelete);
       setExpensePresets(next);
       if (typeof window !== "undefined") {
-        localStorage.setItem("bj3_expense_presets", JSON.stringify(next));
+        localStorage.setItem(
+          `bj3_expense_presets_${roomSlug}`,
+          JSON.stringify(next)
+        );
       }
     }
 
@@ -249,7 +269,7 @@ export function TransactionModal({
             </div>
           </div>
 
-          {/* 2. บันทึกรายการ (แทนหมวดหมู่ - Quick Presets with [+] chip and long-press delete) */}
+          {/* 2. เพิ่มรายการ / บันทึกรายการ (Quick Presets with [+] chip and instant delete) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="font-medium text-[#7B708A] text-xs">
