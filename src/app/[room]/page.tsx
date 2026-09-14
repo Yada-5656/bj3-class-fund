@@ -12,13 +12,16 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
+import StatChart from "@/components/StatChart";
 import {
   Wallet,
   ArrowDownLeft,
   ArrowUpRight,
-  ChevronRight,
   ShieldCheck,
   School,
+  BarChart3,
+  History,
+  Users,
 } from "lucide-react";
 
 export default function RoomDashboardPage({
@@ -32,6 +35,9 @@ export default function RoomDashboardPage({
   const displayName = slugToDisplayName(roomSlug);
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
+
+  // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
+  const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
   // Load isolated room data with local storage fallback
   useEffect(() => {
@@ -51,102 +57,87 @@ export default function RoomDashboardPage({
   const feePerStudent = roomData.settings?.fundFeePerStudent || 20;
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-5 animate-fadeIn max-w-4xl mx-auto">
       {/* Top Banner (Minimalist) */}
-      <div className="pastel-card p-5 sm:p-6 bg-white border border-[#E9D5FF] flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="pastel-card p-4 sm:p-5 bg-white border border-[#E9D5FF] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center flex-shrink-0">
-            <School className="w-6 h-6" />
+          <div className="w-10 h-10 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center flex-shrink-0">
+            <School className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#332941]">
+            <h1 className="text-lg sm:text-xl font-bold text-[#332941]">
               ห้อง {displayName}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/${roomSlug}/history`}
-            className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white text-[#7B708A] hover:text-[#332941] border border-[#EFE8F6] shadow-xs transition-all"
-          >
-            ประวัติ
-          </Link>
+        <Link
+          href={`/${roomSlug}/treasurer`}
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>เหรัญญิก</span>
+        </Link>
+      </div>
 
-          <Link
-            href={`/${roomSlug}/treasurer`}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>เหรัญญิก</span>
-          </Link>
+      {/* 1. Top Card: ยอดเงินคงเหลือ (Prominent Large Card as in User Sketch) */}
+      <div className="pastel-card p-6 sm:p-8 bg-white border border-[#E9D5FF] text-center shadow-xs">
+        <div className="inline-flex items-center justify-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#C084FC] border border-[#E9D5FF] flex items-center justify-center">
+            <Wallet className="w-4 h-4" />
+          </div>
+          <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
+            ยอดเงินคงเหลือ
+          </span>
+        </div>
+        <div className="text-3xl sm:text-5xl font-extrabold text-[#332941] tracking-tight">
+          {formatCurrency(summary.totalBalance)}
         </div>
       </div>
 
-      {/* 3 Core Stat Cards (Minimalist) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Total Balance Card */}
-        <div className="pastel-card p-5 bg-white border border-[#E9D5FF]/80">
+      {/* 2. Side-by-Side Cards: รายรับรวม & รายจ่ายรวม (2 Columns as in Sketch) */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        {/* Total Income */}
+        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#BBF7D0]/80">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#7B708A]">
-              ยอดคงเหลือ
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-[#FAF5FF] text-[#C084FC] border border-[#E9D5FF] flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2">
-            <div className="text-2xl sm:text-3xl font-extrabold text-[#332941] tracking-tight">
-              {formatCurrency(summary.totalBalance)}
-            </div>
-          </div>
-        </div>
-
-        {/* Total Income Card */}
-        <div className="pastel-card p-5 bg-white border border-[#BBF7D0]/80">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#7B708A]">
+            <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
               รายรับรวม
             </span>
-            <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] flex items-center justify-center">
+              <ArrowDownLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-2xl sm:text-3xl font-extrabold text-[#059669] tracking-tight">
-              +{formatCurrency(summary.totalIncome)}
-            </div>
+          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#059669] tracking-tight">
+            +{formatCurrency(summary.totalIncome)}
           </div>
         </div>
 
-        {/* Total Expense Card */}
-        <div className="pastel-card p-5 bg-white border border-[#FECDD3]/80">
+        {/* Total Expense */}
+        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#FECDD3]/80">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#7B708A]">
+            <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
               รายจ่ายรวม
             </span>
-            <div className="w-9 h-9 rounded-xl bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] flex items-center justify-center">
-              <ArrowUpRight className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] flex items-center justify-center">
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-2xl sm:text-3xl font-extrabold text-[#E11D48] tracking-tight">
-              -{formatCurrency(summary.totalExpense)}
-            </div>
+          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#E11D48] tracking-tight">
+            -{formatCurrency(summary.totalExpense)}
           </div>
         </div>
       </div>
 
-      {/* Class Fund Payment Status Progress Card (Minimalist) */}
-      <div className="pastel-card p-5">
+      {/* 3. Class Fund Progress Bar: การเก็บเงินห้อง (เหมือนเดิม) */}
+      <div className="pastel-card p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-3">
-          <h3 className="font-bold text-base text-[#332941]">
+          <h3 className="font-bold text-xs sm:text-sm text-[#332941]">
             การเก็บเงินห้อง ({summary.collectionRate}%)
           </h3>
 
           <div className="flex items-center gap-3 text-xs font-semibold">
             <span className="text-[#059669]">ชำระแล้ว {summary.paidCount}</span>
-            <span className="text-[#E11D48]">ค้างชำระ {summary.unpaidCount}</span>
+            <span className="text-[#E11D48]">ค้าง {summary.unpaidCount}</span>
           </div>
         </div>
 
@@ -163,33 +154,95 @@ export default function RoomDashboardPage({
         </div>
       </div>
 
-      {/* Unpaid Students List (Minimalist) */}
-      <StudentList
-        students={roomData.students}
-        mode="public-unpaid"
-        feePerStudent={feePerStudent}
-      />
-
-      {/* Recent Transactions Section (Minimalist) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-base text-[#332941]">
-            รายการล่าสุด
-          </h3>
-          <Link
-            href={`/${roomSlug}/history`}
-            className="text-xs font-semibold text-[#9333EA] hover:text-[#7E22CE] flex items-center gap-1"
+      {/* 4. Protruding Folder Tabs (ยื่นออกมาแล้วยืดสูงขึ้นเวลากดเปลี่ยนหน้า) */}
+      <div className="relative pt-3">
+        {/* Protruding Tabs Row */}
+        <div className="flex items-end gap-2 px-2 sm:px-4">
+          {/* Tab 1: สถิติ (Default Active Tab) */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("stats")}
+            className={`relative flex items-center gap-2 rounded-t-2xl font-bold transition-all duration-300 select-none ${
+              activeTab === "stats"
+                ? "bg-white text-[#9333EA] border-t-2 border-x-2 border-[#E9D5FF] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
+                : "bg-[#F3E8FF]/70 hover:bg-[#F3E8FF] text-[#7B708A] hover:text-[#332941] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
+            }`}
           >
-            <span>ทั้งหมด</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+            <BarChart3
+              className={
+                activeTab === "stats"
+                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#9333EA]"
+                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B708A]"
+              }
+            />
+            <span>สถิติ</span>
+            {activeTab === "stats" && (
+              <span className="w-2 h-2 rounded-full bg-[#9333EA]" />
+            )}
+          </button>
+
+          {/* Tab 2: ประวัติ */}
+          <button
+            type="button"
+            onClick={() => setActiveTab("history")}
+            className={`relative flex items-center gap-2 rounded-t-2xl font-bold transition-all duration-300 select-none ${
+              activeTab === "history"
+                ? "bg-white text-[#9333EA] border-t-2 border-x-2 border-[#E9D5FF] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
+                : "bg-[#F3E8FF]/70 hover:bg-[#F3E8FF] text-[#7B708A] hover:text-[#332941] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
+            }`}
+          >
+            <History
+              className={
+                activeTab === "history"
+                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#9333EA]"
+                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B708A]"
+              }
+            />
+            <span>ประวัติ</span>
+            {activeTab === "history" && (
+              <span className="w-2 h-2 rounded-full bg-[#9333EA]" />
+            )}
+          </button>
         </div>
 
-        <TransactionTable
-          transactions={roomData.transactions}
-          limit={5}
-          showFilters={false}
-        />
+        {/* Tab Content Box: Seamlessly connected with the active tab */}
+        <div className="pastel-card p-4 sm:p-6 bg-white border-2 border-[#E9D5FF] rounded-b-2xl rounded-tr-2xl relative z-0">
+          {activeTab === "stats" ? (
+            /* Tab Content: สถิติ (Interactive Curve Chart with Week/Month/Term) */
+            <StatChart transactions={roomData.transactions} />
+          ) : (
+            /* Tab Content: ประวัติ (Transaction History Table & Unpaid Roster) */
+            <div className="space-y-6">
+              {/* Unpaid Students Section */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-[#7B708A] flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#C084FC]" />
+                    <span>รายชื่อนักเรียนค้างชำระ ({summary.unpaidCount} คน)</span>
+                  </span>
+                </div>
+                <StudentList
+                  students={roomData.students}
+                  mode="public-unpaid"
+                  feePerStudent={feePerStudent}
+                />
+              </div>
+
+              {/* Transaction History Table */}
+              <div className="space-y-2 pt-2 border-t border-[#F1EDF7]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#7B708A]">
+                    ประวัติรายการเงินห้องทั้งหมด ({roomData.transactions.length} รายการ)
+                  </span>
+                </div>
+                <TransactionTable
+                  transactions={roomData.transactions}
+                  showFilters={true}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
