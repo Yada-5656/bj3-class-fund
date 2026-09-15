@@ -69,19 +69,28 @@ export default function TreasurerDashboardPage({
     );
   }
 
-  // Handle student check-in save with custom selected date
+  // Handle student check-in save with custom selected date and per-date history
   const handleSaveStudents = async (
     updatedStudents: Student[],
     recordTransaction: boolean,
-    selectedDate: string
+    selectedDate: string,
+    paidStudentIds?: string[],
+    allDailyCheckins?: Record<string, string[]>
   ) => {
     let updatedTx = [...roomData.transactions];
 
+    const mergedCheckins: Record<string, string[]> = {
+      ...(roomData.dailyCheckins || {}),
+      ...(allDailyCheckins || {}),
+    };
+    if (paidStudentIds) {
+      mergedCheckins[selectedDate] = paidStudentIds;
+    }
+
     if (recordTransaction) {
-      const prevPaidMap = new Map(roomData.students.map((s) => [s.id, s.isPaid]));
-      const newlyPaidCount = updatedStudents.filter(
-        (s) => s.isPaid && !prevPaidMap.get(s.id)
-      ).length;
+      const prevPaidForDate = new Set(roomData.dailyCheckins?.[selectedDate] || []);
+      const currentPaidList = paidStudentIds || [];
+      const newlyPaidCount = currentPaidList.filter((id) => !prevPaidForDate.has(id)).length;
 
       if (newlyPaidCount > 0) {
         const fee = roomData.settings.fundFeePerStudent || 20;
@@ -93,12 +102,21 @@ export default function TreasurerDashboardPage({
           category: "เงินห้อง",
           description: `เก็บเงินห้อง (${newlyPaidCount} คน x ${fee} บาท)`,
           amount: total,
-          date: selectedDate || new Date().toISOString().split("T")[0],
+          date: selectedDate || getTodayISODate(),
           createdAt: new Date().toISOString(),
         };
         updatedTx.unshift(newRecord);
       }
     }
+
+    // Keep students state synchronized for today so dashboard metrics reflect today's status
+    const today = getTodayISODate();
+    const todayPaidSet = new Set(mergedCheckins[today] || []);
+    const synchronizedStudents = updatedStudents.map((s) => ({
+      ...s,
+      isPaid: todayPaidSet.has(s.id),
+      paidDate: todayPaidSet.has(s.id) ? today : undefined,
+    }));
 
     const nextData: RoomData = {
       ...roomData,
@@ -106,7 +124,8 @@ export default function TreasurerDashboardPage({
         ...roomData.settings,
         lastCheckinDate: selectedDate || getTodayISODate(),
       },
-      students: updatedStudents,
+      students: synchronizedStudents,
+      dailyCheckins: mergedCheckins,
       transactions: updatedTx,
     };
 
@@ -361,6 +380,7 @@ export default function TreasurerDashboardPage({
         <div className="space-y-4">
           <StudentList
             students={roomData.students}
+            dailyCheckins={roomData.dailyCheckins}
             mode="treasurer-manage"
             feePerStudent={roomData.settings.fundFeePerStudent || 20}
             onSave={handleSaveStudents}

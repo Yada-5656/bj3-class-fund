@@ -32,6 +32,7 @@ export interface RoomData {
   settings: RoomSettings;
   students: Student[];
   transactions: Transaction[];
+  dailyCheckins?: Record<string, string[]>;
 }
 
 export interface RoomSummary {
@@ -119,6 +120,7 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
     },
     students,
     transactions,
+    dailyCheckins: {},
   };
 }
 
@@ -133,7 +135,7 @@ export function getRoomData(roomSlug: string): RoomData {
 }
 
 export function calculateSummary(roomData: RoomData): RoomSummary {
-  const { students, transactions } = roomData;
+  const { students, transactions, dailyCheckins } = roomData;
 
   const totalIncome = transactions
     .filter((t) => t.type === "income" || t.type === "fund")
@@ -145,11 +147,17 @@ export function calculateSummary(roomData: RoomData): RoomSummary {
 
   const totalBalance = totalIncome - totalExpense;
 
-  const paidCount = students.filter((s) => s.isPaid).length;
+  const today = getTodayISODate();
+  const todayPaidSet = new Set(
+    dailyCheckins?.[today] ??
+    students.filter((s) => s.isPaid).map((s) => s.id)
+  );
+
+  const paidCount = students.filter((s) => todayPaidSet.has(s.id)).length;
   const totalStudents = students.length;
   const unpaidCount = totalStudents - paidCount;
   const collectionRate = totalStudents > 0 ? Math.round((paidCount / totalStudents) * 100) : 0;
-  const unpaidStudents = students.filter((s) => !s.isPaid);
+  const unpaidStudents = students.filter((s) => !todayPaidSet.has(s.id));
 
   return {
     totalBalance,
@@ -177,19 +185,27 @@ export function loadRoomFromClientStorage(roomSlug: string): RoomData {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}${roomSlug}`);
     if (raw) {
       const data: RoomData = JSON.parse(raw);
-      // Auto-reset check-in status on a new day:
-      // "ตอนที่เข้ามาแบบ รีเซ็ตวันใหม่ชื่อจะขึ้นเป็นยังไม่ได้จ่ายทุกคนเลย
-      // แต่ถ้ายังไม่ผ่านวันใหม่แล้วสมมุดแบบ เข้าไปเช็คเลขที่1 2 จ่ายแล้วแล้วกดบันทึกอะ
-      // พอเข้ามาใหม่มันกะยังเป็นเลขที่1 2 จ่ายแล้วเหมือนเดิมเผื่อมีคนจ่ายเพิ่มไรงี้"
-      if (data.settings && data.settings.lastCheckinDate !== today) {
-        data.settings.lastCheckinDate = today;
-        data.students = data.students.map((s) => ({
-          ...s,
-          isPaid: false,
-          paidDate: undefined,
-        }));
-        saveRoomToClientStorage(roomSlug, data);
+      data.dailyCheckins = data.dailyCheckins || {};
+
+      // Migrate any legacy check-in data into dailyCheckins if missing
+      if (Object.keys(data.dailyCheckins).length === 0) {
+        const legacyDate = data.settings?.lastCheckinDate || today;
+        const legacyPaid = data.students.filter((s) => s.isPaid).map((s) => s.id);
+        if (legacyPaid.length > 0) {
+          data.dailyCheckins[legacyDate] = legacyPaid;
+        }
       }
+
+      // Synchronize students for today
+      // If today has no checkins recorded yet, students start as isPaid: false
+      // If today already has checkins recorded, restore them
+      const todayPaidSet = new Set(data.dailyCheckins[today] || []);
+      data.students = data.students.map((s) => ({
+        ...s,
+        isPaid: todayPaidSet.has(s.id),
+        paidDate: todayPaidSet.has(s.id) ? today : undefined,
+      }));
+
       return data;
     }
   } catch (err) {
@@ -197,6 +213,7 @@ export function loadRoomFromClientStorage(roomSlug: string): RoomData {
   }
 
   const defaultData = getRoomData(roomSlug);
+  defaultData.dailyCheckins = defaultData.dailyCheckins || {};
   defaultData.settings.lastCheckinDate = today;
   defaultData.students = defaultData.students.map((s) => ({
     ...s,

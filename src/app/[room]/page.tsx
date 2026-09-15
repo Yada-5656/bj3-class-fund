@@ -223,6 +223,7 @@ export default function RoomDashboardPage({
                 </div>
                 <StudentList
                   students={roomData.students}
+                  dailyCheckins={roomData.dailyCheckins}
                   mode="public-unpaid"
                   feePerStudent={feePerStudent}
                 />

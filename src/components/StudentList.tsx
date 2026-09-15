@@ -26,24 +26,36 @@ import {
 
 interface StudentListProps {
   students: Student[];
+  dailyCheckins?: Record<string, string[]>;
   mode?: "public-unpaid" | "treasurer-manage";
   feePerStudent?: number;
   onSave?: (
     updatedStudents: Student[],
     recordTransaction: boolean,
-    selectedDate: string
+    selectedDate: string,
+    paidStudentIds?: string[],
+    allDailyCheckins?: Record<string, string[]>
   ) => Promise<void> | void;
   isLoading?: boolean;
 }
 
 export default function StudentList({
   students: initialStudents,
+  dailyCheckins: initialDailyCheckins,
   mode = "public-unpaid",
   feePerStudent = 20,
   onSave,
   isLoading = false,
 }: StudentListProps) {
   const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [checkinHistory, setCheckinHistory] = useState<Record<string, string[]>>(() => {
+    if (initialDailyCheckins && Object.keys(initialDailyCheckins).length > 0) {
+      return initialDailyCheckins;
+    }
+    const today = getTodayISODate();
+    const paidIds = initialStudents.filter((s) => s.isPaid).map((s) => s.id);
+    return paidIds.length > 0 ? { [today]: paidIds } : {};
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
   const [recordAsTransaction, setRecordAsTransaction] = useState(true);
@@ -63,6 +75,17 @@ export default function StudentList({
     setStudents(initialStudents);
   }, [initialStudents]);
 
+  React.useEffect(() => {
+    if (initialDailyCheckins) {
+      setCheckinHistory(initialDailyCheckins);
+    }
+  }, [initialDailyCheckins]);
+
+  // Current paid student IDs for the selected checkinDate
+  const currentPaidIds = useMemo(() => {
+    return new Set(checkinHistory[checkinDate] || []);
+  }, [checkinHistory, checkinDate]);
+
   // Filter students based on search and status
   const filteredStudents = useMemo(() => {
     // In edit mode, show all students so reordering / editing works across the full roster
@@ -76,60 +99,61 @@ export default function StudentList({
     }
 
     return students.filter((s) => {
+      const isPaid = currentPaidIds.has(s.id);
       const matchesSearch =
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         String(s.rollNumber).includes(searchQuery);
 
       if (mode === "public-unpaid") {
-        return !s.isPaid && matchesSearch;
+        return !isPaid && matchesSearch;
       }
 
-      if (filterStatus === "paid") return s.isPaid && matchesSearch;
-      if (filterStatus === "unpaid") return !s.isPaid && matchesSearch;
+      if (filterStatus === "paid") return isPaid && matchesSearch;
+      if (filterStatus === "unpaid") return !isPaid && matchesSearch;
       return matchesSearch;
     });
-  }, [students, searchQuery, filterStatus, mode, isEditMode]);
+  }, [students, searchQuery, filterStatus, mode, isEditMode, currentPaidIds]);
 
-  // Calculations
-  const paidCount = students.filter((s) => s.isPaid).length;
+  // Calculations for currently selected date
+  const paidCount = students.filter((s) => currentPaidIds.has(s.id)).length;
   const unpaidCount = students.length - paidCount;
   const totalFundCalculated = paidCount * feePerStudent;
 
   // Toggle student status using selected checkinDate
   const handleToggle = (id: string) => {
     if (isEditMode) return;
-    setStudents((prev) =>
-      prev.map((s) =>
-        s.id === id
-          ? {
-              ...s,
-              isPaid: !s.isPaid,
-              paidDate: !s.isPaid ? checkinDate : undefined,
-            }
-          : s
-      )
-    );
+    setCheckinHistory((prev) => {
+      const existingList = prev[checkinDate] || [];
+      const nextSet = new Set(existingList);
+      if (nextSet.has(id)) {
+        nextSet.delete(id);
+      } else {
+        nextSet.add(id);
+      }
+      return {
+        ...prev,
+        [checkinDate]: Array.from(nextSet),
+      };
+    });
   };
 
   // Bulk actions using selected checkinDate
   const handleSelectAllPaid = () => {
-    setStudents((prev) =>
-      prev.map((s) => ({
-        ...s,
-        isPaid: true,
-        paidDate: s.paidDate || checkinDate,
-      }))
-    );
+    setCheckinHistory((prev) => ({
+      ...prev,
+      [checkinDate]: students.map((s) => s.id),
+    }));
   };
 
   const handleSelectAllUnpaid = () => {
-    setStudents((prev) =>
-      prev.map((s) => ({ ...s, isPaid: false, paidDate: undefined }))
-    );
+    setCheckinHistory((prev) => ({
+      ...prev,
+      [checkinDate]: [],
+    }));
   };
 
   // Combined single button toggle between Select All and Unselect All
-  const isAllPaid = students.length > 0 && students.every((s) => s.isPaid);
+  const isAllPaid = students.length > 0 && students.every((s) => currentPaidIds.has(s.id));
 
   const handleToggleAll = () => {
     if (isAllPaid) {
@@ -144,7 +168,19 @@ export default function StudentList({
     if (!onSave) return;
     setIsSaving(true);
     try {
-      await onSave(students, recordAsTransaction, checkinDate);
+      const paidIds = checkinHistory[checkinDate] || [];
+      const updatedStudents = students.map((s) => ({
+        ...s,
+        isPaid: paidIds.includes(s.id),
+        paidDate: paidIds.includes(s.id) ? checkinDate : undefined,
+      }));
+      await onSave(
+        updatedStudents,
+        recordAsTransaction,
+        checkinDate,
+        paidIds,
+        checkinHistory
+      );
       setSuccessNotice("บันทึกเรียบร้อย");
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err) {
@@ -155,10 +191,15 @@ export default function StudentList({
   };
 
   // Auto-persist student roster changes
-  const handleAutoPersistRoster = (updated: Student[]) => {
+  const handleAutoPersistRoster = (
+    updated: Student[],
+    nextHistory?: Record<string, string[]>
+  ) => {
     setStudents(updated);
     if (onSave) {
-      onSave(updated, false, checkinDate);
+      const historyToSave = nextHistory || checkinHistory;
+      const paidIds = historyToSave[checkinDate] || [];
+      onSave(updated, false, checkinDate, paidIds, historyToSave);
     }
   };
 
@@ -209,7 +250,12 @@ export default function StudentList({
       .filter((s) => s.id !== id)
       .map((s, idx) => ({ ...s, rollNumber: idx + 1 }));
 
-    handleAutoPersistRoster(updated);
+    const cleanedHistory: Record<string, string[]> = {};
+    for (const [date, ids] of Object.entries(checkinHistory)) {
+      cleanedHistory[date] = ids.filter((studentId) => studentId !== id);
+    }
+    setCheckinHistory(cleanedHistory);
+    handleAutoPersistRoster(updated, cleanedHistory);
   };
 
   // 4. Reorder / Move Students Up or Down ("กดค้างเพื่อเปลี่ยนตำแหน่งของชื่อ แบบย้ายชื่อขึ้นลงอะ")
@@ -244,7 +290,7 @@ export default function StudentList({
   // MODE 1: Public Dashboard View (Shows ONLY Unpaid Students)
   // -------------------------------------------------------------
   if (mode === "public-unpaid") {
-    const unpaidList = students.filter((s) => !s.isPaid);
+    const unpaidList = students.filter((s) => !currentPaidIds.has(s.id));
 
     return (
       <div className="pastel-card p-5">
@@ -355,7 +401,11 @@ export default function StudentList({
           <input
             type="date"
             value={checkinDate}
-            onChange={(e) => setCheckinDate(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value) {
+                setCheckinDate(e.target.value);
+              }
+            }}
             className="px-2.5 py-1 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs font-medium text-[#332941] focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
           />
         </div>
@@ -571,7 +621,7 @@ export default function StudentList({
             </div>
           ) : (
             filteredStudents.map((student, index) => {
-              const isPaid = student.isPaid;
+              const isPaid = currentPaidIds.has(student.id);
               const isBeingDragged = draggedIndex === index;
 
               return (
