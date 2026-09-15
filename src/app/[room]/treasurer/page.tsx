@@ -11,7 +11,7 @@ import {
   Student,
   Transaction,
 } from "@/lib/db";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import { TransactionModal, ConfirmModal } from "@/components/Modals";
@@ -102,6 +102,10 @@ export default function TreasurerDashboardPage({
 
     const nextData: RoomData = {
       ...roomData,
+      settings: {
+        ...roomData.settings,
+        lastCheckinDate: selectedDate || getTodayISODate(),
+      },
       students: updatedStudents,
       transactions: updatedTx,
     };

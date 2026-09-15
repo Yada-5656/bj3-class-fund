@@ -128,6 +128,17 @@ export default function StudentList({
     );
   };
 
+  // Combined single button toggle between Select All and Unselect All
+  const isAllPaid = students.length > 0 && students.every((s) => s.isPaid);
+
+  const handleToggleAll = () => {
+    if (isAllPaid) {
+      handleSelectAllUnpaid();
+    } else {
+      handleSelectAllPaid();
+    }
+  };
+
   // Save changes
   const handleSave = async () => {
     if (!onSave) return;
@@ -257,7 +268,7 @@ export default function StudentList({
             <span className="font-medium">ชำระครบทุกคน</span>
           </div>
         ) : (
-          <div className="flex flex-col space-y-1.5 max-h-96 overflow-y-auto pr-1">
+          <div className="flex flex-col space-y-1.5">
             {unpaidList.map((student) => (
               <div
                 key={student.id}
@@ -407,24 +418,27 @@ export default function StudentList({
         <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-[#F1EDF7]">
           <div className="flex items-center gap-2">
             {!isEditMode ? (
-              <>
-                <button
-                  type="button"
-                  onClick={handleSelectAllPaid}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#059669] bg-[#ECFDF5] hover:bg-[#D1FAE5] border border-[#A7F3D0] rounded-xl transition-colors"
-                >
-                  <CheckCheck className="w-3.5 h-3.5" />
-                  <span>เลือกชำระทั้งหมด</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSelectAllUnpaid}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B708A] bg-[#F8F5FB] hover:bg-[#EFE8F6] border border-[#EFE8F6] rounded-xl transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>ยกเลิกทั้งหมด</span>
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={handleToggleAll}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all ${
+                  isAllPaid
+                    ? "bg-[#FAF5FF] text-[#7B708A] hover:bg-[#F3E8FF] hover:text-[#332941] border-[#E9D5FF]"
+                    : "bg-[#ECFDF5] text-[#059669] hover:bg-[#D1FAE5] border-[#A7F3D0]"
+                }`}
+              >
+                {isAllPaid ? (
+                  <>
+                    <RotateCcw className="w-3.5 h-3.5 text-[#7B708A]" />
+                    <span>ยกเลิกทั้งหมด</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCheck className="w-3.5 h-3.5 text-[#059669]" />
+                    <span>เลือกชำระทั้งหมด</span>
+                  </>
+                )}
+              </button>
             ) : (
               <span className="text-xs text-[#7B708A]">
                 ลากหรือกดลูกศรเพื่อเลื่อนลำดับเลขที่
@@ -550,7 +564,7 @@ export default function StudentList({
           </div>
         )}
 
-        <div className="divide-y divide-[#F1EDF7] max-h-[600px] overflow-y-auto">
+        <div className="divide-y divide-[#F1EDF7]">
           {filteredStudents.length === 0 ? (
             <div className="p-8 text-center text-xs text-[#9E94AD]">
               ไม่พบข้อมูล

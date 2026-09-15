@@ -1,5 +1,6 @@
 import { ALL_ROOMS, findRoom } from "./rooms";
 import realStudentsData from "./real_students.json";
+import { getTodayISODate } from "./utils";
 
 export interface Student {
   id: string;
@@ -23,6 +24,7 @@ export interface Transaction {
 export interface RoomSettings {
   treasurerPin: string;
   fundFeePerStudent: number;
+  lastCheckinDate?: string;
 }
 
 export interface RoomData {
@@ -55,44 +57,36 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
   if (rawList && rawList.length > 0) {
     for (let i = 0; i < rawList.length; i++) {
       const item = rawList[i];
-      // Seed initial status: first 70% paid, rest unpaid for realistic dashboard demonstration
-      const isPaid = i < Math.floor(rawList.length * 0.7);
       students.push({
         id: `${roomSlug}-${item.rollNumber.toString().padStart(2, "0")}`,
         rollNumber: item.rollNumber,
         name: item.name,
-        isPaid,
-        paidDate: isPaid ? "2024-09-02" : undefined,
+        isPaid: false,
       });
     }
   } else {
     // Fallback if room key is not found
     for (let i = 1; i <= 35; i++) {
-      const isPaid = i <= 25;
       students.push({
         id: `${roomSlug}-${i.toString().padStart(2, "0")}`,
         rollNumber: i,
         name: `เลขที่ ${i}`,
-        isPaid,
-        paidDate: isPaid ? "2024-09-02" : undefined,
+        isPaid: false,
       });
     }
   }
-
-  const paidCount = students.filter((s) => s.isPaid).length;
-  const initialFundCollected = paidCount * 20;
 
   // Realistic starter transactions
   const transactions: Transaction[] = [
     {
       id: `tx-${roomSlug}-1`,
       roomId: roomSlug,
-      type: "fund",
-      category: "เงินห้องประจำสัปดาห์",
-      description: `เก็บเงินห้องประจำสัปดาห์ (${paidCount} คน x 20 บาท)`,
-      amount: initialFundCollected,
-      date: "2024-09-02",
-      createdAt: new Date("2024-09-02T08:30:00Z").toISOString(),
+      type: "income",
+      category: "เงินสนับสนุน",
+      description: "เงินสนับสนุนกิจกรรมห้องเรียนจากครูที่ปรึกษา",
+      amount: 400,
+      date: "2024-09-01",
+      createdAt: new Date("2024-09-01T09:00:00Z").toISOString(),
     },
     {
       id: `tx-${roomSlug}-2`,
@@ -106,16 +100,6 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
     },
     {
       id: `tx-${roomSlug}-3`,
-      roomId: roomSlug,
-      type: "income",
-      category: "เงินสนับสนุน",
-      description: "เงินสนับสนุนกิจกรรมห้องเรียนจากครูที่ปรึกษา",
-      amount: 400,
-      date: "2024-09-01",
-      createdAt: new Date("2024-09-01T09:00:00Z").toISOString(),
-    },
-    {
-      id: `tx-${roomSlug}-4`,
       roomId: roomSlug,
       type: "expense",
       category: "เอกสารการเรียน",
@@ -131,6 +115,7 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
     settings: {
       treasurerPin: "1234",
       fundFeePerStudent: 20,
+      lastCheckinDate: getTodayISODate(),
     },
     students,
     transactions,
@@ -179,23 +164,45 @@ export function calculateSummary(roomData: RoomData): RoomSummary {
 }
 
 // Client-side LocalStorage sync helpers with versioned key
-const STORAGE_PREFIX = "bj3_class_fund_room_v3_";
+const STORAGE_PREFIX = "bj3_class_fund_room_v4_";
 
 export function loadRoomFromClientStorage(roomSlug: string): RoomData {
   if (typeof window === "undefined") {
     return getRoomData(roomSlug);
   }
 
+  const today = getTodayISODate();
+
   try {
     const raw = localStorage.getItem(`${STORAGE_PREFIX}${roomSlug}`);
     if (raw) {
-      return JSON.parse(raw);
+      const data: RoomData = JSON.parse(raw);
+      // Auto-reset check-in status on a new day:
+      // "ตอนที่เข้ามาแบบ รีเซ็ตวันใหม่ชื่อจะขึ้นเป็นยังไม่ได้จ่ายทุกคนเลย
+      // แต่ถ้ายังไม่ผ่านวันใหม่แล้วสมมุดแบบ เข้าไปเช็คเลขที่1 2 จ่ายแล้วแล้วกดบันทึกอะ
+      // พอเข้ามาใหม่มันกะยังเป็นเลขที่1 2 จ่ายแล้วเหมือนเดิมเผื่อมีคนจ่ายเพิ่มไรงี้"
+      if (data.settings && data.settings.lastCheckinDate !== today) {
+        data.settings.lastCheckinDate = today;
+        data.students = data.students.map((s) => ({
+          ...s,
+          isPaid: false,
+          paidDate: undefined,
+        }));
+        saveRoomToClientStorage(roomSlug, data);
+      }
+      return data;
     }
   } catch (err) {
     console.error("Failed to read from localStorage:", err);
   }
 
   const defaultData = getRoomData(roomSlug);
+  defaultData.settings.lastCheckinDate = today;
+  defaultData.students = defaultData.students.map((s) => ({
+    ...s,
+    isPaid: false,
+    paidDate: undefined,
+  }));
   saveRoomToClientStorage(roomSlug, defaultData);
   return defaultData;
 }
