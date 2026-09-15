@@ -17,7 +17,6 @@ import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
 import { ConfirmModal } from "@/components/Modals";
-import FirstTimeSetupModal from "@/components/FirstTimeSetupModal";
 import GraduationCountdownModal from "@/components/GraduationCountdownModal";
 import {
   Wallet,
@@ -47,7 +46,6 @@ export default function RoomDashboardPage({
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [promotionDate, setPromotionDate] = useState<string | null>(null);
-  const [isSyncReady, setIsSyncReady] = useState(false);
 
   // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
@@ -67,16 +65,10 @@ export default function RoomDashboardPage({
       setRoomData(localData);
       setPromotionDate(getPromotionDate());
 
-      // If already initialized locally, mark sync as ready immediately
-      if (localData.settings?.isInitialized) {
-        setIsSyncReady(true);
-      }
-
       // 2. Cross-device cloud sync
       syncRoomWithServer(roomSlug).then((syncedData) => {
         if (isMounted) {
           setRoomData(syncedData);
-          setIsSyncReady(true);
         }
       });
     }
@@ -91,36 +83,6 @@ export default function RoomDashboardPage({
       sessionStorage.removeItem(`bj3_treasurer_auth_${roomSlug}`);
     }
     router.replace("/");
-  };
-
-  const handleCompleteFirstTimeSetup = async (fee: number, pin: string) => {
-    if (!roomData) return;
-    const updatedData: RoomData = {
-      ...roomData,
-      settings: {
-        ...roomData.settings,
-        fundFeePerStudent: fee,
-        treasurerPin: pin,
-        isInitialized: true,
-      },
-    };
-    setRoomData(updatedData);
-    saveRoomToClientStorage(roomSlug, updatedData);
-
-    try {
-      await fetch("/api/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "initialize",
-          roomSlug,
-          feePerStudent: fee,
-          treasurerPin: pin,
-        }),
-      });
-    } catch (err) {
-      console.error("Cloud initialization error:", err);
-    }
   };
 
   if (!roomData) {
@@ -357,13 +319,6 @@ export default function RoomDashboardPage({
         confirmText="ออกจากระบบ"
         onConfirm={handleConfirmLogout}
         onCancel={() => setShowLogoutModal(false)}
-      />
-
-      {/* First-Time Setup Modal (Only shown if room has never been initialized on any device) */}
-      <FirstTimeSetupModal
-        isOpen={isSyncReady && !roomData.settings?.isInitialized}
-        displayName={displayName}
-        onComplete={handleCompleteFirstTimeSetup}
       />
 
       {/* Graduation Countdown Notice for M.3 and M.6 */}

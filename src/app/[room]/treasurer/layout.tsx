@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { slugToDisplayName } from "@/lib/rooms";
-import { loadRoomFromClientStorage } from "@/lib/db";
+import { loadRoomFromClientStorage, saveRoomToClientStorage, syncRoomWithServer, RoomData } from "@/lib/db";
 import PinModal from "@/components/PinModal";
+import FirstTimeSetupModal from "@/components/FirstTimeSetupModal";
 
 export default function TreasurerLayout({
   children,
@@ -18,23 +19,85 @@ export default function TreasurerLayout({
   const displayName = slugToDisplayName(roomSlug);
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(true);
   const [expectedPin, setExpectedPin] = useState<string>("");
+  const [roomData, setRoomData] = useState<RoomData | null>(null);
+  const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
 
   useEffect(() => {
-    // Check if treasurer is already authenticated in this browser session
+    let isMounted = true;
     const isAuth = sessionStorage.getItem(`bj3_treasurer_auth_${roomSlug}`);
     if (isAuth === "true") {
       setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
+      setIsCheckingStatus(false);
+      return;
     }
-    const data = loadRoomFromClientStorage(roomSlug);
-    if (data && data.settings) {
-      setExpectedPin(data.settings.treasurerPin || "");
-    }
+
+    // Check local state first
+    const local = loadRoomFromClientStorage(roomSlug);
+    setRoomData(local);
+    setExpectedPin(local.settings?.treasurerPin || "");
+    setIsInitialized(!!local.settings?.isInitialized);
+
+    // Cross-check with server sync
+    syncRoomWithServer(roomSlug)
+      .then((synced) => {
+        if (isMounted) {
+          setRoomData(synced);
+          setExpectedPin(synced.settings?.treasurerPin || "");
+          setIsInitialized(!!synced.settings?.isInitialized);
+          setIsCheckingStatus(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsCheckingStatus(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [roomSlug]);
 
-  if (isAuthenticated === null) {
+  const handleCompleteSetup = async (fee: number, pin: string) => {
+    if (!roomData) return;
+    const nextData: RoomData = {
+      ...roomData,
+      settings: {
+        ...roomData.settings,
+        fundFeePerStudent: fee,
+        treasurerPin: pin,
+        isInitialized: true,
+      },
+    };
+    setRoomData(nextData);
+    setExpectedPin(pin);
+    setIsInitialized(true);
+    saveRoomToClientStorage(roomSlug, nextData);
+
+    // Grant access to this session
+    sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
+    setIsAuthenticated(true);
+
+    // Save to central cloud store
+    try {
+      await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "initialize",
+          roomSlug,
+          feePerStudent: fee,
+          treasurerPin: pin,
+        }),
+      });
+    } catch (err) {
+      console.error("Cloud initialization error:", err);
+    }
+  };
+
+  if (isCheckingStatus && isAuthenticated === null) {
     return (
       <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
         กำลังตรวจสอบสิทธิ์เหรัญญิก...
@@ -42,16 +105,28 @@ export default function TreasurerLayout({
     );
   }
 
-  if (!isAuthenticated) {
+  if (isAuthenticated) {
+    return <>{children}</>;
+  }
+
+  // If the room has never been set up by any treasurer yet, show setup modal
+  if (!isInitialized) {
     return (
-      <PinModal
-        roomSlug={roomSlug}
+      <FirstTimeSetupModal
+        isOpen={true}
         displayName={displayName}
-        expectedPin={expectedPin}
-        onSuccess={() => setIsAuthenticated(true)}
+        onComplete={handleCompleteSetup}
       />
     );
   }
 
-  return <>{children}</>;
+  // Room is already set up: prompt for the room's single treasurer PIN
+  return (
+    <PinModal
+      roomSlug={roomSlug}
+      displayName={displayName}
+      expectedPin={expectedPin}
+      onSuccess={() => setIsAuthenticated(true)}
+    />
+  );
 }
