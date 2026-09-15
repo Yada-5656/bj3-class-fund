@@ -53,13 +53,20 @@ export default function TreasurerDashboardPage({
   const [settingsNotice, setSettingsNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    const data = loadRoomFromClientStorage(roomSlug);
-    setRoomData(data);
-    if (data.settings) {
-      setNewPin(data.settings.treasurerPin || "1234");
-      setNewFee(String(data.settings.fundFeePerStudent || 20));
+    if (typeof window !== "undefined") {
+      const activeRoom = localStorage.getItem("bj3_active_room");
+      if (!activeRoom || activeRoom !== roomSlug) {
+        router.replace("/");
+        return;
+      }
+      const data = loadRoomFromClientStorage(roomSlug);
+      setRoomData(data);
+      if (data.settings) {
+        setNewPin(data.settings.treasurerPin || "1234");
+        setNewFee(String(data.settings.fundFeePerStudent || 20));
+      }
     }
-  }, [roomSlug]);
+  }, [roomSlug, router]);
 
   if (!roomData) {
     return (

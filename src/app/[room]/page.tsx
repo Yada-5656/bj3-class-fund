@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { findRoom, slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
@@ -13,6 +13,7 @@ import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
+import { ConfirmModal } from "@/components/Modals";
 import {
   Wallet,
   ArrowDownLeft,
@@ -24,6 +25,7 @@ import {
   Users,
   Calendar,
   CheckCircle2,
+  LogOut,
 } from "lucide-react";
 
 export default function RoomDashboardPage({
@@ -31,21 +33,39 @@ export default function RoomDashboardPage({
 }: {
   params?: { room?: string };
 }) {
+  const router = useRouter();
   const routeParams = useParams();
   const roomSlug = (propsParams?.room || routeParams?.room || "3-15") as string;
   const room = findRoom(roomSlug);
   const displayName = slugToDisplayName(roomSlug);
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
-  // Load isolated room data with local storage fallback
+  // Room Guard & load room data:
+  // "จะไม่ให้ห้องอื่นเข้าไปดูของห้องอื่นได้"
   useEffect(() => {
-    const data = loadRoomFromClientStorage(roomSlug);
-    setRoomData(data);
-  }, [roomSlug]);
+    if (typeof window !== "undefined") {
+      const activeRoom = localStorage.getItem("bj3_active_room");
+      if (!activeRoom || activeRoom !== roomSlug) {
+        router.replace("/");
+        return;
+      }
+      const data = loadRoomFromClientStorage(roomSlug);
+      setRoomData(data);
+    }
+  }, [roomSlug, router]);
+
+  const handleConfirmLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("bj3_active_room");
+      sessionStorage.removeItem(`bj3_treasurer_auth_${roomSlug}`);
+    }
+    router.replace("/");
+  };
 
   if (!roomData) {
     return (
@@ -75,13 +95,23 @@ export default function RoomDashboardPage({
           </div>
         </div>
 
-        <Link
-          href={`/${roomSlug}/treasurer`}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
-        >
-          <ShieldCheck className="w-4 h-4" />
-          <span>เหรัญญิก</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowLogoutModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] shadow-xs transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>ออกจากระบบ</span>
+          </button>
+          <Link
+            href={`/${roomSlug}/treasurer`}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>เหรัญญิก</span>
+          </Link>
+        </div>
       </div>
 
       {/* 1. Top Card: ยอดเงินคงเหลือ (Prominent Large Card as in User Sketch) */}
@@ -262,6 +292,16 @@ export default function RoomDashboardPage({
           )}
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutModal}
+        title="ยืนยันการออกจากระบบ"
+        message={`คุณต้องการออกจากระบบห้อง ${displayName} ใช่หรือไม่? หากออกจากระบบจะต้องกรอกรหัสผ่านเพื่อเข้าใช้งานใหม่อีกครั้ง`}
+        confirmText="ออกจากระบบ"
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </div>
   );
 }

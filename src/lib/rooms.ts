@@ -103,7 +103,7 @@ export function validateLogin(username: string, password: string): {
   if (!room) {
     return {
       success: false,
-      error: `ไม่พบห้องเรียน "${username}" ในระบบ (รองรับ 77 ห้อง: ม.1/1 - ม.6/10)`,
+      error: `ไม่พบห้องเรียน "${username}" ในระบบ โปรดตรวจสอบชื่อห้องเรียนอีกครั้ง`,
     };
   }
 
@@ -124,6 +124,6 @@ export function validateLogin(username: string, password: string): {
 
   return {
     success: false,
-    error: `รหัสผ่านไม่ถูกต้อง (ตัวอย่าง: "${room.name}BJ3")`,
+    error: "รหัสผ่านประจำห้องไม่ถูกต้อง โปรดตรวจสอบอีกครั้ง",
   };
 }

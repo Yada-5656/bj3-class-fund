@@ -436,6 +436,7 @@ interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
   message: string;
+  confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -444,6 +445,7 @@ export function ConfirmModal({
   isOpen,
   title,
   message,
+  confirmText,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -475,7 +477,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             className="px-4 py-1.5 text-xs font-semibold text-white bg-[#FF96A8] hover:bg-[#FB7185] rounded-xl shadow-xs transition-colors"
           >
-            ยืนยันการลบ
+            {confirmText || "ยืนยันการลบ"}
           </button>
         </div>
       </div>
