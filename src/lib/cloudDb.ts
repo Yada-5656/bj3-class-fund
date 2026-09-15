@@ -1,10 +1,7 @@
 import { RoomData, RoomSettings, Transaction, createDefaultRoomData } from "./db";
 
-// Cloud Store configuration
-// Primary: Dedicated persistent JSON bin on ExtendsClass
-// Secondary: Upstash / Vercel KV if environment variables are provided
-const CLOUD_BIN_ID = process.env.BJ3_CLOUD_BIN || "edbbbbf";
-const EXTENDSCLASS_URL = `https://extendsclass.com/api/json-storage/bin/${CLOUD_BIN_ID}`;
+// Cloud Store configuration using public reliable JSON store
+const STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0a664936f137c";
 
 export interface CloudState {
   version: number;
@@ -56,13 +53,13 @@ export async function fetchCloudState(): Promise<CloudState> {
         }
       }
     } catch (err) {
-      console.warn("Upstash fetch failed, falling back to primary cloud store:", err);
+      console.warn("Upstash fetch failed:", err);
     }
   }
 
-  // 2. Primary Cloud Store: ExtendsClass JSON Bin
+  // 2. Primary Cloud Store
   try {
-    const res = await fetch(EXTENDSCLASS_URL, {
+    const res = await fetch(STORE_URL, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -71,12 +68,19 @@ export async function fetchCloudState(): Promise<CloudState> {
     });
 
     if (res.ok) {
-      const data: CloudState = await res.json();
-      if (data && typeof data.rooms === "object") {
-        memoryCache = data;
-        lastCacheFetchTime = now;
-        return data;
-      }
+      const json = await res.json();
+      const rawData = json.data || {};
+      const data: CloudState = {
+        version: rawData.version || 1,
+        updatedAt: rawData.updatedAt || new Date().toISOString(),
+        promotionDate: rawData.promotionDate || null,
+        adminUsername: rawData.adminUsername,
+        adminPassword: rawData.adminPassword,
+        rooms: rawData.rooms || {},
+      };
+      memoryCache = data;
+      lastCacheFetchTime = now;
+      return data;
     }
   } catch (err) {
     console.error("Cloud store fetch error:", err);
@@ -122,14 +126,17 @@ export async function saveCloudState(
     }
   }
 
-  // 2. Persist to ExtendsClass
+  // 2. Persist to Primary Cloud Store
   try {
-    await fetch(EXTENDSCLASS_URL, {
+    await fetch(STORE_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(next),
+      body: JSON.stringify({
+        name: "bj3_rooms_store",
+        data: next,
+      }),
     });
   } catch (err) {
     console.error("Failed to save to cloud store:", err);
