@@ -7,6 +7,7 @@ import { findRoom, slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
   saveRoomToClientStorage,
+  syncRoomWithServer,
   calculateSummary,
   getPromotionDate,
   RoomData,
@@ -46,22 +47,42 @@ export default function RoomDashboardPage({
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [promotionDate, setPromotionDate] = useState<string | null>(null);
+  const [isSyncReady, setIsSyncReady] = useState(false);
 
   // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
-  // Room Guard & load room data
+  // Room Guard & load room data (Local + Cloud Sync)
   useEffect(() => {
+    let isMounted = true;
     if (typeof window !== "undefined") {
       const activeRoom = localStorage.getItem("bj3_active_room");
       if (!activeRoom || activeRoom !== roomSlug) {
         router.replace("/");
         return;
       }
-      const data = loadRoomFromClientStorage(roomSlug);
-      setRoomData(data);
+
+      // 1. Instant local load
+      const localData = loadRoomFromClientStorage(roomSlug);
+      setRoomData(localData);
       setPromotionDate(getPromotionDate());
+
+      // If already initialized locally, mark sync as ready immediately
+      if (localData.settings?.isInitialized) {
+        setIsSyncReady(true);
+      }
+
+      // 2. Cross-device cloud sync
+      syncRoomWithServer(roomSlug).then((syncedData) => {
+        if (isMounted) {
+          setRoomData(syncedData);
+          setIsSyncReady(true);
+        }
+      });
     }
+    return () => {
+      isMounted = false;
+    };
   }, [roomSlug, router]);
 
   const handleConfirmLogout = () => {
@@ -72,7 +93,7 @@ export default function RoomDashboardPage({
     router.replace("/");
   };
 
-  const handleCompleteFirstTimeSetup = (fee: number, pin: string) => {
+  const handleCompleteFirstTimeSetup = async (fee: number, pin: string) => {
     if (!roomData) return;
     const updatedData: RoomData = {
       ...roomData,
@@ -85,6 +106,21 @@ export default function RoomDashboardPage({
     };
     setRoomData(updatedData);
     saveRoomToClientStorage(roomSlug, updatedData);
+
+    try {
+      await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "initialize",
+          roomSlug,
+          feePerStudent: fee,
+          treasurerPin: pin,
+        }),
+      });
+    } catch (err) {
+      console.error("Cloud initialization error:", err);
+    }
   };
 
   if (!roomData) {
@@ -323,9 +359,9 @@ export default function RoomDashboardPage({
         onCancel={() => setShowLogoutModal(false)}
       />
 
-      {/* First-Time Setup Modal */}
+      {/* First-Time Setup Modal (Only shown if room has never been initialized on any device) */}
       <FirstTimeSetupModal
-        isOpen={!roomData.settings?.isInitialized}
+        isOpen={isSyncReady && !roomData.settings?.isInitialized}
         displayName={displayName}
         onComplete={handleCompleteFirstTimeSetup}
       />

@@ -90,6 +90,17 @@ export default function AdminDashboardPage() {
   const handleSavePromotionDate = (e: React.FormEvent) => {
     e.preventDefault();
     setPromotionDate(promotionDateInput || null);
+    
+    // Sync to cloud
+    fetch("/api/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "update_promotion_date",
+        promotionDate: promotionDateInput || null,
+      }),
+    }).catch(() => {});
+
     setNotice(
       promotionDateInput
         ? `บันทึกวันเลื่อนชั้น: ${formatThaiDate(promotionDateInput)} เรียบร้อยแล้ว`

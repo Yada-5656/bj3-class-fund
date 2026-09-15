@@ -18,10 +18,11 @@ export default function FirstTimeSetupModal({
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -41,7 +42,12 @@ export default function FirstTimeSetupModal({
       return;
     }
 
-    onComplete(feeNum, pin.trim());
+    setIsSubmitting(true);
+    try {
+      await onComplete(feeNum, pin.trim());
+    } catch (err) {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -56,8 +62,11 @@ export default function FirstTimeSetupModal({
             ยินดีต้อนรับสู่ห้อง {displayName}
           </h2>
           <p className="text-xs text-[#7B708A]">
-            ตั้งค่าเริ่มต้นสำหรับห้องเรียนของคุณ (ทำเพียงครั้งแรก)
+            ตั้งค่าเริ่มต้นสำหรับห้องเรียนของคุณ (ทำเพียงครั้งแรก โดยเหรัญญิกคนแรกที่เข้าใช้งาน)
           </p>
+          <div className="text-[11px] text-[#A855F7] bg-[#FAF5FF] p-2 rounded-xl border border-[#E9D5FF] leading-relaxed">
+            ℹ️ เมื่อตั้งค่าแล้ว ข้อมูลจะเชื่อมต่อส่วนกลางทันที เครื่องอื่นๆ ทุกเครื่องจะไม่เจอหน้านี้อีก และจะใช้รหัสผ่านนี้ร่วมกัน
+          </div>
         </div>
 
         {/* Error Alert */}
@@ -126,10 +135,11 @@ export default function FirstTimeSetupModal({
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 shadow-pastel flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 disabled:opacity-50 shadow-pastel flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
             <CheckCircle2 className="w-4 h-4" />
-            <span>บันทึกและเริ่มใช้งานห้อง</span>
+            <span>{isSubmitting ? "กำลังบันทึกข้อมูลส่วนกลาง..." : "บันทึกและเริ่มใช้งานห้อง"}</span>
           </button>
         </form>
       </div>

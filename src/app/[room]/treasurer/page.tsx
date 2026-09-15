@@ -7,9 +7,10 @@ import { findRoom, slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
   saveRoomToClientStorage,
-  RoomData,
+  syncRoomWithServer,
   Student,
   Transaction,
+  RoomData,
 } from "@/lib/db";
 import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
@@ -65,6 +66,14 @@ export default function TreasurerDashboardPage({
         setNewPin("");
         setNewFee(String(data.settings.fundFeePerStudent || 20));
       }
+
+      // Sync latest data from cloud
+      syncRoomWithServer(roomSlug).then((synced) => {
+        setRoomData(synced);
+        if (synced.settings) {
+          setNewFee(String(synced.settings.fundFeePerStudent || 20));
+        }
+      });
     }
   }, [roomSlug, router]);
 

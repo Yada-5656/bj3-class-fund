@@ -19,22 +19,41 @@ export default function PinModal({
   onSuccess,
   expectedPin,
 }: PinModalProps) {
+  const [syncedPin, setSyncedPin] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const roomData = loadRoomFromClientStorage(roomSlug);
+      return (roomData?.settings?.treasurerPin || expectedPin || "").trim();
+    }
+    return (expectedPin || "").trim();
+  });
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+    fetch(`/api/sync?room=${roomSlug}`, { cache: "no-store" })
+      .then((res) => res.json())
+      .then((json) => {
+        if (isMounted && json.settings?.treasurerPin) {
+          setSyncedPin(json.settings.treasurerPin.trim());
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [roomSlug]);
+
   const handleKeyPress = (digit: string) => {
-    if (pin.length < 6) {
+    const targetLength = syncedPin.length || 4;
+    if (pin.length < targetLength) {
       const nextPin = pin + digit;
       setPin(nextPin);
       setError(null);
 
-      // Check when reaching at least 4 digits
-      const roomData = loadRoomFromClientStorage(roomSlug);
-      const actualPin = (roomData?.settings?.treasurerPin || expectedPin || "").trim();
-
-      if (actualPin && nextPin.length === actualPin.length) {
-        verifyPin(nextPin, actualPin);
+      if (nextPin.length === targetLength) {
+        verifyPin(nextPin, syncedPin);
       }
     }
   };
@@ -49,16 +68,35 @@ export default function PinModal({
     setError(null);
   };
 
-  const verifyPin = (enteredPin: string, targetPin?: string) => {
-    const roomData = loadRoomFromClientStorage(roomSlug);
-    const actualPin = (targetPin || roomData?.settings?.treasurerPin || expectedPin || "").trim();
+  const verifyPin = async (enteredPin: string, targetPin?: string) => {
+    let actualPin = (targetPin || syncedPin).trim();
 
     if (actualPin && enteredPin.trim() === actualPin) {
       sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
       onSuccess();
-    } else {
-      triggerError("รหัส PIN เหรัญญิกไม่ถูกต้อง");
+      return;
     }
+
+    // Double check with server before rejecting
+    try {
+      const res = await fetch(`/api/sync?room=${roomSlug}`, { cache: "no-store" });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.settings?.treasurerPin) {
+          actualPin = json.settings.treasurerPin.trim();
+          setSyncedPin(actualPin);
+          if (enteredPin.trim() === actualPin) {
+            sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
+            onSuccess();
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    triggerError("รหัส PIN เหรัญญิกไม่ถูกต้อง");
   };
 
   const triggerError = (msg: string) => {
@@ -92,7 +130,7 @@ export default function PinModal({
         {/* PIN Indicators */}
         <div className="flex justify-center gap-3 py-2">
           {Array.from(
-            { length: (loadRoomFromClientStorage(roomSlug)?.settings?.treasurerPin || expectedPin || "1234").trim().length || 4 },
+            { length: syncedPin.length || 4 },
             (_, i) => i
           ).map((index) => (
             <div
