@@ -51,7 +51,14 @@ export default function LoginPage() {
     const cleanPass = password.trim();
 
     // 1. Direct admin check: "ถ้าเข้าไปแล้วไม่ต้องเซฟหน้านั้นไว้ เฉพาะหน้าแอดมินนะ"
-    if (cleanUser.toLowerCase() === "admin" && cleanPass === "1706") {
+    let expectedAdminUser = "admin";
+    let expectedAdminPass = "1706";
+    if (typeof window !== "undefined") {
+      expectedAdminUser = (localStorage.getItem("bj3_admin_username") || "admin").toLowerCase().trim();
+      expectedAdminPass = (localStorage.getItem("bj3_admin_password") || "1706").trim();
+    }
+
+    if (cleanUser.toLowerCase() === expectedAdminUser && cleanPass === expectedAdminPass) {
       sessionStorage.setItem("bj3_admin_auth", "true");
       localStorage.removeItem("bj3_admin_auth");
       router.push("/admin");

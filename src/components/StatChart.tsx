@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { Transaction } from "@/lib/db";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTodayISODate } from "@/lib/utils";
 
 type Timeframe = "day" | "week" | "month";
 
@@ -17,25 +17,28 @@ interface StatChartProps {
   transactions: Transaction[];
 }
 
-// Generate smooth cubic bezier SVG path from a series of (x, y) coordinates
-function createSmoothPath(points: { x: number; y: number }[]): string {
+// Generate smooth monotonic SVG path that never dips below baseline or overshoots
+function createSmoothPath(points: { x: number; y: number }[], baselineY: number): string {
   if (points.length === 0) return "";
-  if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+  if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
 
   let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
 
   for (let i = 0; i < points.length - 1; i++) {
-    const p0 = i > 0 ? points[i - 1] : points[i];
     const p1 = points[i];
     const p2 = points[i + 1];
-    const p3 = i !== points.length - 2 ? points[i + 2] : p2;
 
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    // If both points are at baseline (0), draw a straight line along the baseline
+    if (Math.abs(p1.y - baselineY) < 1 && Math.abs(p2.y - baselineY) < 1) {
+      d += ` L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      continue;
+    }
 
-    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    // Monotonic bezier transition that never dips below baseline
+    const midX = (p1.x + p2.x) / 2;
+    const cp1y = Math.min(baselineY, p1.y);
+    const cp2y = Math.min(baselineY, p2.y);
+    d += ` C ${midX.toFixed(1)} ${cp1y.toFixed(1)}, ${midX.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
   }
 
   return d;
@@ -46,72 +49,123 @@ export default function StatChart({ transactions }: StatChartProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>("day");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Compute aggregated data points based on timeframe and transactions
+  // Compute aggregated data points based on timeframe and transactions (100% REAL DATA)
   const data: DataPoint[] = useMemo(() => {
-    const realIncomeTxs = transactions.filter(
-      (t) => t.type === "income" || t.type === "fund"
-    );
-    const realExpenseTxs = transactions.filter((t) => t.type === "expense");
-
-    const totalRealIncome = realIncomeTxs.reduce(
-      (acc, t) => acc + Number(t.amount || 0),
-      0
-    );
-    const totalRealExpense = realExpenseTxs.reduce(
-      (acc, t) => acc + Number(t.amount || 0),
-      0
-    );
+    // Determine the anchor date from the latest transaction, or today
+    const anchorDateStr =
+      transactions.length > 0 && transactions[0].date
+        ? transactions[0].date
+        : getTodayISODate();
 
     if (timeframe === "day") {
-      // รายวัน (7 วันในสัปดาห์ / วันทำการล่าสุด)
-      const days = [
-        { label: "จ.", fullLabel: "วันจันทร์", incomeRatio: 0.35, expenseRatio: 0.15 },
-        { label: "อ.", fullLabel: "วันอังคาร", incomeRatio: 0.15, expenseRatio: 0.25 },
-        { label: "พ.", fullLabel: "วันพุธ", incomeRatio: 0.20, expenseRatio: 0.10 },
-        { label: "พฤ.", fullLabel: "วันพฤหัสบดี", incomeRatio: 0.10, expenseRatio: 0.30 },
-        { label: "ศ.", fullLabel: "วันศุกร์", incomeRatio: 0.20, expenseRatio: 0.20 },
-        { label: "ส.", fullLabel: "วันเสาร์", incomeRatio: 0.0, expenseRatio: 0.0 },
-        { label: "อา.", fullLabel: "วันอาทิตย์", incomeRatio: 0.0, expenseRatio: 0.0 },
+      // รายวัน: 7 วันในสัปดาห์ (จ. - อา.) ตามสัปดาห์ของรายการล่าสุด
+      const [year, month, day] = anchorDateStr.split("-").map(Number);
+      const anchor = new Date(year, month - 1, day);
+      const dayOfWeek = anchor.getDay(); // 0=Sun, 1=Mon...
+      const diffToMon = (dayOfWeek + 6) % 7;
+      const monday = new Date(year, month - 1, day - diffToMon);
+
+      const daysConfig = [
+        { label: "จ.", fullLabel: "วันจันทร์" },
+        { label: "อ.", fullLabel: "วันอังคาร" },
+        { label: "พ.", fullLabel: "วันพุธ" },
+        { label: "พฤ.", fullLabel: "วันพฤหัสบดี" },
+        { label: "ศ.", fullLabel: "วันศุกร์" },
+        { label: "ส.", fullLabel: "วันเสาร์" },
+        { label: "อา.", fullLabel: "วันอาทิตย์" },
       ];
 
-      return days.map((d) => ({
-        label: d.label,
-        fullLabel: d.fullLabel,
-        income: Math.round(totalRealIncome * d.incomeRatio),
-        expense: Math.round(totalRealExpense * d.expenseRatio),
-      }));
+      return daysConfig.map((cfg, idx) => {
+        const cur = new Date(monday);
+        cur.setDate(monday.getDate() + idx);
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, "0");
+        const d = String(cur.getDate()).padStart(2, "0");
+        const dateStr = `${y}-${m}-${d}`;
+
+        // Aggregate actual income and expenses for this exact date
+        const dayIncome = transactions
+          .filter(
+            (t) => (t.type === "income" || t.type === "fund") && t.date === dateStr
+          )
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        const dayExpense = transactions
+          .filter((t) => t.type === "expense" && t.date === dateStr)
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        return {
+          label: cfg.label,
+          fullLabel: `${cfg.fullLabel} (${d}/${m})`,
+          income: dayIncome,
+          expense: dayExpense,
+        };
+      });
     } else if (timeframe === "week") {
-      // รายสัปดาห์ (สัปดาห์ที่ 1 - 4)
-      const weeks = [
-        { label: "สัปดาห์ 1", fullLabel: "สัปดาห์ที่ 1", incomeRatio: 0.40, expenseRatio: 0.25 },
-        { label: "สัปดาห์ 2", fullLabel: "สัปดาห์ที่ 2", incomeRatio: 0.25, expenseRatio: 0.30 },
-        { label: "สัปดาห์ 3", fullLabel: "สัปดาห์ที่ 3", incomeRatio: 0.20, expenseRatio: 0.25 },
-        { label: "สัปดาห์ 4", fullLabel: "สัปดาห์ที่ 4", incomeRatio: 0.15, expenseRatio: 0.20 },
+      // รายสัปดาห์: แบ่ง 4 สัปดาห์ของเดือน
+      const [yStr, mStr] = anchorDateStr.split("-");
+      const weeksConfig = [
+        { label: "สัปดาห์ 1", fullLabel: "สัปดาห์ที่ 1 (วันที่ 1-7)", start: 1, end: 7 },
+        { label: "สัปดาห์ 2", fullLabel: "สัปดาห์ที่ 2 (วันที่ 8-14)", start: 8, end: 14 },
+        { label: "สัปดาห์ 3", fullLabel: "สัปดาห์ที่ 3 (วันที่ 15-21)", start: 15, end: 21 },
+        { label: "สัปดาห์ 4", fullLabel: "สัปดาห์ที่ 4 (วันที่ 22+)", start: 22, end: 31 },
       ];
 
-      return weeks.map((w) => ({
-        label: w.label,
-        fullLabel: w.fullLabel,
-        income: Math.round(totalRealIncome * w.incomeRatio),
-        expense: Math.round(totalRealExpense * w.expenseRatio),
-      }));
+      return weeksConfig.map((cfg) => {
+        const weekTxs = transactions.filter((t) => {
+          if (!t.date.startsWith(`${yStr}-${mStr}`)) return false;
+          const dayNum = parseInt(t.date.split("-")[2], 10);
+          return dayNum >= cfg.start && dayNum <= cfg.end;
+        });
+
+        const weekIncome = weekTxs
+          .filter((t) => t.type === "income" || t.type === "fund")
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        const weekExpense = weekTxs
+          .filter((t) => t.type === "expense")
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        return {
+          label: cfg.label,
+          fullLabel: cfg.fullLabel,
+          income: weekIncome,
+          expense: weekExpense,
+        };
+      });
     } else {
-      // รายเดือน (พ.ค. - ต.ค. ภาคเรียนที่ 1)
-      const months = [
-        { label: "พ.ค.", fullLabel: "พฤษภาคม", incomeRatio: 0.30, expenseRatio: 0.25 },
-        { label: "มิ.ย.", fullLabel: "มิถุนายน", incomeRatio: 0.20, expenseRatio: 0.15 },
-        { label: "ก.ค.", fullLabel: "กรกฎาคม", incomeRatio: 0.15, expenseRatio: 0.20 },
-        { label: "ส.ค.", fullLabel: "สิงหาคม", incomeRatio: 0.15, expenseRatio: 0.15 },
-        { label: "ก.ย.", fullLabel: "กันยายน", incomeRatio: 0.15, expenseRatio: 0.20 },
-        { label: "ต.ค.", fullLabel: "ตุลาคม", incomeRatio: 0.05, expenseRatio: 0.05 },
+      // รายเดือน: ภาคเรียนที่ 1 (พ.ค. - ต.ค.)
+      const monthsConfig = [
+        { label: "พ.ค.", fullLabel: "พฤษภาคม", monthNum: 5 },
+        { label: "มิ.ย.", fullLabel: "มิถุนายน", monthNum: 6 },
+        { label: "ก.ค.", fullLabel: "กรกฎาคม", monthNum: 7 },
+        { label: "ส.ค.", fullLabel: "สิงหาคม", monthNum: 8 },
+        { label: "ก.ย.", fullLabel: "กันยายน", monthNum: 9 },
+        { label: "ต.ค.", fullLabel: "ตุลาคม", monthNum: 10 },
       ];
 
-      return months.map((m) => ({
-        label: m.label,
-        fullLabel: m.fullLabel,
-        income: Math.round(totalRealIncome * m.incomeRatio),
-        expense: Math.round(totalRealExpense * m.expenseRatio),
-      }));
+      return monthsConfig.map((cfg) => {
+        const mFilter = String(cfg.monthNum).padStart(2, "0");
+        const monthTxs = transactions.filter((t) => {
+          const parts = t.date.split("-");
+          return parts[1] === mFilter;
+        });
+
+        const monthIncome = monthTxs
+          .filter((t) => t.type === "income" || t.type === "fund")
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        const monthExpense = monthTxs
+          .filter((t) => t.type === "expense")
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+        return {
+          label: cfg.label,
+          fullLabel: cfg.fullLabel,
+          income: monthIncome,
+          expense: monthExpense,
+        };
+      });
     }
   }, [timeframe, transactions]);
 
@@ -124,55 +178,63 @@ export default function StatChart({ transactions }: StatChartProps) {
 
   const innerWidth = chartWidth - paddingX * 2;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
+  const baselineY = paddingTop + innerHeight;
 
   const maxVal = useMemo(() => {
     const highest = Math.max(
       ...data.map((d) => Math.max(d.income, d.expense)),
-      200
+      0
     );
-    return Math.ceil(highest / 100) * 100 || 500;
+    if (highest === 0) return 100;
+    return highest * 1.15; // 15% headroom above max value
   }, [data]);
 
   const points = useMemo(() => {
     const step = innerWidth / (data.length - 1 || 1);
 
-    const incomePoints = data.map((d, i) => ({
-      x: paddingX + i * step,
-      y: paddingTop + innerHeight - (d.income / maxVal) * innerHeight,
-    }));
+    const incomePoints = data.map((d, i) => {
+      const ratio = maxVal > 0 ? d.income / maxVal : 0;
+      const y = Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight));
+      return {
+        x: paddingX + i * step,
+        y,
+      };
+    });
 
-    const expensePoints = data.map((d, i) => ({
-      x: paddingX + i * step,
-      y: paddingTop + innerHeight - (d.expense / maxVal) * innerHeight,
-    }));
+    const expensePoints = data.map((d, i) => {
+      const ratio = maxVal > 0 ? d.expense / maxVal : 0;
+      const y = Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight));
+      return {
+        x: paddingX + i * step,
+        y,
+      };
+    });
 
     return { incomePoints, expensePoints };
-  }, [data, innerWidth, innerHeight, maxVal, paddingX, paddingTop]);
+  }, [data, innerWidth, innerHeight, maxVal, paddingX, paddingTop, baselineY]);
 
   const incomeLinePath = useMemo(
-    () => createSmoothPath(points.incomePoints),
-    [points.incomePoints]
+    () => createSmoothPath(points.incomePoints, baselineY),
+    [points.incomePoints, baselineY]
   );
   const expenseLinePath = useMemo(
-    () => createSmoothPath(points.expensePoints),
-    [points.expensePoints]
+    () => createSmoothPath(points.expensePoints, baselineY),
+    [points.expensePoints, baselineY]
   );
 
   const incomeAreaPath = useMemo(() => {
     if (points.incomePoints.length === 0) return "";
     const first = points.incomePoints[0];
     const last = points.incomePoints[points.incomePoints.length - 1];
-    const bottom = paddingTop + innerHeight;
-    return `${incomeLinePath} L ${last.x.toFixed(1)} ${bottom} L ${first.x.toFixed(1)} ${bottom} Z`;
-  }, [incomeLinePath, points.incomePoints, paddingTop, innerHeight]);
+    return `${incomeLinePath} L ${last.x.toFixed(1)} ${baselineY} L ${first.x.toFixed(1)} ${baselineY} Z`;
+  }, [incomeLinePath, points.incomePoints, baselineY]);
 
   const expenseAreaPath = useMemo(() => {
     if (points.expensePoints.length === 0) return "";
     const first = points.expensePoints[0];
     const last = points.expensePoints[points.expensePoints.length - 1];
-    const bottom = paddingTop + innerHeight;
-    return `${expenseLinePath} L ${last.x.toFixed(1)} ${bottom} L ${first.x.toFixed(1)} ${bottom} Z`;
-  }, [expenseLinePath, points.expensePoints, paddingTop, innerHeight]);
+    return `${expenseLinePath} L ${last.x.toFixed(1)} ${baselineY} L ${first.x.toFixed(1)} ${baselineY} Z`;
+  }, [expenseLinePath, points.expensePoints, baselineY]);
 
   const totalPeriodIncome = useMemo(
     () => data.reduce((sum, d) => sum + d.income, 0),
@@ -262,7 +324,11 @@ export default function StatChart({ transactions }: StatChartProps) {
                   fontSize="10"
                   fontFamily="inherit"
                 >
-                  {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}
+                  {val >= 1_000_000
+                    ? `${(val / 1_000_000).toFixed(1)}M`
+                    : val >= 1000
+                    ? `${(val / 1000).toFixed(val >= 10000 ? 0 : 1)}k`
+                    : val}
                 </text>
               </g>
             );

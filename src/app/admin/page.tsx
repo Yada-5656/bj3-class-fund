@@ -24,6 +24,8 @@ import {
   RotateCcw,
   ExternalLink,
   Users,
+  KeyRound,
+  AlertCircle,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
@@ -41,6 +43,12 @@ export default function AdminDashboardPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showPromoteConfirm, setShowPromoteConfirm] = useState(false);
+
+  // Admin Credentials state
+  const [adminUsernameInput, setAdminUsernameInput] = useState("");
+  const [adminPasswordInput, setAdminPasswordInput] = useState("");
+  const [confirmAdminPasswordInput, setConfirmAdminPasswordInput] = useState("");
+  const [adminCredError, setAdminCredError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -63,6 +71,10 @@ export default function AdminDashboardPage() {
       if (savedDate) {
         setPromotionDateInput(savedDate);
       }
+
+      // Load current admin username
+      const curAdminUser = localStorage.getItem("bj3_admin_username") || "admin";
+      setAdminUsernameInput(curAdminUser);
     }
   }, [router]);
 
@@ -98,6 +110,34 @@ export default function AdminDashboardPage() {
       `ดำเนินการเลื่อนชั้นสำเร็จ! (ม.3 จบ ${result.m3Graduated} ห้อง, ม.6 จบ ${result.m6Graduated} ห้อง, รวม ${result.totalRooms} ห้อง)`
     );
     setTimeout(() => setNotice(null), 6000);
+  };
+
+  const handleSaveAdminCredentials = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminCredError(null);
+
+    const user = adminUsernameInput.trim().toLowerCase();
+    const pass = adminPasswordInput.trim();
+
+    if (!user) {
+      setAdminCredError("กรุณากรอกชื่อผู้ใช้แอดมิน");
+      return;
+    }
+    if (!pass) {
+      setAdminCredError("กรุณากรอกรหัสผ่านใหม่");
+      return;
+    }
+    if (pass !== confirmAdminPasswordInput.trim()) {
+      setAdminCredError("รหัสผ่านใหม่ไม่ตรงกัน โปรดตรวจสอบอีกครั้ง");
+      return;
+    }
+
+    localStorage.setItem("bj3_admin_username", user);
+    localStorage.setItem("bj3_admin_password", pass);
+    setAdminPasswordInput("");
+    setConfirmAdminPasswordInput("");
+    setNotice("บันทึกชื่อผู้ใช้และรหัสผ่านแอดมินใหม่เรียบร้อยแล้ว");
+    setTimeout(() => setNotice(null), 4000);
   };
 
   const handleLogout = () => {
@@ -221,6 +261,84 @@ export default function AdminDashboardPage() {
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>ดำเนินการเลื่อนชั้นทันที</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Admin Credentials Form */}
+      <div className="pastel-card p-5 sm:p-6 bg-white border border-[#E9D5FF] shadow-xs space-y-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#C084FC] border border-[#E9D5FF] flex items-center justify-center">
+            <KeyRound className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-sm sm:text-base font-bold text-[#332941]">
+              เปลี่ยนชื่อผู้ใช้และรหัสผ่านแอดมิน
+            </h2>
+            <p className="text-[11px] text-[#7B708A]">
+              กำหนดชื่อผู้ใช้และรหัสผ่านใหม่สำหรับเข้าสู่ระบบแอดมิน (Admin)
+            </p>
+          </div>
+        </div>
+
+        {adminCredError && (
+          <div className="text-xs text-[#E11D48] bg-[#FFF1F2] border border-[#FECDD3] p-2.5 rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{adminCredError}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSaveAdminCredentials} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label className="block text-[11px] font-semibold text-[#7B708A] mb-1">
+                ชื่อผู้ใช้แอดมิน (Username)
+              </label>
+              <input
+                type="text"
+                required
+                value={adminUsernameInput}
+                onChange={(e) => setAdminUsernameInput(e.target.value)}
+                placeholder="เช่น admin"
+                className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs sm:text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#7B708A] mb-1">
+                รหัสผ่านใหม่ (New Password)
+              </label>
+              <input
+                type="password"
+                required
+                value={adminPasswordInput}
+                onChange={(e) => setAdminPasswordInput(e.target.value)}
+                placeholder="กรอกรหัสผ่านใหม่"
+                className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs sm:text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-[#7B708A] mb-1">
+                ยืนยันรหัสผ่านใหม่
+              </label>
+              <input
+                type="password"
+                required
+                value={confirmAdminPasswordInput}
+                onChange={(e) => setConfirmAdminPasswordInput(e.target.value)}
+                placeholder="ยืนยันรหัสผ่านใหม่"
+                className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs sm:text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+              />
+            </div>
+          </div>
+
+          <div className="pt-1 flex justify-end">
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-colors"
+            >
+              <Save className="w-4 h-4" />
+              <span>บันทึกข้อมูลแอดมิน</span>
             </button>
           </div>
         </form>

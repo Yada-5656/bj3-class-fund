@@ -122,8 +122,15 @@ export function validateLogin(username: string, password: string): {
   const trimmedUser = username.trim().toLowerCase();
   const trimmedPass = password.trim();
 
-  // Admin login check:ห้อง admin รหัส 1706
-  if (trimmedUser === "admin" && trimmedPass === "1706") {
+  // Admin login check (customizable via admin settings, default admin / 1706)
+  let expectedAdminUser = "admin";
+  let expectedAdminPass = "1706";
+  if (typeof window !== "undefined") {
+    expectedAdminUser = (localStorage.getItem("bj3_admin_username") || "admin").toLowerCase().trim();
+    expectedAdminPass = (localStorage.getItem("bj3_admin_password") || "1706").trim();
+  }
+
+  if (trimmedUser === expectedAdminUser && trimmedPass === expectedAdminPass) {
     return {
       success: true,
       isAdmin: true,
