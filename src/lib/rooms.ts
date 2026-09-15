@@ -56,7 +56,7 @@ export const ROOM_BY_NAME = new Map<string, RoomInfo>(
 );
 
 /**
- * Normalizes user input room name (e.g. "3/15", "3-15", "ม.3/15", "m.3/15") into RoomInfo
+ * Normalizes user input room name (e.g. "3/15", "3-15", "ม.3/15", "m.3/15", "6/11", "1/1/1") into RoomInfo
  */
 export function findRoom(input: string): RoomInfo | undefined {
   if (!input) return undefined;
@@ -78,6 +78,24 @@ export function findRoom(input: string): RoomInfo | undefined {
     return ROOM_BY_NAME.get(normalizedSlash);
   }
 
+  // Dynamic parser for any grade/room or generation (e.g. 6/11, 1/1/1, 4/1/1)
+  const match = cleaned.match(/^([1-6])[\/\-]([0-9]{1,2})(?:[\/\-]([0-9]+))?$/);
+  if (match) {
+    const grade = parseInt(match[1]);
+    const roomNumber = parseInt(match[2]);
+    const gen = match[3];
+    const name = gen ? `${grade}/${roomNumber}/${gen}` : `${grade}/${roomNumber}`;
+    const slug = gen ? `${grade}-${roomNumber}-${gen}` : `${grade}-${roomNumber}`;
+    return {
+      slug,
+      name,
+      displayName: `ม.${name}`,
+      grade,
+      roomNumber,
+      expectedPassword: `${name}BJ3`,
+    };
+  }
+
   return undefined;
 }
 
@@ -85,20 +103,33 @@ export function findRoom(input: string): RoomInfo | undefined {
  * Converts slug to display name (e.g. "3-15" -> "ม.3/15")
  */
 export function slugToDisplayName(slug: string): string {
-  const room = ROOM_BY_SLUG.get(slug);
+  const room = findRoom(slug);
   return room ? room.displayName : `ม.${slug.replace("-", "/")}`;
 }
 
 /**
  * Validates login credentials based on specification:
+ * Username: "admin" -> Password "1706"
  * Username: Room number (e.g., "3/15", "1/1")
- * Password: Room number + "BJ3" (e.g., "3/15BJ3", "1/1BJ3")
+ * Password: Room number + "BJ3" (e.g., "3/15BJ3", "1/1BJ3") or custom saved room password
  */
 export function validateLogin(username: string, password: string): {
   success: boolean;
+  isAdmin?: boolean;
   room?: RoomInfo;
   error?: string;
 } {
+  const trimmedUser = username.trim().toLowerCase();
+  const trimmedPass = password.trim();
+
+  // Admin login check:ห้อง admin รหัส 1706
+  if (trimmedUser === "admin" && trimmedPass === "1706") {
+    return {
+      success: true,
+      isAdmin: true,
+    };
+  }
+
   const room = findRoom(username);
   if (!room) {
     return {
@@ -112,9 +143,21 @@ export function validateLogin(username: string, password: string): {
   const validPass1 = `${room.name}BJ3`.toUpperCase();
   const validPass2 = `${room.slug}BJ3`.toUpperCase();
 
+  // Also support base room password if generation suffix is omitted or vice versa
+  const baseName = `${room.grade}/${room.roomNumber}`;
+  const validPassBase = `${baseName}BJ3`.toUpperCase();
+
+  // Check custom saved password in localStorage
+  let savedPassword: string | null = null;
+  if (typeof window !== "undefined") {
+    savedPassword = localStorage.getItem(`bj3_room_pwd_${room.slug}`);
+  }
+
   if (
     normalizedInputPassword === validPass1 ||
-    normalizedInputPassword === validPass2
+    normalizedInputPassword === validPass2 ||
+    normalizedInputPassword === validPassBase ||
+    (savedPassword && normalizedInputPassword === savedPassword.toUpperCase())
   ) {
     return {
       success: true,

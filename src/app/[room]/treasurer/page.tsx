@@ -62,7 +62,7 @@ export default function TreasurerDashboardPage({
       const data = loadRoomFromClientStorage(roomSlug);
       setRoomData(data);
       if (data.settings) {
-        setNewPin(data.settings.treasurerPin || "1234");
+        setNewPin("");
         setNewFee(String(data.settings.fundFeePerStudent || 20));
       }
     }
@@ -210,13 +210,15 @@ export default function TreasurerDashboardPage({
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     const feeNum = parseFloat(newFee) || 20;
-    const pin = newPin.trim() || "1234";
+    const pin = newPin.trim() || roomData.settings.treasurerPin || "1234";
 
     const nextData: RoomData = {
       ...roomData,
       settings: {
+        ...roomData.settings,
         treasurerPin: pin,
         fundFeePerStudent: feeNum,
+        isInitialized: true,
       },
     };
 
@@ -455,11 +457,11 @@ export default function TreasurerDashboardPage({
                 <span>รหัส PIN เหรัญญิก</span>
               </label>
               <input
-                type="text"
+                type="password"
                 maxLength={6}
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value)}
-                placeholder="1234"
+                placeholder="กรอกรหัส PIN ใหม่ (4 หลัก)"
                 className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
               />
             </div>

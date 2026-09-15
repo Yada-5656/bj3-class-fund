@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { findRoom } from "@/lib/rooms";
+import { findRoom, validateLogin } from "@/lib/rooms";
+import { checkAndRunPromotion } from "@/lib/db";
 import {
   School,
   ArrowRight,
@@ -17,12 +18,23 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  // Auto-login / remember room:
-  // "กะคือจะให้ใส่รหัสไปครั้งหนึ่งแล้วให้ล็อกหน้านั้นไว้เลย แบบ สมมุดเข้าห้อง1/5ไปแล้วแล้วกดออกจากเว็บพอกลับเข้ามาใหม่ก็ให้ขึ้นเป็นห้อง1/5เลยไม่ต้องกรอกรหัสใหม่"
+  // Auto-login / remember room & promotion check
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Automatic promotion check if date reached
+      checkAndRunPromotion();
+
       const activeRoom = localStorage.getItem("bj3_active_room");
       if (activeRoom) {
+        // If room was M.3 or M.6 and graduated/wiped, clear active room
+        if (activeRoom.startsWith("3-") || activeRoom.startsWith("6-")) {
+          const raw = localStorage.getItem(`bj3_class_fund_room_v5_${activeRoom}`);
+          if (!raw) {
+            localStorage.removeItem("bj3_active_room");
+            setIsCheckingSession(false);
+            return;
+          }
+        }
         router.replace(`/${activeRoom}`);
         return;
       }
@@ -38,6 +50,13 @@ export default function LoginPage() {
     const cleanUser = username.trim();
     const cleanPass = password.trim();
 
+    // 1. Direct admin check
+    if (cleanUser.toLowerCase() === "admin" && cleanPass === "1706") {
+      localStorage.setItem("bj3_admin_auth", "true");
+      router.push("/admin");
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth", {
         method: "POST",
@@ -50,20 +69,33 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
-      if (res.ok && data.success && data.room) {
-        localStorage.setItem("bj3_active_room", data.room.slug);
-        router.push(`/${data.room.slug}`);
-      } else {
-        setError(data.error || "ชื่อห้องเรียนหรือรหัสผ่านไม่ถูกต้อง");
+      if (res.ok && data.success) {
+        if (data.isAdmin) {
+          localStorage.setItem("bj3_admin_auth", "true");
+          router.push("/admin");
+          return;
+        }
+        if (data.room) {
+          localStorage.setItem("bj3_active_room", data.room.slug);
+          router.push(`/${data.room.slug}`);
+          return;
+        }
       }
+
+      setError(data.error || "ชื่อห้องเรียนหรือรหัสผ่านไม่ถูกต้อง");
     } catch {
       // Client fallback check
-      const room = findRoom(cleanUser);
-      if (room && cleanPass.toUpperCase() === room.expectedPassword.toUpperCase()) {
-        localStorage.setItem("bj3_active_room", room.slug);
-        router.push(`/${room.slug}`);
+      const check = validateLogin(cleanUser, cleanPass);
+      if (check.isAdmin) {
+        localStorage.setItem("bj3_admin_auth", "true");
+        router.push("/admin");
+        return;
+      }
+      if (check.success && check.room) {
+        localStorage.setItem("bj3_active_room", check.room.slug);
+        router.push(`/${check.room.slug}`);
       } else {
-        setError("ชื่อห้องเรียนหรือรหัสผ่านไม่ถูกต้อง โปรดตรวจสอบอีกครั้ง");
+        setError(check.error || "ชื่อห้องเรียนหรือรหัสผ่านไม่ถูกต้อง โปรดตรวจสอบอีกครั้ง");
       }
     } finally {
       setIsLoading(false);

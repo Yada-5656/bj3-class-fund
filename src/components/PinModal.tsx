@@ -69,7 +69,7 @@ export default function PinModal({
         sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
         onSuccess();
       } else {
-        triggerError("รหัส PIN ไม่ถูกต้อง (ค่าเริ่มต้น: 1234)");
+        triggerError("รหัส PIN เหรัญญิกไม่ถูกต้อง");
       }
     }
   };
@@ -159,11 +159,8 @@ export default function PinModal({
           </button>
         </div>
 
-        {/* Demo Hint & Back Button */}
+        {/* Back Button */}
         <div className="pt-2 border-t border-[#F1EDF7] space-y-2">
-          <p className="text-[11px] text-[#9E94AD]">
-            PIN: <span className="font-semibold text-[#9333EA]">1234</span>
-          </p>
           <Link
             href={`/${roomSlug}`}
             className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941]"

@@ -6,7 +6,9 @@ import { useParams, useRouter } from "next/navigation";
 import { findRoom, slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
+  saveRoomToClientStorage,
   calculateSummary,
+  getPromotionDate,
   RoomData,
 } from "@/lib/db";
 import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
@@ -14,6 +16,8 @@ import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
 import { ConfirmModal } from "@/components/Modals";
+import FirstTimeSetupModal from "@/components/FirstTimeSetupModal";
+import GraduationCountdownModal from "@/components/GraduationCountdownModal";
 import {
   Wallet,
   ArrowDownLeft,
@@ -41,12 +45,12 @@ export default function RoomDashboardPage({
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [promotionDate, setPromotionDate] = useState<string | null>(null);
 
   // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
-  // Room Guard & load room data:
-  // "จะไม่ให้ห้องอื่นเข้าไปดูของห้องอื่นได้"
+  // Room Guard & load room data
   useEffect(() => {
     if (typeof window !== "undefined") {
       const activeRoom = localStorage.getItem("bj3_active_room");
@@ -56,6 +60,7 @@ export default function RoomDashboardPage({
       }
       const data = loadRoomFromClientStorage(roomSlug);
       setRoomData(data);
+      setPromotionDate(getPromotionDate());
     }
   }, [roomSlug, router]);
 
@@ -65,6 +70,21 @@ export default function RoomDashboardPage({
       sessionStorage.removeItem(`bj3_treasurer_auth_${roomSlug}`);
     }
     router.replace("/");
+  };
+
+  const handleCompleteFirstTimeSetup = (fee: number, pin: string) => {
+    if (!roomData) return;
+    const updatedData: RoomData = {
+      ...roomData,
+      settings: {
+        ...roomData.settings,
+        fundFeePerStudent: fee,
+        treasurerPin: pin,
+        isInitialized: true,
+      },
+    };
+    setRoomData(updatedData);
+    saveRoomToClientStorage(roomSlug, updatedData);
   };
 
   if (!roomData) {
@@ -301,6 +321,20 @@ export default function RoomDashboardPage({
         confirmText="ออกจากระบบ"
         onConfirm={handleConfirmLogout}
         onCancel={() => setShowLogoutModal(false)}
+      />
+
+      {/* First-Time Setup Modal */}
+      <FirstTimeSetupModal
+        isOpen={!roomData.settings?.isInitialized}
+        displayName={displayName}
+        onComplete={handleCompleteFirstTimeSetup}
+      />
+
+      {/* Graduation Countdown Notice for M.3 and M.6 */}
+      <GraduationCountdownModal
+        grade={room ? room.grade : parseInt(roomSlug.split("-")[0]) || 0}
+        displayName={displayName}
+        promotionDate={promotionDate}
       />
     </div>
   );

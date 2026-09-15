@@ -1,14 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { ALL_ROOMS, findRoom } from "@/lib/rooms";
-import {
-  LogOut,
-  ChevronDown,
-  School,
-} from "lucide-react";
+import { findRoom } from "@/lib/rooms";
+import { LogOut, School } from "lucide-react";
 
 interface NavbarProps {
   currentRoomSlug?: string;
@@ -17,7 +13,6 @@ interface NavbarProps {
 export default function Navbar({ currentRoomSlug }: NavbarProps) {
   const router = useRouter();
   const params = useParams();
-  const [roomDropdownOpen, setRoomDropdownOpen] = useState(false);
 
   const activeSlug = currentRoomSlug || (params?.room as string) || undefined;
   const room = activeSlug ? findRoom(activeSlug) : undefined;
@@ -51,62 +46,17 @@ export default function Navbar({ currentRoomSlug }: NavbarProps) {
             </Link>
           </div>
 
-          {/* Right Actions: Room Switcher & Logout */}
+          {/* Right Actions: Logout */}
           <div className="flex items-center gap-2">
             {currentRoomSlug ? (
-              <>
-                {/* Switch Room Button */}
-                <div className="relative">
-                  <button
-                    onClick={() => setRoomDropdownOpen(!roomDropdownOpen)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] rounded-xl border border-[#EFE8F6] transition-colors"
-                  >
-                    <span>สลับห้อง</span>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Dropdown Menu */}
-                  {roomDropdownOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setRoomDropdownOpen(false)}
-                      />
-                      <div className="absolute right-0 mt-2 w-64 max-h-80 overflow-y-auto bg-white rounded-2xl shadow-pastel border border-[#EFE8F6] p-2 z-50">
-                        <div className="px-3 py-1.5 text-[11px] font-semibold text-[#9E94AD] border-b border-[#F1EDF7] mb-1">
-                          เลือกห้องเรียน (77 ห้อง)
-                        </div>
-                        <div className="grid grid-cols-3 gap-1">
-                          {ALL_ROOMS.map((r) => (
-                            <Link
-                              key={r.slug}
-                              href={`/${r.slug}`}
-                              onClick={() => setRoomDropdownOpen(false)}
-                              className={`px-2 py-1.5 text-xs text-center rounded-lg transition-colors ${
-                                r.slug === currentRoomSlug
-                                  ? "bg-[#C084FC] text-white font-semibold"
-                                  : "text-[#332941] hover:bg-[#FAF5FF]"
-                              }`}
-                            >
-                              {r.displayName}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Logout Button */}
-                <button
-                  onClick={() => router.push("/")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#E11D48] bg-[#FFF1F2] hover:bg-[#FFE4E6] rounded-xl border border-[#FECDD3] transition-colors"
-                  title="ออกจากระบบห้องเรียน"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">ออกจากห้อง</span>
-                </button>
-              </>
+              <button
+                onClick={() => router.push("/")}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#E11D48] bg-[#FFF1F2] hover:bg-[#FFE4E6] rounded-xl border border-[#FECDD3] transition-colors"
+                title="ออกจากระบบห้องเรียน"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">ออกจากห้อง</span>
+              </button>
             ) : (
               <Link
                 href="/"

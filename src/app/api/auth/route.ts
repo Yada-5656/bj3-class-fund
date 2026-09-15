@@ -17,6 +17,14 @@ export async function POST(req: NextRequest) {
       }
 
       const result = validateLogin(username, password);
+      if (result.isAdmin) {
+        return NextResponse.json({
+          success: true,
+          isAdmin: true,
+          redirectUrl: "/admin",
+        });
+      }
+
       if (!result.success || !result.room) {
         return NextResponse.json(
           { error: result.error || "เข้าสู่ระบบไม่สำเร็จ" },
@@ -48,7 +56,7 @@ export async function POST(req: NextRequest) {
       }
 
       return NextResponse.json(
-        { error: "รหัส PIN เหรัญญิกไม่ถูกต้อง (ค่าเริ่มต้น: 1234)" },
+        { error: "รหัส PIN เหรัญญิกไม่ถูกต้อง" },
         { status: 401 }
       );
     }

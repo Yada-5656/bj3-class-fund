@@ -25,6 +25,7 @@ export interface RoomSettings {
   treasurerPin: string;
   fundFeePerStudent: number;
   lastCheckinDate?: string;
+  isInitialized?: boolean;
 }
 
 export interface RoomData {
@@ -46,7 +47,8 @@ export interface RoomSummary {
   unpaidStudents: Student[];
 }
 
-// Generate realistic initial data for any of the 77 rooms using extracted real student roster
+// Generate realistic initial data for any of the rooms using extracted real student roster
+// Starts at 0 balance and empty transactions as requested
 export function createDefaultRoomData(roomSlug: string): RoomData {
   const room = findRoom(roomSlug);
   const displayName = room ? room.displayName : `ม.${roomSlug.replace("-", "/")}`;
@@ -77,49 +79,16 @@ export function createDefaultRoomData(roomSlug: string): RoomData {
     }
   }
 
-  // Realistic starter transactions
-  const transactions: Transaction[] = [
-    {
-      id: `tx-${roomSlug}-1`,
-      roomId: roomSlug,
-      type: "income",
-      category: "เงินสนับสนุน",
-      description: "เงินสนับสนุนกิจกรรมห้องเรียนจากครูที่ปรึกษา",
-      amount: 400,
-      date: "2024-09-01",
-      createdAt: new Date("2024-09-01T09:00:00Z").toISOString(),
-    },
-    {
-      id: `tx-${roomSlug}-2`,
-      roomId: roomSlug,
-      type: "expense",
-      category: "อุปกรณ์ทำความสะอาด",
-      description: "ซื้อไม้กวาดทางมะพร้าวและที่ตักผงประจำเวรห้อง",
-      amount: 140,
-      date: "2024-09-02",
-      createdAt: new Date("2024-09-02T10:15:00Z").toISOString(),
-    },
-    {
-      id: `tx-${roomSlug}-3`,
-      roomId: roomSlug,
-      type: "expense",
-      category: "เอกสารการเรียน",
-      description: "ค่าถ่ายเอกสารชีทสรุปเตรียมสอบย่อยกลางภาค",
-      amount: 175,
-      date: "2024-08-30",
-      createdAt: new Date("2024-08-30T13:45:00Z").toISOString(),
-    },
-  ];
-
   return {
     roomSlug,
     settings: {
       treasurerPin: "1234",
       fundFeePerStudent: 20,
       lastCheckinDate: getTodayISODate(),
+      isInitialized: false,
     },
     students,
-    transactions,
+    transactions: [],
     dailyCheckins: {},
   };
 }
@@ -177,7 +146,7 @@ export function calculateSummary(roomData: RoomData): RoomSummary {
 }
 
 // Client-side LocalStorage sync helpers with versioned key
-const STORAGE_PREFIX = "bj3_class_fund_room_v4_";
+export const STORAGE_PREFIX = "bj3_class_fund_room_v5_";
 
 export function loadRoomFromClientStorage(roomSlug: string): RoomData {
   if (typeof window === "undefined") {
@@ -201,8 +170,7 @@ export function loadRoomFromClientStorage(roomSlug: string): RoomData {
         }
       }
 
-      // Consolidate duplicate fund transactions on the same date into 1 single row per date:
-      // "เงินห้องอะให้มีแค่1วัน1แถบพอ"
+      // Consolidate duplicate fund transactions on the same date into 1 single row per date
       const seenFundDates = new Set<string>();
       const consolidatedTx: Transaction[] = [];
       for (const tx of data.transactions || []) {
@@ -263,4 +231,277 @@ export function saveRoomToClientStorage(roomSlug: string, data: RoomData): void 
   } catch (err) {
     console.error("Failed to write to localStorage:", err);
   }
+}
+
+/**
+ * Returns all classrooms ranked by total money collected (highest first)
+ */
+export function getAllRoomsRanked(): {
+  roomSlug: string;
+  displayName: string;
+  summary: RoomSummary;
+  totalCollected: number;
+}[] {
+  const roomList = [...ALL_ROOMS];
+  const room6_11 = findRoom("6/11");
+  if (room6_11 && !roomList.some((r) => r.slug === "6-11")) {
+    if (typeof window !== "undefined" && localStorage.getItem(`${STORAGE_PREFIX}6-11`)) {
+      roomList.push(room6_11);
+    }
+  }
+
+  const results = roomList.map((r) => {
+    const data = loadRoomFromClientStorage(r.slug);
+    const summary = calculateSummary(data);
+    const totalCollected = summary.totalIncome;
+    return {
+      roomSlug: r.slug,
+      displayName: r.displayName,
+      summary,
+      totalCollected,
+    };
+  });
+
+  return results.sort(
+    (a, b) =>
+      b.totalCollected - a.totalCollected ||
+      b.summary.totalBalance - a.summary.totalBalance
+  );
+}
+
+/**
+ * Gets saved promotion date (YYYY-MM-DD) or null
+ */
+export function getPromotionDate(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("bj3_promotion_date");
+}
+
+/**
+ * Sets promotion date or clears it if null
+ */
+export function setPromotionDate(dateStr: string | null): void {
+  if (typeof window === "undefined") return;
+  if (dateStr && dateStr.trim()) {
+    localStorage.setItem("bj3_promotion_date", dateStr.trim());
+  } else {
+    localStorage.removeItem("bj3_promotion_date");
+  }
+}
+
+/**
+ * Executes the grade promotion transition for Lower and Upper Secondary:
+ * 1. M.3 graduates -> wipe all M.3 rooms
+ * 2. M.2 promotes to M.3
+ * 3. M.1 promotes to M.2
+ * 4. M.1 resets to empty (0 balance, 0 students, uninitialized)
+ * 5. M.6 graduates -> wipe all M.6 rooms
+ * 6. M.5 promotes to M.6 (5/1-5/11 -> 6/1-6/11, total 78 rooms)
+ * 7. M.4 promotes to M.5
+ * 8. M.4 resets to empty (0 balance, 0 students, uninitialized)
+ * 9. Clear auto-login if previously active in M.3 or M.6
+ * 10. Clear promotion date and advance generation
+ */
+export function promoteGrades(): {
+  m3Graduated: number;
+  m6Graduated: number;
+  totalRooms: number;
+} {
+  if (typeof window === "undefined") {
+    return { m3Graduated: 15, m6Graduated: 10, totalRooms: 78 };
+  }
+
+  // 1. Wipe M.3 rooms (1-15)
+  for (let r = 1; r <= 15; r++) {
+    localStorage.removeItem(`${STORAGE_PREFIX}3-${r}`);
+    localStorage.removeItem(`bj3_room_pwd_3-${r}`);
+  }
+
+  // 2. Promote M.2 -> M.3 (1-15)
+  for (let r = 1; r <= 15; r++) {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}2-${r}`);
+    if (raw) {
+      try {
+        const data: RoomData = JSON.parse(raw);
+        data.roomSlug = `3-${r}`;
+        data.students = data.students.map((s) => ({
+          ...s,
+          id: `3-${r}-${s.rollNumber.toString().padStart(2, "0")}`,
+        }));
+        data.transactions = (data.transactions || []).map((t) => ({
+          ...t,
+          roomId: `3-${r}`,
+        }));
+        localStorage.setItem(`${STORAGE_PREFIX}3-${r}`, JSON.stringify(data));
+      } catch (e) {
+        console.error(e);
+      }
+      localStorage.removeItem(`${STORAGE_PREFIX}2-${r}`);
+    }
+    const pwd = localStorage.getItem(`bj3_room_pwd_2-${r}`);
+    if (pwd) {
+      localStorage.setItem(`bj3_room_pwd_3-${r}`, pwd);
+      localStorage.removeItem(`bj3_room_pwd_2-${r}`);
+    }
+  }
+
+  // 3. Promote M.1 -> M.2 (1-15)
+  for (let r = 1; r <= 15; r++) {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}1-${r}`);
+    if (raw) {
+      try {
+        const data: RoomData = JSON.parse(raw);
+        data.roomSlug = `2-${r}`;
+        data.students = data.students.map((s) => ({
+          ...s,
+          id: `2-${r}-${s.rollNumber.toString().padStart(2, "0")}`,
+        }));
+        data.transactions = (data.transactions || []).map((t) => ({
+          ...t,
+          roomId: `2-${r}`,
+        }));
+        localStorage.setItem(`${STORAGE_PREFIX}2-${r}`, JSON.stringify(data));
+      } catch (e) {
+        console.error(e);
+      }
+      localStorage.removeItem(`${STORAGE_PREFIX}1-${r}`);
+    }
+    const pwd = localStorage.getItem(`bj3_room_pwd_1-${r}`);
+    if (pwd) {
+      localStorage.setItem(`bj3_room_pwd_2-${r}`, pwd);
+      localStorage.removeItem(`bj3_room_pwd_1-${r}`);
+    }
+  }
+
+  // 4. Reset M.1 (1-15) to empty fresh rooms
+  for (let r = 1; r <= 15; r++) {
+    const emptyRoom: RoomData = {
+      roomSlug: `1-${r}`,
+      settings: {
+        treasurerPin: "1234",
+        fundFeePerStudent: 20,
+        lastCheckinDate: getTodayISODate(),
+        isInitialized: false,
+      },
+      students: [],
+      transactions: [],
+      dailyCheckins: {},
+    };
+    localStorage.setItem(`${STORAGE_PREFIX}1-${r}`, JSON.stringify(emptyRoom));
+    localStorage.removeItem(`bj3_room_pwd_1-${r}`);
+  }
+
+  // 5. Wipe M.6 rooms (1-15)
+  for (let r = 1; r <= 15; r++) {
+    localStorage.removeItem(`${STORAGE_PREFIX}6-${r}`);
+    localStorage.removeItem(`bj3_room_pwd_6-${r}`);
+  }
+
+  // 6. Promote M.5 -> M.6 (1-11)
+  for (let r = 1; r <= 11; r++) {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}5-${r}`);
+    if (raw) {
+      try {
+        const data: RoomData = JSON.parse(raw);
+        data.roomSlug = `6-${r}`;
+        data.students = data.students.map((s) => ({
+          ...s,
+          id: `6-${r}-${s.rollNumber.toString().padStart(2, "0")}`,
+        }));
+        data.transactions = (data.transactions || []).map((t) => ({
+          ...t,
+          roomId: `6-${r}`,
+        }));
+        localStorage.setItem(`${STORAGE_PREFIX}6-${r}`, JSON.stringify(data));
+      } catch (e) {
+        console.error(e);
+      }
+      localStorage.removeItem(`${STORAGE_PREFIX}5-${r}`);
+    }
+    const pwd = localStorage.getItem(`bj3_room_pwd_5-${r}`);
+    if (pwd) {
+      localStorage.setItem(`bj3_room_pwd_6-${r}`, pwd);
+      localStorage.removeItem(`bj3_room_pwd_5-${r}`);
+    }
+  }
+
+  // 7. Promote M.4 -> M.5 (1-11)
+  for (let r = 1; r <= 11; r++) {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}4-${r}`);
+    if (raw) {
+      try {
+        const data: RoomData = JSON.parse(raw);
+        data.roomSlug = `5-${r}`;
+        data.students = data.students.map((s) => ({
+          ...s,
+          id: `5-${r}-${s.rollNumber.toString().padStart(2, "0")}`,
+        }));
+        data.transactions = (data.transactions || []).map((t) => ({
+          ...t,
+          roomId: `5-${r}`,
+        }));
+        localStorage.setItem(`${STORAGE_PREFIX}5-${r}`, JSON.stringify(data));
+      } catch (e) {
+        console.error(e);
+      }
+      localStorage.removeItem(`${STORAGE_PREFIX}4-${r}`);
+    }
+    const pwd = localStorage.getItem(`bj3_room_pwd_4-${r}`);
+    if (pwd) {
+      localStorage.setItem(`bj3_room_pwd_5-${r}`, pwd);
+      localStorage.removeItem(`bj3_room_pwd_4-${r}`);
+    }
+  }
+
+  // 8. Reset M.4 (1-11) to empty fresh rooms
+  for (let r = 1; r <= 11; r++) {
+    const emptyRoom: RoomData = {
+      roomSlug: `4-${r}`,
+      settings: {
+        treasurerPin: "1234",
+        fundFeePerStudent: 20,
+        lastCheckinDate: getTodayISODate(),
+        isInitialized: false,
+      },
+      students: [],
+      transactions: [],
+      dailyCheckins: {},
+    };
+    localStorage.setItem(`${STORAGE_PREFIX}4-${r}`, JSON.stringify(emptyRoom));
+    localStorage.removeItem(`bj3_room_pwd_4-${r}`);
+  }
+
+  // 9. Clear auto-login if in M.3 or M.6
+  const activeRoom = localStorage.getItem("bj3_active_room");
+  if (activeRoom && (activeRoom.startsWith("3-") || activeRoom.startsWith("6-"))) {
+    localStorage.removeItem("bj3_active_room");
+  }
+
+  // 10. Advance generation and clear promotion date
+  const curGen = parseInt(localStorage.getItem("bj3_promotion_generation") || "0") + 1;
+  localStorage.setItem("bj3_promotion_generation", String(curGen));
+  localStorage.removeItem("bj3_promotion_date");
+
+  return {
+    m3Graduated: 15,
+    m6Graduated: 11,
+    totalRooms: 78,
+  };
+}
+
+/**
+ * Checks if current date has reached or passed the promotion date.
+ * If so, automatically runs promoteGrades() and resets promotion date.
+ */
+export function checkAndRunPromotion(): boolean {
+  if (typeof window === "undefined") return false;
+  const promoDate = getPromotionDate();
+  if (!promoDate) return false;
+
+  const today = getTodayISODate();
+  if (today >= promoDate) {
+    promoteGrades();
+    return true;
+  }
+  return false;
 }
