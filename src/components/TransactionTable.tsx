@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Transaction } from "@/lib/db";
-import { formatCurrency, formatThaiDate } from "@/lib/utils";
+import { Transaction, Student } from "@/lib/db";
+import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -11,10 +11,15 @@ import {
   Calendar,
   Trash2,
   Edit,
+  Users,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 interface TransactionTableProps {
   transactions: Transaction[];
+  students?: Student[];
+  dailyCheckins?: Record<string, string[]>;
   isTreasurer?: boolean;
   onEdit?: (transaction: Transaction) => void;
   onDelete?: (transactionId: string) => void;
@@ -46,6 +51,8 @@ interface MonthGroup {
 
 export default function TransactionTable({
   transactions,
+  students = [],
+  dailyCheckins = {},
   isTreasurer = false,
   onEdit,
   onDelete,
@@ -56,6 +63,19 @@ export default function TransactionTable({
     "all" | "income" | "expense" | "fund"
   >("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedTxIds, setExpandedTxIds] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedTxIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   // Filter transactions by type and search query (excluding category since category is removed)
   const filteredTransactions = useMemo(() => {
@@ -239,18 +259,28 @@ export default function TransactionTable({
                     const isFund = tx.type === "fund";
                     const isIncome = tx.type === "income";
 
+                    const today = getTodayISODate();
+                    const isPastDate = tx.date < today;
+                    const paidIdsOnDate = dailyCheckins?.[tx.date];
+                    const unpaidStudents =
+                      isFund && isPastDate && paidIdsOnDate && students.length > 0
+                        ? students.filter((s) => !paidIdsOnDate.includes(s.id))
+                        : [];
+                    const showUnpaidToggle = isFund && isPastDate && unpaidStudents.length > 0;
+                    const isExpanded = expandedTxIds.has(tx.id);
+
                     return (
                       <tr
                         key={tx.id}
                         className="hover:bg-[#FAF5FF]/50 transition-colors"
                       >
                         {/* 1. วันที่ (Strictly DD/MM/YYYY Buddhist Era, NO TIME) */}
-                        <td className="py-3 px-4 whitespace-nowrap font-medium text-[#7B708A] text-xs">
+                        <td className="py-3 px-4 whitespace-nowrap font-medium text-[#7B708A] text-xs align-top">
                           {formatThaiDate(tx.date)}
                         </td>
 
                         {/* 2. ประเภท */}
-                        <td className="py-3 px-4 whitespace-nowrap">
+                        <td className="py-3 px-4 whitespace-nowrap align-top">
                           {isFund && (
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF]">
                               <Wallet className="w-3 h-3" />
@@ -271,9 +301,52 @@ export default function TransactionTable({
                           )}
                         </td>
 
-                        {/* 3. รายการ (Item description without category column) */}
-                        <td className="py-3 px-4 font-medium text-[#332941] max-w-sm sm:max-w-md">
-                          {tx.description}
+                        {/* 3. รายการ (Item description with past-date unpaid students accordion as in Sketch) */}
+                        <td className="py-3 px-4 font-medium text-[#332941] max-w-sm sm:max-w-md align-top">
+                          <div>{tx.description}</div>
+                          {showUnpaidToggle && (
+                            <div className="mt-1.5">
+                              <button
+                                type="button"
+                                onClick={() => toggleExpand(tx.id)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
+                                  isExpanded
+                                    ? "bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]"
+                                    : "bg-[#F8F5FB] text-[#7B708A] hover:text-[#E11D48] hover:bg-[#FFF1F2] border-[#EFE8F6]"
+                                }`}
+                              >
+                                <Users className="w-3 h-3 text-[#E11D48]" />
+                                <span>รายชื่อคนค้างจ่าย ({unpaidStudents.length} คน)</span>
+                                {isExpanded ? (
+                                  <ChevronUp className="w-3 h-3 text-[#E11D48]" />
+                                ) : (
+                                  <ChevronDown className="w-3 h-3" />
+                                )}
+                              </button>
+
+                              {isExpanded && (
+                                <div className="mt-2 p-2.5 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl animate-fadeIn space-y-1.5 max-w-md shadow-xs">
+                                  <div className="text-[11px] font-bold text-[#9333EA] flex items-center justify-between pb-1 border-b border-[#EFE8F6]">
+                                    <span>คนค้างจ่ายวันที่ {formatThaiDate(tx.date)}</span>
+                                    <span className="text-[#E11D48]">{unpaidStudents.length} คน</span>
+                                  </div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pt-0.5">
+                                    {unpaidStudents.map((s) => (
+                                      <div
+                                        key={s.id}
+                                        className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-[#EFE8F6] text-xs text-[#332941]"
+                                      >
+                                        <span className="w-5 h-5 rounded-md bg-[#FAF5FF] text-[#9333EA] text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-[#E9D5FF]">
+                                          {s.rollNumber}
+                                        </span>
+                                        <span className="truncate font-medium">{s.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </td>
 
                         {/* 4. จำนวนเงิน */}

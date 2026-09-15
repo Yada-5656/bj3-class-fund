@@ -148,16 +148,21 @@ export function calculateSummary(roomData: RoomData): RoomSummary {
   const totalBalance = totalIncome - totalExpense;
 
   const today = getTodayISODate();
-  const todayPaidSet = new Set(
-    dailyCheckins?.[today] ??
-    students.filter((s) => s.isPaid).map((s) => s.id)
-  );
+  const hasRecordedToday = !!(dailyCheckins && dailyCheckins[today] !== undefined);
 
-  const paidCount = students.filter((s) => todayPaidSet.has(s.id)).length;
+  let paidCount = 0;
+  let unpaidCount = 0;
+  let collectionRate = 0;
   const totalStudents = students.length;
-  const unpaidCount = totalStudents - paidCount;
-  const collectionRate = totalStudents > 0 ? Math.round((paidCount / totalStudents) * 100) : 0;
-  const unpaidStudents = students.filter((s) => !todayPaidSet.has(s.id));
+  let unpaidStudents: Student[] = [];
+
+  if (hasRecordedToday) {
+    const todayPaidSet = new Set(dailyCheckins![today]);
+    paidCount = students.filter((s) => todayPaidSet.has(s.id)).length;
+    unpaidCount = totalStudents - paidCount;
+    collectionRate = totalStudents > 0 ? Math.round((paidCount / totalStudents) * 100) : 0;
+    unpaidStudents = students.filter((s) => !todayPaidSet.has(s.id));
+  }
 
   return {
     totalBalance,
@@ -196,9 +201,31 @@ export function loadRoomFromClientStorage(roomSlug: string): RoomData {
         }
       }
 
+      // Consolidate duplicate fund transactions on the same date into 1 single row per date:
+      // "เงินห้องอะให้มีแค่1วัน1แถบพอ"
+      const seenFundDates = new Set<string>();
+      const consolidatedTx: Transaction[] = [];
+      for (const tx of data.transactions || []) {
+        if (tx.type === "fund") {
+          if (!seenFundDates.has(tx.date)) {
+            seenFundDates.add(tx.date);
+            const paidIds = data.dailyCheckins?.[tx.date];
+            if (paidIds && paidIds.length > 0) {
+              const fee = data.settings?.fundFeePerStudent || 20;
+              tx.amount = paidIds.length * fee;
+              tx.description = `เก็บเงินห้อง (${paidIds.length} คน x ${fee} บาท)`;
+              consolidatedTx.push(tx);
+            } else if (!paidIds) {
+              consolidatedTx.push(tx);
+            }
+          }
+        } else {
+          consolidatedTx.push(tx);
+        }
+      }
+      data.transactions = consolidatedTx;
+
       // Synchronize students for today
-      // If today has no checkins recorded yet, students start as isPaid: false
-      // If today already has checkins recorded, restore them
       const todayPaidSet = new Set(data.dailyCheckins[today] || []);
       data.students = data.students.map((s) => ({
         ...s,

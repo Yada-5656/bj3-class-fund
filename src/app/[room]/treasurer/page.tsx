@@ -77,8 +77,6 @@ export default function TreasurerDashboardPage({
     paidStudentIds?: string[],
     allDailyCheckins?: Record<string, string[]>
   ) => {
-    let updatedTx = [...roomData.transactions];
-
     const mergedCheckins: Record<string, string[]> = {
       ...(roomData.dailyCheckins || {}),
       ...(allDailyCheckins || {}),
@@ -87,27 +85,33 @@ export default function TreasurerDashboardPage({
       mergedCheckins[selectedDate] = paidStudentIds;
     }
 
-    if (recordTransaction) {
-      const prevPaidForDate = new Set(roomData.dailyCheckins?.[selectedDate] || []);
-      const currentPaidList = paidStudentIds || [];
-      const newlyPaidCount = currentPaidList.filter((id) => !prevPaidForDate.has(id)).length;
+    const currentPaidList = paidStudentIds ?? (mergedCheckins[selectedDate] || []);
+    const paidCount = currentPaidList.length;
+    const fee = roomData.settings.fundFeePerStudent || 20;
 
-      if (newlyPaidCount > 0) {
-        const fee = roomData.settings.fundFeePerStudent || 20;
-        const total = newlyPaidCount * fee;
-        const newRecord: Transaction = {
-          id: `tx-${roomSlug}-${Date.now()}`,
-          roomId: roomSlug,
-          type: "fund",
-          category: "เงินห้อง",
-          description: `เก็บเงินห้อง (${newlyPaidCount} คน x ${fee} บาท)`,
-          amount: total,
-          date: selectedDate || getTodayISODate(),
-          createdAt: new Date().toISOString(),
-        };
-        updatedTx.unshift(newRecord);
-      }
+    // Rule: "เงินห้องอะให้มีแค่1วัน1แถบพอ"
+    // Filter out ANY existing fund transaction(s) for selectedDate so we only update the single row
+    let remainingTx = roomData.transactions.filter(
+      (t) => !(t.type === "fund" && t.date === selectedDate)
+    );
+
+    if (recordTransaction && paidCount > 0) {
+      const fundRecord: Transaction = {
+        id: `tx-${roomSlug}-fund-${selectedDate}`,
+        roomId: roomSlug,
+        type: "fund",
+        category: "เงินห้อง",
+        description: `เก็บเงินห้อง (${paidCount} คน x ${fee} บาท)`,
+        amount: paidCount * fee,
+        date: selectedDate || getTodayISODate(),
+        createdAt: new Date().toISOString(),
+      };
+      remainingTx.unshift(fundRecord);
     }
+
+    const updatedTx = remainingTx.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
 
     // Keep students state synchronized for today so dashboard metrics reflect today's status
     const today = getTodayISODate();
@@ -410,6 +414,8 @@ export default function TreasurerDashboardPage({
 
           <TransactionTable
             transactions={roomData.transactions}
+            students={roomData.students}
+            dailyCheckins={roomData.dailyCheckins}
             isTreasurer={true}
             onEdit={(tx) => {
               setEditingTransaction(tx);

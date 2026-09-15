@@ -9,7 +9,7 @@ import {
   calculateSummary,
   RoomData,
 } from "@/lib/db";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
@@ -22,6 +22,8 @@ import {
   BarChart3,
   History,
   Users,
+  Calendar,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function RoomDashboardPage({
@@ -55,6 +57,8 @@ export default function RoomDashboardPage({
 
   const summary = calculateSummary(roomData);
   const feePerStudent = roomData.settings?.fundFeePerStudent || 20;
+  const today = getTodayISODate();
+  const hasRecordedToday = !!(roomData.dailyCheckins && roomData.dailyCheckins[today] !== undefined);
 
   return (
     <div className="space-y-5 animate-fadeIn max-w-4xl mx-auto">
@@ -213,26 +217,44 @@ export default function RoomDashboardPage({
           ) : (
             /* Tab Content: ประวัติ (Transaction History Table & Unpaid Roster) */
             <div className="space-y-6">
-              {/* Unpaid Students Section */}
+              {/* Today's Unpaid Students Section */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-[#7B708A] flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-[#C084FC]" />
-                    <span>รายชื่อนักเรียนค้างชำระ ({summary.unpaidCount} คน)</span>
-                  </span>
-                </div>
-                <StudentList
-                  students={roomData.students}
-                  dailyCheckins={roomData.dailyCheckins}
-                  mode="public-unpaid"
-                  feePerStudent={feePerStudent}
-                />
+                {!hasRecordedToday ? (
+                  <div className="pastel-card p-4 sm:p-5 bg-white border border-[#E9D5FF] rounded-2xl flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-[#7B708A] font-medium">สถานะเงินห้องประจำวัน</div>
+                      <div className="text-xs sm:text-sm font-bold text-[#332941]">
+                        ไม่มีข้อมูลบันทึกเงินห้องสำหรับวันที่: {formatThaiDate(today)}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-[#7B708A] flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#C084FC]" />
+                        <span>รายชื่อนักเรียนค้างชำระวันนี้ ({summary.unpaidCount} คน)</span>
+                      </span>
+                    </div>
+                    <StudentList
+                      students={roomData.students}
+                      dailyCheckins={roomData.dailyCheckins}
+                      mode="public-unpaid"
+                      feePerStudent={feePerStudent}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Transaction History Table */}
               <div className="pt-2 border-t border-[#F1EDF7]">
                 <TransactionTable
                   transactions={roomData.transactions}
+                  students={roomData.students}
+                  dailyCheckins={roomData.dailyCheckins}
                   showFilters={true}
                 />
               </div>
