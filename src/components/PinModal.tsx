@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { Lock, Delete, KeyRound, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
+import { loadRoomFromClientStorage } from "@/lib/db";
+
 interface PinModalProps {
   roomSlug: string;
   displayName: string;
@@ -15,20 +17,24 @@ export default function PinModal({
   roomSlug,
   displayName,
   onSuccess,
-  expectedPin = "1234",
+  expectedPin,
 }: PinModalProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
 
   const handleKeyPress = (digit: string) => {
-    if (pin.length < 4) {
+    if (pin.length < 6) {
       const nextPin = pin + digit;
       setPin(nextPin);
       setError(null);
 
-      if (nextPin.length === 4) {
-        verifyPin(nextPin);
+      // Check when reaching at least 4 digits
+      const roomData = loadRoomFromClientStorage(roomSlug);
+      const actualPin = (roomData?.settings?.treasurerPin || expectedPin || "").trim();
+
+      if (actualPin && nextPin.length === actualPin.length) {
+        verifyPin(nextPin, actualPin);
       }
     }
   };
@@ -43,34 +49,15 @@ export default function PinModal({
     setError(null);
   };
 
-  const verifyPin = async (enteredPin: string) => {
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "verify-pin",
-          roomSlug,
-          pin: enteredPin,
-        }),
-      });
+  const verifyPin = (enteredPin: string, targetPin?: string) => {
+    const roomData = loadRoomFromClientStorage(roomSlug);
+    const actualPin = (targetPin || roomData?.settings?.treasurerPin || expectedPin || "").trim();
 
-      const data = await res.json();
-      if (res.ok && data.success) {
-        // Store verification in sessionStorage for this room
-        sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
-        onSuccess();
-      } else {
-        triggerError(data.error || "รหัส PIN ไม่ถูกต้อง");
-      }
-    } catch {
-      // Fallback local check
-      if (enteredPin === expectedPin) {
-        sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
-        onSuccess();
-      } else {
-        triggerError("รหัส PIN เหรัญญิกไม่ถูกต้อง");
-      }
+    if (actualPin && enteredPin.trim() === actualPin) {
+      sessionStorage.setItem(`bj3_treasurer_auth_${roomSlug}`, "true");
+      onSuccess();
+    } else {
+      triggerError("รหัส PIN เหรัญญิกไม่ถูกต้อง");
     }
   };
 
@@ -102,9 +89,12 @@ export default function PinModal({
           </h2>
         </div>
 
-        {/* PIN Indicators (4 Dots) */}
+        {/* PIN Indicators */}
         <div className="flex justify-center gap-3 py-2">
-          {[0, 1, 2, 3].map((index) => (
+          {Array.from(
+            { length: (loadRoomFromClientStorage(roomSlug)?.settings?.treasurerPin || expectedPin || "1234").trim().length || 4 },
+            (_, i) => i
+          ).map((index) => (
             <div
               key={index}
               className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${

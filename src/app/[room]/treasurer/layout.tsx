@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { slugToDisplayName } from "@/lib/rooms";
+import { loadRoomFromClientStorage } from "@/lib/db";
 import PinModal from "@/components/PinModal";
 
 export default function TreasurerLayout({
@@ -17,6 +18,7 @@ export default function TreasurerLayout({
   const displayName = slugToDisplayName(roomSlug);
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [expectedPin, setExpectedPin] = useState<string>("");
 
   useEffect(() => {
     // Check if treasurer is already authenticated in this browser session
@@ -25,6 +27,10 @@ export default function TreasurerLayout({
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
+    }
+    const data = loadRoomFromClientStorage(roomSlug);
+    if (data && data.settings) {
+      setExpectedPin(data.settings.treasurerPin || "");
     }
   }, [roomSlug]);
 
@@ -41,6 +47,7 @@ export default function TreasurerLayout({
       <PinModal
         roomSlug={roomSlug}
         displayName={displayName}
+        expectedPin={expectedPin}
         onSuccess={() => setIsAuthenticated(true)}
       />
     );

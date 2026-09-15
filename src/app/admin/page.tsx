@@ -44,11 +44,14 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const auth = localStorage.getItem("bj3_admin_auth");
+      const auth = sessionStorage.getItem("bj3_admin_auth") || localStorage.getItem("bj3_admin_auth");
       if (auth !== "true") {
         router.replace("/");
         return;
       }
+      // Strictly session-only as requested: "ถ้าเข้าไปแล้วไม่ต้องเซฟหน้านั้นไว้ เฉพาะหน้าแอดมินนะ"
+      sessionStorage.setItem("bj3_admin_auth", "true");
+      localStorage.removeItem("bj3_admin_auth");
       setIsAuthorized(true);
 
       // Load ranked rooms
@@ -98,8 +101,14 @@ export default function AdminDashboardPage() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem("bj3_admin_auth");
     localStorage.removeItem("bj3_admin_auth");
     router.replace("/");
+  };
+
+  const handleViewRoom = (roomSlug: string) => {
+    localStorage.setItem("bj3_active_room", roomSlug);
+    router.push(`/${roomSlug}`);
   };
 
   const filteredRooms = rankedRooms.filter((r) =>
@@ -284,14 +293,14 @@ export default function AdminDashboardPage() {
                   <div className="text-sm sm:text-base font-extrabold text-[#059669]">
                     {formatCurrency(room.totalCollected)}
                   </div>
-                  <Link
-                    href={`/${room.roomSlug}`}
-                    target="_blank"
-                    className="inline-flex items-center gap-1 text-[10px] text-[#9333EA] hover:underline font-medium"
+                  <button
+                    type="button"
+                    onClick={() => handleViewRoom(room.roomSlug)}
+                    className="inline-flex items-center gap-1 text-[11px] text-[#9333EA] hover:text-[#7E22CE] bg-[#FAF5FF] hover:bg-[#F3E8FF] px-2.5 py-1 rounded-lg border border-[#E9D5FF] font-semibold transition-colors"
                   >
                     <span>ดูห้อง</span>
                     <ExternalLink className="w-2.5 h-2.5" />
-                  </Link>
+                  </button>
                 </div>
               </div>
             );

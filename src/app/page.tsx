@@ -50,9 +50,10 @@ export default function LoginPage() {
     const cleanUser = username.trim();
     const cleanPass = password.trim();
 
-    // 1. Direct admin check
+    // 1. Direct admin check: "ถ้าเข้าไปแล้วไม่ต้องเซฟหน้านั้นไว้ เฉพาะหน้าแอดมินนะ"
     if (cleanUser.toLowerCase() === "admin" && cleanPass === "1706") {
-      localStorage.setItem("bj3_admin_auth", "true");
+      sessionStorage.setItem("bj3_admin_auth", "true");
+      localStorage.removeItem("bj3_admin_auth");
       router.push("/admin");
       return;
     }
@@ -71,7 +72,8 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         if (data.isAdmin) {
-          localStorage.setItem("bj3_admin_auth", "true");
+          sessionStorage.setItem("bj3_admin_auth", "true");
+          localStorage.removeItem("bj3_admin_auth");
           router.push("/admin");
           return;
         }
@@ -87,7 +89,8 @@ export default function LoginPage() {
       // Client fallback check
       const check = validateLogin(cleanUser, cleanPass);
       if (check.isAdmin) {
-        localStorage.setItem("bj3_admin_auth", "true");
+        sessionStorage.setItem("bj3_admin_auth", "true");
+        localStorage.removeItem("bj3_admin_auth");
         router.push("/admin");
         return;
       }
