@@ -82,8 +82,16 @@ export default function TreasurerLayout({
 
     // Save to central cloud store
     try {
-      const { initializeCloudRoom } = await import('@/lib/cloudDb');
-      await initializeCloudRoom(roomSlug, fee, pin);
+      await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "initialize",
+          roomSlug,
+          feePerStudent: fee,
+          treasurerPin: pin,
+        }),
+      });
     } catch (err) {
       console.error("Cloud initialization error:", err);
     }

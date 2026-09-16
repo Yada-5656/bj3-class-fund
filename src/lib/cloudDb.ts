@@ -135,15 +135,18 @@ export async function saveCloudState(
 
   // 2. Persist to Primary Cloud Store
   try {
+    const bodyStr = JSON.stringify({
+      name: "bj3_rooms_store",
+      data: next,
+    });
     const res = await fetch(STORE_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        "Content-Length": String(new TextEncoder().encode(bodyStr).length),
+        "Connection": "keep-alive"
       },
-      body: JSON.stringify({
-        name: "bj3_rooms_store",
-        data: next,
-      }),
+      body: bodyStr,
     });
     if (!res.ok) {
       throw new Error(`Cloud store PUT failed: ${res.status} ${await res.text()}`);
