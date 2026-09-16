@@ -12,7 +12,7 @@ import {
   getPromotionDate,
   RoomData,
 } from "@/lib/db";
-import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
+import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
@@ -25,10 +25,6 @@ import {
   ShieldCheck,
   School,
   BarChart3,
-  History,
-  Users,
-  Calendar,
-  CheckCircle2,
   LogOut,
 } from "lucide-react";
 
@@ -50,7 +46,7 @@ export default function RoomDashboardPage({
   // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
-  // Room Guard & load room data (Local + Cloud Sync)
+  // Room Guard & load room data (Local + Cloud Sync + Live Polling)
   useEffect(() => {
     let isMounted = true;
     if (typeof window !== "undefined") {
@@ -66,15 +62,26 @@ export default function RoomDashboardPage({
       setPromotionDate(getPromotionDate());
 
       // 2. Cross-device cloud sync
-      syncRoomWithServer(roomSlug).then((syncedData) => {
-        if (isMounted) {
-          setRoomData(syncedData);
-        }
-      });
+      const fetchSync = () => {
+        syncRoomWithServer(roomSlug).then((syncedData) => {
+          if (isMounted) {
+            setRoomData(syncedData);
+          }
+        });
+      };
+
+      fetchSync();
+
+      // Poll periodically and on focus so other devices see balance and transactions live
+      const interval = setInterval(fetchSync, 8000);
+      window.addEventListener("focus", fetchSync);
+
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+        window.removeEventListener("focus", fetchSync);
+      };
     }
-    return () => {
-      isMounted = false;
-    };
   }, [roomSlug, router]);
 
   const handleConfirmLogout = () => {

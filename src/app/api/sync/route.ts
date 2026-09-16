@@ -6,7 +6,7 @@ import {
   syncRoomToCloud,
   saveCloudState,
 } from "@/lib/cloudDb";
-import { RoomSettings, Transaction } from "@/lib/db";
+import { RoomSettings } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 

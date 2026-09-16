@@ -1,4 +1,4 @@
-import { RoomData, RoomSettings, Transaction, createDefaultRoomData } from "./db";
+import { RoomSettings, Transaction } from "./db";
 
 // Cloud Store configuration using public reliable JSON store
 const STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0a664936f137c";
