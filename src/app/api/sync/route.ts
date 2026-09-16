@@ -113,10 +113,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST /api/sync error:", error);
     return NextResponse.json(
-      { error: "Failed to process sync action" },
+      { error: "Failed to process sync action", details: error.message || String(error) },
       { status: 500 }
     );
   }
