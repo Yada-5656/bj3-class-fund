@@ -128,7 +128,7 @@ export async function saveCloudState(
 
   // 2. Persist to Primary Cloud Store
   try {
-    await fetch(STORE_URL, {
+    const res = await fetch(STORE_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -138,8 +138,12 @@ export async function saveCloudState(
         data: next,
       }),
     });
+    if (!res.ok) {
+      throw new Error(`Cloud store PUT failed: ${res.status} ${await res.text()}`);
+    }
   } catch (err) {
     console.error("Failed to save to cloud store:", err);
+    throw err;
   }
 
   return next;
@@ -212,32 +216,27 @@ export async function syncRoomToCloud(
   dailyCheckins: Record<string, string[]>,
   transactions: Transaction[]
 ): Promise<boolean> {
-  try {
-    await saveCloudState((prev) => {
-      const existing = prev.rooms[roomSlug] || {};
-      return {
-        ...prev,
-        rooms: {
-          ...prev.rooms,
-          [roomSlug]: {
-            ...existing,
-            settings: {
-              ...(existing.settings || {}),
-              ...settings,
-            },
-            dailyCheckins: {
-              ...(existing.dailyCheckins || {}),
-              ...dailyCheckins,
-            },
-            transactions: transactions || existing.transactions || [],
-            lastUpdated: new Date().toISOString(),
+  await saveCloudState((prev) => {
+    const existing = prev.rooms[roomSlug] || {};
+    return {
+      ...prev,
+      rooms: {
+        ...prev.rooms,
+        [roomSlug]: {
+          ...existing,
+          settings: {
+            ...(existing.settings || {}),
+            ...settings,
           },
+          dailyCheckins: {
+            ...(existing.dailyCheckins || {}),
+            ...dailyCheckins,
+          },
+          transactions: transactions || existing.transactions || [],
+          lastUpdated: new Date().toISOString(),
         },
-      };
-    });
-    return true;
-  } catch (err) {
-    console.error("syncRoomToCloud error:", err);
-    return false;
-  }
+      },
+    };
+  });
+  return true;
 }
