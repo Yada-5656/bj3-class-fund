@@ -35,7 +35,12 @@ export async function fetchCloudState(): Promise<CloudState> {
   }
 
   // 1. Try Upstash Redis if configured
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.KV_REST_API_URL &&
+    process.env.KV_REST_API_TOKEN
+  ) {
     try {
       const res = await fetch(`${process.env.KV_REST_API_URL}/get/bj3_cloud_state`, {
         headers: {
@@ -61,9 +66,6 @@ export async function fetchCloudState(): Promise<CloudState> {
   try {
     const res = await fetch(STORE_URL, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
       cache: "no-store",
     });
 
@@ -111,7 +113,12 @@ export async function saveCloudState(
   lastCacheFetchTime = Date.now();
 
   // 1. Persist to Upstash if configured
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  if (
+    typeof process !== "undefined" &&
+    process.env &&
+    process.env.KV_REST_API_URL &&
+    process.env.KV_REST_API_TOKEN
+  ) {
     try {
       await fetch(`${process.env.KV_REST_API_URL}/set/bj3_cloud_state`, {
         method: "POST",
