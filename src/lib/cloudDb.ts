@@ -1,7 +1,7 @@
 import { RoomSettings, Transaction } from "./db";
 
-// Cloud Store configuration using public reliable JSON store
-const STORE_URL = "https://api.restful-api.dev/objects/ff808181a09d98f701a0a664936f137c";
+const CLOUD_BIN_ID = process.env.BJ3_CLOUD_BIN || "edbbbbf";
+const STORE_URL = `https://extendsclass.com/api/json-storage/bin/${CLOUD_BIN_ID}`;
 
 export interface CloudState {
   version: number;
@@ -20,75 +20,37 @@ export interface CloudState {
   >;
 }
 
-// In-Memory server cache with TTL
 let memoryCache: CloudState | null = null;
 let lastCacheFetchTime = 0;
-const CACHE_TTL_MS = 2000; // 2 seconds cache for fast response
+const CACHE_TTL_MS = 2000;
 
-/**
- * Fetch current state from Cloud Store (with in-memory cache)
- */
 export async function fetchCloudState(): Promise<CloudState> {
   const now = Date.now();
   if (memoryCache && now - lastCacheFetchTime < CACHE_TTL_MS) {
     return memoryCache;
   }
 
-  // 1. Try Upstash Redis if configured
-  if (
-    typeof process !== "undefined" &&
-    process.env &&
-    process.env.KV_REST_API_URL &&
-    process.env.KV_REST_API_TOKEN
-  ) {
-    try {
-      const res = await fetch(`${process.env.KV_REST_API_URL}/get/bj3_cloud_state`, {
-        headers: {
-          Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-        },
-        cache: "no-store",
-      });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.result) {
-          const parsed = typeof json.result === "string" ? JSON.parse(json.result) : json.result;
-          memoryCache = parsed;
-          lastCacheFetchTime = now;
-          return parsed;
-        }
-      }
-    } catch (err) {
-      console.warn("Upstash fetch failed:", err);
-    }
-  }
-
-  // 2. Primary Cloud Store
   try {
     const res = await fetch(STORE_URL, {
       method: "GET",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      },
       cache: "no-store",
     });
 
     if (res.ok) {
-      const json = await res.json();
-      const rawData = json.data || {};
-      const data: CloudState = {
-        version: rawData.version || 1,
-        updatedAt: rawData.updatedAt || new Date().toISOString(),
-        promotionDate: rawData.promotionDate || null,
-        adminUsername: rawData.adminUsername,
-        adminPassword: rawData.adminPassword,
-        rooms: rawData.rooms || {},
-      };
-      memoryCache = data;
-      lastCacheFetchTime = now;
-      return data;
+      const data = await res.json();
+      if (data && typeof data.rooms === "object") {
+        memoryCache = data;
+        lastCacheFetchTime = now;
+        return data;
+      }
     }
   } catch (err) {
     console.error("Cloud store fetch error:", err);
   }
 
-  // Fallback to empty state if offline or network error
   if (!memoryCache) {
     memoryCache = {
       version: 1,
@@ -100,9 +62,6 @@ export async function fetchCloudState(): Promise<CloudState> {
   return memoryCache;
 }
 
-/**
- * Persist updated state to Cloud Store
- */
 export async function saveCloudState(
   updater: (prev: CloudState) => CloudState
 ): Promise<CloudState> {
@@ -112,53 +71,22 @@ export async function saveCloudState(
   memoryCache = next;
   lastCacheFetchTime = Date.now();
 
-  // 1. Persist to Upstash if configured
-  if (
-    typeof process !== "undefined" &&
-    process.env &&
-    process.env.KV_REST_API_URL &&
-    process.env.KV_REST_API_TOKEN
-  ) {
-    try {
-      await fetch(`${process.env.KV_REST_API_URL}/set/bj3_cloud_state`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(next),
-      });
-    } catch (err) {
-      console.warn("Upstash save failed:", err);
-    }
-  }
-
-  // 2. Persist to Primary Cloud Store
   try {
-    const res = await fetch(STORE_URL, {
+    await fetch(STORE_URL, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
       },
-      body: JSON.stringify({
-        name: "bj3_rooms_store",
-        data: next,
-      }),
+      body: JSON.stringify(next),
     });
-    if (!res.ok) {
-      throw new Error(`Cloud store PUT failed: ${res.status} ${await res.text()}`);
-    }
   } catch (err) {
     console.error("Failed to save to cloud store:", err);
-    throw err;
   }
 
   return next;
 }
 
-/**
- * Get room settings and data from cloud
- */
 export async function getCloudRoom(roomSlug: string): Promise<{
   settings: RoomSettings;
   dailyCheckins?: Record<string, string[]>;
@@ -179,9 +107,6 @@ export async function getCloudRoom(roomSlug: string): Promise<{
   };
 }
 
-/**
- * Mark a room as initialized and save its treasurer PIN & fee to cloud
- */
 export async function initializeCloudRoom(
   roomSlug: string,
   feePerStudent: number,
@@ -214,9 +139,6 @@ export async function initializeCloudRoom(
   return newSettings;
 }
 
-/**
- * Save full room sync data (checkins, transactions, settings) to cloud
- */
 export async function syncRoomToCloud(
   roomSlug: string,
   settings: RoomSettings,
@@ -247,3 +169,4 @@ export async function syncRoomToCloud(
   });
   return true;
 }
+
