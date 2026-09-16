@@ -64,36 +64,26 @@ export async function fetchCloudState(): Promise<CloudState> {
 
   // 2. Primary Cloud Store
   try {
-    const rawData = await new Promise<any>((resolve, reject) => {
-      const https = require("https");
-      https.get(STORE_URL, { headers: { "Cache-Control": "no-cache" } }, (res: any) => {
-        let data = "";
-        res.on("data", (chunk: any) => data += chunk);
-        res.on("end", () => {
-          if (res.statusCode === 200) {
-            try {
-              resolve(JSON.parse(data).data || {});
-            } catch (e) {
-              reject(e);
-            }
-          } else {
-            reject(new Error(`Cloud store GET failed: ${res.statusCode} ${data}`));
-          }
-        });
-      }).on("error", reject);
+    const res = await fetch(STORE_URL, {
+      method: "GET",
+      cache: "no-store",
     });
 
-    const data: CloudState = {
-      version: rawData.version || 1,
-      updatedAt: rawData.updatedAt || new Date().toISOString(),
-      promotionDate: rawData.promotionDate || null,
-      adminUsername: rawData.adminUsername,
-      adminPassword: rawData.adminPassword,
-      rooms: rawData.rooms || {},
-    };
-    memoryCache = data;
-    lastCacheFetchTime = now;
-    return data;
+    if (res.ok) {
+      const json = await res.json();
+      const rawData = json.data || {};
+      const data: CloudState = {
+        version: rawData.version || 1,
+        updatedAt: rawData.updatedAt || new Date().toISOString(),
+        promotionDate: rawData.promotionDate || null,
+        adminUsername: rawData.adminUsername,
+        adminPassword: rawData.adminPassword,
+        rooms: rawData.rooms || {},
+      };
+      memoryCache = data;
+      lastCacheFetchTime = now;
+      return data;
+    }
   } catch (err) {
     console.error("Cloud store fetch error:", err);
   }
@@ -145,42 +135,19 @@ export async function saveCloudState(
 
   // 2. Persist to Primary Cloud Store
   try {
-    const bodyStr = JSON.stringify({
-      name: "bj3_rooms_store",
-      data: next,
+    const res = await fetch(STORE_URL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "bj3_rooms_store",
+        data: next,
+      }),
     });
-    
-    await new Promise<void>((resolve, reject) => {
-      const https = require("https");
-      const { URL } = require("url");
-      const parsedUrl = new URL(STORE_URL);
-      const req = https.request(
-        {
-          hostname: parsedUrl.hostname,
-          path: parsedUrl.pathname + parsedUrl.search,
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "Content-Length": Buffer.byteLength(bodyStr),
-            "Connection": "close"
-          }
-        },
-        (res: any) => {
-          let data = "";
-          res.on("data", (chunk: any) => data += chunk);
-          res.on("end", () => {
-            if (res.statusCode >= 200 && res.statusCode < 300) {
-              resolve();
-            } else {
-              reject(new Error(`Cloud store PUT failed: ${res.statusCode} ${data}`));
-            }
-          });
-        }
-      );
-      req.on("error", reject);
-      req.write(bodyStr);
-      req.end();
-    });
+    if (!res.ok) {
+      throw new Error(`Cloud store PUT failed: ${res.status} ${await res.text()}`);
+    }
   } catch (err) {
     console.error("Failed to save to cloud store:", err);
     throw err;

@@ -90,15 +90,13 @@ export default function AdminDashboardPage() {
   const handleSavePromotionDate = (e: React.FormEvent) => {
     e.preventDefault();
     setPromotionDate(promotionDateInput || null);
-    // Sync to cloud
-    fetch("/api/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "update_promotion_date",
+    // Sync to cloud directly
+    import('@/lib/cloudDb').then(({ saveCloudState }) => {
+      saveCloudState((prev) => ({
+        ...prev,
         promotionDate: promotionDateInput || null,
-      }),
-    }).catch(() => {});
+      })).catch(() => {});
+    });
 
     setNotice(
       promotionDateInput

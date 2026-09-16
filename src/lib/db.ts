@@ -235,20 +235,15 @@ export function saveRoomToClientStorage(roomSlug: string, data: RoomData, skipCl
 
   if (skipCloudSync) return;
 
-  // Trigger background cloud sync across all devices via server
+  // Trigger background cloud sync across all devices directly from client to bypass Vercel 500 errors
   try {
-    fetch("/api/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "sync_room",
+    import('./cloudDb').then(({ syncRoomToCloud }) => {
+      syncRoomToCloud(
         roomSlug,
-        settings: data.settings,
-        dailyCheckins: data.dailyCheckins || {},
-        transactions: data.transactions || [],
-      }),
-    }).catch((e) => {
-      // Quiet fail for offline support
+        data.settings,
+        data.dailyCheckins || {},
+        data.transactions || []
+      ).catch(() => {});
     });
   } catch (e) {
     // Quiet fail
@@ -266,62 +261,61 @@ export async function syncRoomWithServer(roomSlug: string): Promise<RoomData> {
   }
 
   try {
-    const res = await fetch(`/api/sync?room=${roomSlug}`, { cache: "no-store" });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.success && json.settings) {
-        let updated = false;
-        const mergedData: RoomData = { ...localData };
+    const { getCloudRoom } = await import('./cloudDb');
+    const cloudRoom = await getCloudRoom(roomSlug);
+    
+    if (cloudRoom) {
+      let updated = false;
+      const mergedData: RoomData = { ...localData };
 
-        // 1. Sync Settings (Initialized status, Treasurer PIN, Fund Fee)
-        if (json.settings.isInitialized !== undefined) {
-          mergedData.settings = {
-            ...mergedData.settings,
-            ...json.settings,
-          };
-          updated = true;
-        }
-
-        // 2. Sync Daily Checkins if server has records
-        if (json.dailyCheckins && Object.keys(json.dailyCheckins).length > 0) {
-          mergedData.dailyCheckins = {
-            ...(mergedData.dailyCheckins || {}),
-            ...json.dailyCheckins,
-          };
-          updated = true;
-        }
-
-        // 3. Sync Transactions (Merge by ID, newest first)
-        if (Array.isArray(json.transactions) && json.transactions.length > 0) {
-          const txMap = new Map<string, Transaction>();
-          (mergedData.transactions || []).forEach((t) => txMap.set(t.id, t));
-          json.transactions.forEach((t: Transaction) => txMap.set(t.id, t));
-          mergedData.transactions = Array.from(txMap.values()).sort(
-            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-          );
-          updated = true;
-        }
-
-        // 4. Update today's payment status for students
-        const today = getTodayISODate();
-        const todayPaidSet = new Set(mergedData.dailyCheckins?.[today] || []);
-        mergedData.students = mergedData.students.map((s) => ({
-          ...s,
-          isPaid: todayPaidSet.has(s.id),
-          paidDate: todayPaidSet.has(s.id) ? today : undefined,
-        }));
-
-        if (updated) {
-          try {
-            localStorage.setItem(`${STORAGE_PREFIX}${roomSlug}`, JSON.stringify(mergedData));
-            memoryStore.set(roomSlug, mergedData);
-          } catch (e) {
-            // ignore quota error
-          }
-        }
-
-        return mergedData;
+      // 1. Sync Settings
+      if (cloudRoom.settings?.isInitialized !== undefined) {
+        mergedData.settings = {
+          ...mergedData.settings,
+          ...cloudRoom.settings,
+        };
+        updated = true;
       }
+
+      // 2. Sync Daily Checkins
+      if (cloudRoom.dailyCheckins && Object.keys(cloudRoom.dailyCheckins).length > 0) {
+        mergedData.dailyCheckins = {
+          ...(mergedData.dailyCheckins || {}),
+          ...cloudRoom.dailyCheckins,
+        };
+        updated = true;
+      }
+
+      // 3. Sync Transactions
+      if (Array.isArray(cloudRoom.transactions) && cloudRoom.transactions.length > 0) {
+        const txMap = new Map<string, Transaction>();
+        (mergedData.transactions || []).forEach((t) => txMap.set(t.id, t));
+        cloudRoom.transactions.forEach((t: Transaction) => txMap.set(t.id, t));
+        mergedData.transactions = Array.from(txMap.values()).sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+        updated = true;
+      }
+
+      // 4. Update today's payment status for students
+      const today = getTodayISODate();
+      const todayPaidSet = new Set(mergedData.dailyCheckins?.[today] || []);
+      mergedData.students = mergedData.students.map((s) => ({
+        ...s,
+        isPaid: todayPaidSet.has(s.id),
+        paidDate: todayPaidSet.has(s.id) ? today : undefined,
+      }));
+
+      if (updated) {
+        try {
+          localStorage.setItem(`${STORAGE_PREFIX}${roomSlug}`, JSON.stringify(mergedData));
+          memoryStore.set(roomSlug, mergedData);
+        } catch (e) {
+          // ignore quota error
+        }
+      }
+
+      return mergedData;
     }
   } catch (err) {
     console.warn("syncRoomWithServer error, fallback to local:", err);
