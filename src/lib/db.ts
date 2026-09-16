@@ -235,20 +235,15 @@ export function saveRoomToClientStorage(roomSlug: string, data: RoomData, skipCl
 
   if (skipCloudSync) return;
 
-  // Trigger background cloud sync across all devices
+  // Trigger background cloud sync across all devices directly from client to bypass Vercel 500 errors
   try {
-    fetch("/api/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "sync_room",
+    import('./cloudDb').then(({ syncRoomToCloud }) => {
+      syncRoomToCloud(
         roomSlug,
-        settings: data.settings,
-        dailyCheckins: data.dailyCheckins || {},
-        transactions: data.transactions || [],
-      }),
-    }).catch((e) => {
-      // Quiet fail for offline support
+        data.settings,
+        data.dailyCheckins || {},
+        data.transactions || []
+      ).catch(() => {});
     });
   } catch (e) {
     // Quiet fail
