@@ -12,7 +12,7 @@ import {
   getPromotionDate,
   RoomData,
 } from "@/lib/db";
-import { formatCurrency, getTodayISODate } from "@/lib/utils";
+import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
@@ -26,6 +26,9 @@ import {
   School,
   BarChart3,
   LogOut,
+  History,
+  Calendar,
+  Users,
 } from "lucide-react";
 
 export default function RoomDashboardPage({
