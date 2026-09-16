@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Lock, Delete, KeyRound, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
