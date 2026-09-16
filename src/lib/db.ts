@@ -266,7 +266,7 @@ export async function syncRoomWithServer(roomSlug: string): Promise<RoomData> {
   }
 
   try {
-    const res = await fetch(`/api/sync?room=${roomSlug}`, { cache: "no-store" });
+    const res = await fetch(`/api/sync?room=${roomSlug}&_t=${Date.now()}`, { cache: "no-store" });
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.settings) {

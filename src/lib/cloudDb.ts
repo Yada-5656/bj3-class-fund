@@ -31,10 +31,11 @@ export async function fetchCloudState(): Promise<CloudState> {
   }
 
   try {
-    const res = await fetch(STORE_URL, {
+    const res = await fetch(`${STORE_URL}?_t=${Date.now()}`, {
       method: "GET",
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Cache-Control": "no-cache",
       },
       cache: "no-store",
     });
