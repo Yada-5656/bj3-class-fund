@@ -114,6 +114,7 @@ export default function TreasurerLayout({
     return (
       <FirstTimeSetupModal
         isOpen={true}
+        roomSlug={roomSlug}
         displayName={displayName}
         onComplete={handleCompleteSetup}
       />

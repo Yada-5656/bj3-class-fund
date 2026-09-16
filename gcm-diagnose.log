@@ -1,0 +1,196 @@
+﻿Diagnose log at 2026-09-16T00:43:47Z
+
+AppPath: C:\Users\Chickenpie\AppData\Local\Programs\Git\mingw64\bin\git-credential-manager.exe
+InstallDir: C:\Users\Chickenpie\AppData\Local\Programs\Git\mingw64\bin\
+Version: 2.5.1+90d5f897f164a8fe07d2aa3bf7db439b0b4e03ea
+
+------------
+Diagnostic: Environment
+Skipped: False
+Success: True
+Exception: None
+Log:
+OSType: Windows
+OSVersion: 10.0 (build 26200)
+Reading environment variables... OK
+ Variables:
+HOMEPATH=\Users\Chickenpie
+DriverData=C:\Windows\System32\Drivers\DriverData
+COMPUTERNAME=LAPTOP-JUJ2TVU2
+AGY_BROWSER_ACTIVE_PORT_FILE=C:\Users\Chickenpie\AppData\Roaming\Antigravity\DevToolsActivePort
+GIT_TRACE2_PARENT_SID=800e3476-61d2-4ca0-93a2-4b2df40a7db9
+CommonProgramFiles(x86)=C:\Program Files (x86)\Common Files
+ANTIGRAVITY_CSRF_TOKEN=c921e727-58f3-4e78-af7e-24884482589f
+OneDrive=C:\Users\Chickenpie\OneDrive
+USERNAME=Chickenpie
+TMP=C:\Users\CHICKE~1\AppData\Local\Temp
+ANTIGRAVITY_TRAJECTORY_ID=8f8edb16-337a-4cbd-be36-93c2acc8b117
+EFC_9268_1592913036=1
+PROCESSOR_ARCHITECTURE=x86
+PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.CPL
+JETSKI_APP_DATA_DIR=antigravity
+EFC_9268_2775293581=1
+TEMP=C:\Users\CHICKE~1\AppData\Local\Temp
+LOCALAPPDATA=C:\Users\Chickenpie\AppData\Local
+PUBLIC=C:\Users\Public
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 197 Stepping 2, GenuineIntel
+USERDOMAIN=LAPTOP-JUJ2TVU2
+ANTIGRAVITY_CONVERSATION_ID=c3b722c4-98c0-4f5f-9fcc-00eec85e22be
+ANTIGRAVITY_LS_VERSION=hub-2.12.0
+PROCESSOR_REVISION=c502
+EFC_9268_1262719628=1
+EFC_9268_3789132940=1
+PROCESSOR_LEVEL=6
+NUMBER_OF_PROCESSORS=14
+APPDATA=C:\Users\Chickenpie\AppData\Roaming
+CHROME_DEVTOOLS_MCP_JS=C:\Users\Chickenpie\AppData\Local\Programs\antigravity\resources\app.asar.unpacked\node_modules\chrome-devtools-mcp\build\src\bin\chrome-devtools-mcp.js
+ProgramFiles(x86)=C:\Program Files (x86)
+EFC_9268_2283032206=1
+FPS_BROWSER_USER_PROFILE_STRING=Default
+CommonProgramFiles=C:\Program Files (x86)\Common Files
+ANTIGRAVITY_LS_ADDRESS=localhost:54574
+ProgramData=C:\ProgramData
+ProgramW6432=C:\Program Files
+PATH=C:/Users/Chickenpie/.gemini/antigravity/bin;C:\Users\Chickenpie\AppData\Roaming\Antigravity\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Users\Chickenpie\AppData\Local\Microsoft\WindowsApps;C:\Users\Chickenpie\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Chickenpie\AppData\Local\Programs\Git\cmd
+ProgramFiles=C:\Program Files (x86)
+EFC_9268_4126798990=1
+ANTIGRAVITY_PROJECT_ID=outside-of-project
+ANTIGRAVITY_SOURCE_METADATA={"tool":{"conversationId":"c3b722c4-98c0-4f5f-9fcc-00eec85e22be", "stepIndex":1848, "toolCall":{"id":"call_163124", "name":"run_command", "argumentsJson":"{\"CommandLine\":\"\\u0026 \\\"C:\\\\Users\\\\Chickenpie\\\\AppData\\\\Local\\\\Programs\\\\Git\\\\mingw64\\\\bin\\\\git-credential-manager.exe\\\" diagnose\",\"Cwd\":\"C:\\\\Users\\\\Chickenpie\\\\.gemini\\\\antigravity\\\\scratch\\\\bj3-class-fund\",\"IsDaemon\":false,\"WaitMsBeforeAsync\":5000,\"toolAction\":\"Diagnosing GCM\",\"toolSummary\":\"Diagnose GCM\"}", "thinkingSignature":"ErsBCrgBARFNMg+UuTr0oZ2JY35EzULvkNjupn4IHBecBm8HlX2mDg2CouuwCPY15ucg42nCSo4xMuHEBBL1KrnfJHnyo1CXBngPfDe3qYhnCARqLr0mFPH/6CeTUC6Fuvcx8XfHztWRQ5JveeTwCNA3RITjlpKEc5y9oVmT/nNdA4+SpOAaeswXE8fU8u/dTimdjEnn13fKmlCVaXh/Yky3No5eD+KPdWSeyGsh6pAnmitAxFXXdPO4JeP80Q=="}}}
+SESSIONNAME=Console
+ANTIGRAVITY_AGENT=1
+SystemRoot=C:\Windows
+CommonProgramW6432=C:\Program Files\Common Files
+LOGONSERVER=\\LAPTOP-JUJ2TVU2
+USERPROFILE=C:\Users\Chickenpie
+USERDOMAIN_ROAMINGPROFILE=LAPTOP-JUJ2TVU2
+ANTIGRAVITY_AGENTAPI_EXE=C:\Users\Chickenpie\AppData\Local\Programs\antigravity\resources\bin\language_server.exe
+HOMEDRIVE=C:
+PSModulePath=C:\Users\Chickenpie\OneDrive\เอกสาร\WindowsPowerShell\Modules;C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+JETSKI_SAFECLIS_SOURCE=C:/Users/Chickenpie/.gemini/antigravity/bin/secplugins/src
+AGY_BROWSER_WS_URL=ws://127.0.0.1:54571/devtools/browser/924d53aa-d1f6-49c3-b0dc-189485dae91a
+PROCESSOR_ARCHITEW6432=AMD64
+FPS_BROWSER_APP_PROFILE_STRING=Internet Explorer
+AI_AGENT=antigravity
+OS=Windows_NT
+ComSpec=C:\Windows\system32\cmd.exe
+SystemDrive=C:
+windir=C:\Windows
+OneDriveConsumer=C:\Users\Chickenpie\OneDrive
+ALLUSERSPROFILE=C:\ProgramData
+
+
+------------
+Diagnostic: File system
+Skipped: False
+Success: True
+Exception: None
+Log:
+Temporary directory is 'C:\Users\Chickenpie\AppData\Local\Temp\'...
+Checking basic file I/O...
+Writing to temporary file 'C:\Users\Chickenpie\AppData\Local\Temp\2af24783af3f4fbf9e9d3185'... OK
+Reading from temporary file 'C:\Users\Chickenpie\AppData\Local\Temp\2af24783af3f4fbf9e9d3185'... OK
+Deleting temporary file 'C:\Users\Chickenpie\AppData\Local\Temp\2af24783af3f4fbf9e9d3185'... OK
+Testing IFileSystem instance...
+UserHomePath: C:\Users\Chickenpie
+UserDataDirectoryPath: C:\Users\Chickenpie\.gcm
+GetCurrentDirectory(): C:\Users\Chickenpie\.gemini\antigravity\scratch\bj3-class-fund
+
+------------
+Diagnostic: Networking
+Skipped: False
+Success: True
+Exception: None
+Log:
+Checking networking and HTTP stack...
+Creating HTTP client... OK
+IsNetworkAvailable: True
+Sending HEAD request to http://example.com...Sending HEAD request to https://example.com... OK
+ OK
+Acquiring free TCP port... OK
+Testing local HTTP loopback connections...
+Creating new HTTP listener for http://localhost:54976/... OK
+Waiting for loopback connection... OK
+Writing response... OK
+Waiting for response data... OK
+Loopback connection data OK
+
+------------
+Diagnostic: Git
+Skipped: False
+Success: True
+Exception: None
+Log:
+Getting Git version... OK
+Git version is '2.46.0.windows.1'
+Locating current repository...Git repository at 'C:/Users/Chickenpie/.gemini/antigravity/scratch/bj3-class-fund/.git'
+ OK
+Listing all Git configuration... OK
+Git configuration:
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	core.symlinks=false
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	core.autocrlf=true
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	color.interactive=true
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	color.ui=auto
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	pack.packsizelimit=2g
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	help.format=html
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	diff.astextplain.textconv=astextplain
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	rebase.autosquash=true
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	filter.lfs.clean=git-lfs clean -- %f
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	filter.lfs.smudge=git-lfs smudge -- %f
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	filter.lfs.process=git-lfs filter-process
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	filter.lfs.required=true
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	credential.helper=manager
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	include.path=C:/Program Files (x86)/Git/etc/gitconfig
+file:C:/Users/Chickenpie/AppData/Local/Programs/Git/etc/gitconfig	include.path=C:/Program Files/Git/etc/gitconfig
+file:C:/Users/Chickenpie/.gitconfig	credential.https://github.com.helper=
+file:C:/Users/Chickenpie/.gitconfig	credential.https://github.com.helper=!'C:\Users\Chickenpie\AppData\Local\Programs\gh\gh.exe' auth git-credential
+file:C:/Users/Chickenpie/.gitconfig	credential.https://gist.github.com.helper=
+file:C:/Users/Chickenpie/.gitconfig	credential.https://gist.github.com.helper=!'C:\Users\Chickenpie\AppData\Local\Programs\gh\gh.exe' auth git-credential
+file:.git/config	core.repositoryformatversion=0
+file:.git/config	core.filemode=false
+file:.git/config	core.bare=false
+file:.git/config	core.logallrefupdates=true
+file:.git/config	core.symlinks=false
+file:.git/config	core.ignorecase=true
+file:.git/config	user.name=BJ3 Admin
+file:.git/config	user.email=bj3@example.com
+file:.git/config	remote.origin.url=https://github.com/Yada-5656/bj3-class-fund.git
+file:.git/config	remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+file:.git/config	branch.main.remote=origin
+file:.git/config	branch.main.merge=refs/heads/main
+
+
+------------
+Diagnostic: Credential storage
+Skipped: False
+Success: True
+Exception: None
+Log:
+ICredentialStore instance is of type: CredentialStore
+Writing test credential... OK
+Reading test credential... OK
+Deleting test credential... OK
+
+------------
+Diagnostic: Microsoft authentication (AAD/MSA)
+Skipped: False
+Success: True
+Exception: None
+Log:
+Broker is not enabled.
+Flow type is: Auto
+Gathering MSAL token cache data... OK
+CacheDirectory: C:\Users\Chickenpie\AppData\Local\.IdentityService
+CacheFileName: msal.cache
+CacheFilePath: C:\Users\Chickenpie\AppData\Local\.IdentityService\msal.cache
+Creating cache helper... OK
+Verifying MSAL token cache persistence... OK
+
+------------
+Diagnostic: GitHub API
+Skipped: False
+Success: True
+Exception: None
+Log:
+Using 'https://github.com/' as API target.
+Querying '/meta' endpoint... OK
+

@@ -5,12 +5,14 @@ import { Coins, KeyRound, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-
 
 interface FirstTimeSetupModalProps {
   isOpen: boolean;
+  roomSlug: string;
   displayName: string;
-  onComplete: (feePerStudent: number, pin: string) => void;
+  onComplete: (fee: number, pin: string) => Promise<void>;
 }
 
 export default function FirstTimeSetupModal({
   isOpen,
+  roomSlug,
   displayName,
   onComplete,
 }: FirstTimeSetupModalProps) {
@@ -25,27 +27,32 @@ export default function FirstTimeSetupModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setIsSubmitting(true);
 
     const feeNum = parseFloat(fee);
     if (isNaN(feeNum) || feeNum < 0) {
-      setError("กรุณากรอกจำนวนเงินห้องต่อคนที่ถูกต้อง");
+      setError("จำนวนเงินที่เก็บต่อรอบไม่ถูกต้อง");
+      setIsSubmitting(false);
       return;
     }
 
-    if (!pin.trim() || pin.length < 4) {
+    if (pin.length < 4) {
       setError("กรุณาตั้งรหัสผ่านเหรัญญิกอย่างน้อย 4 หลัก");
+      setIsSubmitting(false);
       return;
     }
 
     if (pin !== confirmPin) {
-      setError("รหัสผ่านเหรัญญิกไม่ตรงกัน โปรดตรวจสอบอีกครั้ง");
+      setError("รหัสผ่านยืนยันไม่ตรงกัน");
+      setIsSubmitting(false);
       return;
     }
 
-    setIsSubmitting(true);
     try {
       await onComplete(feeNum, pin.trim());
     } catch (err) {
+      setError("เกิดข้อผิดพลาดในการบันทึกข้อมูล โปรดลองอีกครั้ง");
+    } finally {
       setIsSubmitting(false);
     }
   };
