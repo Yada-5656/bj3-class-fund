@@ -215,11 +215,12 @@ export function loadRoomFromClientStorage(roomSlug: string): RoomData {
     isPaid: false,
     paidDate: undefined,
   }));
-  saveRoomToClientStorage(roomSlug, defaultData);
+  // DO NOT sync to cloud here. If we do, a new device will overwrite the cloud with a blank slate!
+  saveRoomToClientStorage(roomSlug, defaultData, true);
   return defaultData;
 }
 
-export function saveRoomToClientStorage(roomSlug: string, data: RoomData): void {
+export function saveRoomToClientStorage(roomSlug: string, data: RoomData, skipCloudSync: boolean = false): void {
   if (typeof window === "undefined") {
     memoryStore.set(roomSlug, data);
     return;
@@ -231,6 +232,8 @@ export function saveRoomToClientStorage(roomSlug: string, data: RoomData): void 
   } catch (err) {
     console.error("Failed to write to localStorage:", err);
   }
+
+  if (skipCloudSync) return;
 
   // Trigger background cloud sync across all devices
   try {
