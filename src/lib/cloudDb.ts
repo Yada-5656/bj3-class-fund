@@ -63,7 +63,6 @@ export async function fetchCloudState(): Promise<CloudState> {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
       },
       cache: "no-store",
     });
@@ -133,7 +132,6 @@ export async function saveCloudState(
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
       },
       body: JSON.stringify({
         name: "bj3_rooms_store",
