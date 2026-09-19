@@ -50,6 +50,15 @@ export default function AdminDashboardPage() {
   const [confirmAdminPasswordInput, setConfirmAdminPasswordInput] = useState("");
   const [adminCredError, setAdminCredError] = useState<string | null>(null);
 
+  // Reset state
+  const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [resetTargetRoom, setResetTargetRoom] = useState<{slug: string, name: string} | null>(null);
+  const [resetType, setResetType] = useState<"balance" | "names" | "all">("balance");
+  const [resetStep, setResetStep] = useState<1 | 2>(1);
+  const [resetAdminPassword, setResetAdminPassword] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const auth = sessionStorage.getItem("bj3_admin_auth") || localStorage.getItem("bj3_admin_auth");
@@ -120,6 +129,80 @@ export default function AdminDashboardPage() {
       `ดำเนินการเลื่อนชั้นสำเร็จ! (ม.3 จบ ${result.m3Graduated} ห้อง, ม.6 จบ ${result.m6Graduated} ห้อง, รวม ${result.totalRooms} ห้อง)`
     );
     setTimeout(() => setNotice(null), 6000);
+  };
+
+  const openResetModal = (room: {slug: string, name: string} | null) => {
+    setResetTargetRoom(room);
+    setResetType("balance");
+    setResetStep(1);
+    setResetAdminPassword("");
+    setResetError("");
+    setResetModalOpen(true);
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetStep === 1) {
+      setResetStep(2);
+      return;
+    }
+
+    setIsResetting(true);
+    setResetError("");
+
+    try {
+      const res = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: resetTargetRoom ? "reset_room" : "reset_all_rooms",
+          roomSlug: resetTargetRoom?.slug,
+          resetType,
+          adminPassword: resetAdminPassword
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Reset failed");
+      }
+      
+      // Update local storage so UI reflects immediately
+      const prefix = "bj3_class_fund_room_v5_";
+      const roomSlugs = resetTargetRoom ? [resetTargetRoom.slug] : rankedRooms.map(r => r.roomSlug);
+      
+      for (const slug of roomSlugs) {
+        const key = prefix + slug;
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const data = JSON.parse(raw);
+            if (resetType === "all") {
+              localStorage.removeItem(key);
+            } else if (resetType === "balance") {
+              data.transactions = [];
+              localStorage.setItem(key, JSON.stringify(data));
+            } else if (resetType === "names") {
+              data.dailyCheckins = {};
+              localStorage.setItem(key, JSON.stringify(data));
+            }
+          } catch (e) {}
+        } else if (resetType === "all") {
+           localStorage.removeItem(key);
+        }
+      }
+
+      setNotice("ดำเนินการรีเซ็ตเรียบร้อยแล้ว");
+      setTimeout(() => setNotice(null), 4000);
+      setResetModalOpen(false);
+      
+      // Reload local state to reflect changes
+      const list = getAllRoomsRanked();
+      setRankedRooms(list);
+    } catch (err: any) {
+      setResetError(err.message);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const handleSaveAdminCredentials = (e: React.FormEvent) => {
@@ -368,9 +451,19 @@ export default function AdminDashboardPage() {
               className="w-full pl-9 pr-3.5 py-2 bg-white border border-[#EFE8F6] rounded-xl text-xs text-[#332941] focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
             />
           </div>
-          <span className="text-xs text-[#7B708A] font-medium">
-            ทั้งหมด {filteredRooms.length} ห้อง
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openResetModal(null)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#FFF1F2] text-[#E11D48] hover:bg-[#FFE4E6] border border-[#FECDD3] rounded-xl text-xs font-bold transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">รีเซ็ตทั้งหมดทุกห้อง</span>
+              <span className="sm:hidden">รีเซ็ตทั้งหมด</span>
+            </button>
+            <span className="text-xs text-[#7B708A] font-medium hidden sm:inline">
+              ทั้งหมด {filteredRooms.length} ห้อง
+            </span>
+          </div>
         </div>
 
         {/* Clean list ranked 1 to N */}
@@ -417,18 +510,29 @@ export default function AdminDashboardPage() {
                 </div>
 
                 {/* Money Collected */}
-                <div className="text-right flex-shrink-0">
+                <div className="text-right flex-shrink-0 flex flex-col items-end gap-1.5">
                   <div className="text-sm sm:text-base font-extrabold text-[#059669]">
                     {formatCurrency(room.totalCollected)}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleViewRoom(room.roomSlug)}
-                    className="inline-flex items-center gap-1 text-[11px] text-[#9333EA] hover:text-[#7E22CE] bg-[#FAF5FF] hover:bg-[#F3E8FF] px-2.5 py-1 rounded-lg border border-[#E9D5FF] font-semibold transition-colors"
-                  >
-                    <span>ดูห้อง</span>
-                    <ExternalLink className="w-2.5 h-2.5" />
-                  </button>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => openResetModal({ slug: room.roomSlug, name: room.displayName })}
+                      className="inline-flex items-center gap-1 text-[11px] text-[#E11D48] hover:text-[#BE123C] bg-[#FFF1F2] hover:bg-[#FFE4E6] px-2.5 py-1 rounded-lg border border-[#FECDD3] font-semibold transition-colors"
+                      title="รีเซ็ตห้องนี้"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>รีเซ็ต</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleViewRoom(room.roomSlug)}
+                      className="inline-flex items-center gap-1 text-[11px] text-[#9333EA] hover:text-[#7E22CE] bg-[#FAF5FF] hover:bg-[#F3E8FF] px-2.5 py-1 rounded-lg border border-[#E9D5FF] font-semibold transition-colors"
+                    >
+                      <span>ดูห้อง</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -445,6 +549,122 @@ export default function AdminDashboardPage() {
         onConfirm={handleConfirmPromotion}
         onCancel={() => setShowPromoteConfirm(false)}
       />
+
+      {/* Reset Modal */}
+      {resetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#332941]/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-pastel flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-[#EFE8F6] bg-[#FFF1F2]">
+              <h2 className="text-sm font-extrabold text-[#E11D48] flex items-center gap-2">
+                <RotateCcw className="w-4 h-4" />
+                {resetTargetRoom ? `รีเซ็ตข้อมูลห้อง ${resetTargetRoom.name}` : "รีเซ็ตข้อมูลทั้งหมดทุกห้อง"}
+              </h2>
+            </div>
+            
+            <form onSubmit={handleResetSubmit} className="p-4 overflow-y-auto space-y-4">
+              {resetError && (
+                <div className="p-3 bg-[#FFF1F2] border border-[#FECDD3] text-[#E11D48] text-xs font-medium rounded-xl flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{resetError}</span>
+                </div>
+              )}
+
+              {resetStep === 1 ? (
+                <>
+                  <p className="text-xs text-[#7B708A] font-medium mb-3">
+                    กรุณาเลือกรูปแบบการรีเซ็ตข้อมูล:
+                  </p>
+                  <div className="space-y-2">
+                    <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${resetType === 'balance' ? 'bg-[#F8F5FB] border-[#C084FC]' : 'border-[#EFE8F6] hover:bg-gray-50'}`}>
+                      <input type="radio" name="resetType" value="balance" checked={resetType === 'balance'} onChange={() => setResetType('balance')} className="mt-0.5 text-[#C084FC] focus:ring-[#C084FC]" />
+                      <div>
+                        <div className="text-sm font-bold text-[#332941]">รีเซ็ตจำนวนเงิน (ธุรกรรม)</div>
+                        <div className="text-[11px] text-[#7B708A]">ลบประวัติรายรับ-รายจ่ายทั้งหมด ยอดเงินจะกลับเป็น 0 บาท แต่รายชื่อที่เช็คแล้วยังคงอยู่</div>
+                      </div>
+                    </label>
+                    <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${resetType === 'names' ? 'bg-[#F8F5FB] border-[#C084FC]' : 'border-[#EFE8F6] hover:bg-gray-50'}`}>
+                      <input type="radio" name="resetType" value="names" checked={resetType === 'names'} onChange={() => setResetType('names')} className="mt-0.5 text-[#C084FC] focus:ring-[#C084FC]" />
+                      <div>
+                        <div className="text-sm font-bold text-[#332941]">รีเซ็ตรายชื่อ (การเช็คชื่อ)</div>
+                        <div className="text-[11px] text-[#7B708A]">ลบประวัติการเช็คชื่อจ่ายเงินทั้งหมด นักเรียนทุกคนจะกลับมาอยู่ในสถานะ "ยังไม่จ่าย"</div>
+                      </div>
+                    </label>
+                    <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${resetType === 'all' ? 'bg-[#FFF1F2] border-[#E11D48]' : 'border-[#EFE8F6] hover:bg-gray-50'}`}>
+                      <input type="radio" name="resetType" value="all" checked={resetType === 'all'} onChange={() => setResetType('all')} className="mt-0.5 text-[#E11D48] focus:ring-[#E11D48]" />
+                      <div>
+                        <div className="text-sm font-bold text-[#E11D48]">รีเซ็ตทั้งหมด (ค่าเริ่มต้น)</div>
+                        <div className="text-[11px] text-[#7B708A]">ลบจำนวนเงิน, รายชื่อ และรีเซ็ตรหัสผ่านเหรัญญิกกลับไปเป็นค่าเริ่มต้น (เหมือนห้องใหม่)</div>
+                      </div>
+                    </label>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-3 bg-[#FFF1F2] border border-[#FECDD3] rounded-xl mb-4">
+                    <div className="flex gap-2 text-[#E11D48]">
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                      <div className="text-xs font-bold">
+                        คุณกำลังดำเนินการ: {resetType === 'balance' ? "รีเซ็ตจำนวนเงิน" : resetType === 'names' ? "รีเซ็ตรายชื่อ" : "รีเซ็ตทั้งหมด"}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-[#E11D48]/80 mt-1 pl-6">
+                      การดำเนินการนี้ไม่สามารถย้อนกลับได้ กรุณายืนยันด้วยรหัสแอดมิน
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[#7B708A] mb-1">
+                      รหัสผ่านแอดมินปัจจุบัน
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      autoFocus
+                      value={resetAdminPassword}
+                      onChange={(e) => setResetAdminPassword(e.target.value)}
+                      placeholder="กรอกรหัสแอดมินเพื่อยืนยัน"
+                      className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs sm:text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="flex gap-2 pt-2 border-t border-[#EFE8F6]">
+                <button
+                  type="button"
+                  onClick={() => setResetModalOpen(false)}
+                  disabled={isResetting}
+                  className="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-[#7B708A] bg-white border border-[#EFE8F6] hover:bg-[#F8F5FB] transition-colors disabled:opacity-50"
+                >
+                  ยกเลิก
+                </button>
+                {resetStep === 1 ? (
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-colors"
+                  >
+                    ถัดไป
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isResetting || !resetAdminPassword}
+                    className="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#E11D48] hover:bg-[#BE123C] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isResetting ? (
+                      <span className="animate-pulse">กำลังรีเซ็ต...</span>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-4 h-4" />
+                        <span>ยืนยันรีเซ็ต</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
