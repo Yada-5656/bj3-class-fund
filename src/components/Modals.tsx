@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Transaction } from "@/lib/db";
 import { getTodayISODate } from "@/lib/utils";
-import { X, Plus, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 
 interface TransactionModalProps {
   isOpen: boolean;

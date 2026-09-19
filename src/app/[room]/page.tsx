@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { findRoom, slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
-  saveRoomToClientStorage,
   syncRoomWithServer,
   calculateSummary,
   getPromotionDate,

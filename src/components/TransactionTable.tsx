@@ -4,14 +4,10 @@ import React, { useState, useMemo } from "react";
 import { Transaction, Student } from "@/lib/db";
 import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
 import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Wallet,
   Search,
   Calendar,
   Trash2,
   Edit,
-  Users,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";

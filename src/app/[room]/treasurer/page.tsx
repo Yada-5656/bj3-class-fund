@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { findRoom, slugToDisplayName } from "@/lib/rooms";
+import { slugToDisplayName } from "@/lib/rooms";
 import {
   loadRoomFromClientStorage,
   saveRoomToClientStorage,
@@ -19,14 +19,10 @@ import { TransactionModal, ConfirmModal } from "@/components/Modals";
 import ManualModal from "@/components/ManualModal";
 import {
   ShieldCheck,
-  CheckSquare,
   Receipt,
-  Settings,
   PlusCircle,
   Lock,
   ArrowLeft,
-  KeyRound,
-  Coins,
   ArrowRight,
   BookOpen,
 } from "lucide-react";

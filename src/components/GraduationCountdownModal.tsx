@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { formatThaiDate } from "@/lib/utils";
-import { Clock, X, AlertTriangle, GraduationCap } from "lucide-react";
+import { X, GraduationCap } from "lucide-react";
 
 interface GraduationCountdownModalProps {
   grade: number;

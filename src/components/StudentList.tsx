@@ -2,26 +2,19 @@
 
 import React, { useState, useMemo } from "react";
 import { Student } from "@/lib/db";
-import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
+import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import {
-  CheckCircle2,
-  XCircle,
   Search,
-  CheckCheck,
   RotateCcw,
   Save,
   Users,
   AlertCircle,
   Calendar,
-  UserCog,
   Plus,
   Pencil,
   Trash2,
-  GripVertical,
   Check,
   X,
-  ChevronUp,
-  ChevronDown,
 } from "lucide-react";
 
 interface StudentListProps {

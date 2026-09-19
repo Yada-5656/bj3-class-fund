@@ -10,7 +10,7 @@ import {
   promoteGrades,
   RoomSummary,
 } from "@/lib/db";
-import { formatCurrency, formatThaiDate, getTodayISODate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { ConfirmModal } from "@/components/Modals";
 import {
   ShieldAlert,
@@ -19,12 +19,9 @@ import {
   LogOut,
   Sparkles,
   Search,
-  CheckCircle2,
-  AlertTriangle,
   RotateCcw,
   ExternalLink,
   Users,
-  KeyRound,
   AlertCircle,
 } from "lucide-react";
 
