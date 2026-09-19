@@ -58,6 +58,7 @@ export default function AdminDashboardPage() {
   const [resetAdminPassword, setResetAdminPassword] = useState("");
   const [resetError, setResetError] = useState("");
   const [isResetting, setIsResetting] = useState(false);
+  const [resetRoster, setResetRoster] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -137,6 +138,7 @@ export default function AdminDashboardPage() {
     setResetStep(1);
     setResetAdminPassword("");
     setResetError("");
+    setResetRoster(true);
     setResetModalOpen(true);
   };
 
@@ -177,7 +179,19 @@ export default function AdminDashboardPage() {
           try {
             const data = JSON.parse(raw);
             if (resetType === "all") {
-              localStorage.removeItem(key);
+              if (resetRoster) {
+                localStorage.removeItem(key);
+              } else {
+                data.transactions = [];
+                data.dailyCheckins = {};
+                data.settings = {
+                  fundFeePerStudent: 20,
+                  treasurerPin: "1234",
+                  isInitialized: false,
+                  lastCheckinDate: new Date().toISOString().split("T")[0],
+                };
+                localStorage.setItem(key, JSON.stringify(data));
+              }
             } else if (resetType === "balance") {
               data.transactions = [];
               localStorage.setItem(key, JSON.stringify(data));
@@ -186,7 +200,7 @@ export default function AdminDashboardPage() {
               localStorage.setItem(key, JSON.stringify(data));
             }
           } catch (e) {}
-        } else if (resetType === "all") {
+        } else if (resetType === "all" && resetRoster) {
            localStorage.removeItem(key);
         }
       }
@@ -605,9 +619,15 @@ export default function AdminDashboardPage() {
                     </label>
                     <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${resetType === 'all' ? 'bg-[#FFF1F2] border-[#E11D48]' : 'border-[#EFE8F6] hover:bg-gray-50'}`}>
                       <input type="radio" name="resetType" value="all" checked={resetType === 'all'} onChange={() => setResetType('all')} className="mt-0.5 text-[#E11D48] focus:ring-[#E11D48]" />
-                      <div>
+                      <div className="w-full">
                         <div className="text-sm font-bold text-[#E11D48]">รีเซ็ตทั้งหมด (ค่าเริ่มต้น)</div>
-                        <div className="text-[11px] text-[#7B708A]">ลบจำนวนเงิน, รายชื่อ และรีเซ็ตรหัสผ่านเหรัญญิกกลับไปเป็นค่าเริ่มต้น (เหมือนห้องใหม่)</div>
+                        <div className="text-[11px] text-[#7B708A]">ลบจำนวนเงิน, ล้างประวัติการเช็คชื่อ และรีเซ็ตรหัสผ่านเหรัญญิกกลับไปเป็นค่าเริ่มต้น</div>
+                        {resetType === 'all' && (
+                          <div className="mt-3 pt-3 border-t border-[#FECDD3] flex items-center gap-2 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+                             <input type="checkbox" id="resetRoster" checked={resetRoster} onChange={(e) => setResetRoster(e.target.checked)} className="text-[#E11D48] focus:ring-[#E11D48] rounded w-4 h-4 cursor-pointer" />
+                             <label htmlFor="resetRoster" className="text-[11px] text-[#E11D48] font-semibold cursor-pointer select-none">คืนค่ารายชื่อนักเรียนดั้งเดิมด้วย (ลบรายชื่อที่เคยแก้ไข)</label>
+                          </div>
+                        )}
                       </div>
                     </label>
                   </div>
