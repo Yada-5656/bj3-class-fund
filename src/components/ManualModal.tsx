@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, BookOpen, Users, Key, AlertCircle, TrendingUp, HandCoins } from "lucide-react";
+import { X, BookOpen, Users, Key, AlertCircle } from "lucide-react";
 
 interface ManualModalProps {
   onClose: () => void;
@@ -20,8 +20,8 @@ export default function ManualModal({ onClose }: ManualModalProps) {
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-[#332941]">คู่มือการใช้งาน</h2>
-              <p className="text-xs text-[#7B708A]">ทำความเข้าใจระบบและวิธีการใช้งาน</p>
+              <h2 className="text-lg sm:text-xl font-bold text-[#332941]">เธเธนเนเธกเธทเธญเธเธฒเธฃเนเธเนเธเธฒเธ</h2>
+              <p className="text-xs text-[#7B708A]">เธ—เธณเธเธงเธฒเธกเน€เธเนเธฒเนเธเธฃเธฐเธเธเนเธฅเธฐเธงเธดเธเธตเธเธฒเธฃเนเธเนเธเธฒเธ</p>
             </div>
           </div>
           <button
@@ -38,17 +38,25 @@ export default function ManualModal({ onClose }: ManualModalProps) {
           <div className="flex bg-[#F8F5FB] p-1.5 rounded-2xl mb-6">
             <button
               onClick={() => setActiveTab("student")}
-              className={\lex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all \\}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+                activeTab === "student"
+                  ? "bg-white text-[#9333EA] shadow-sm"
+                  : "text-[#7B708A] hover:text-[#581C87]"
+              }`}
             >
               <Users className="w-4 h-4" />
-              สำหรับเพื่อนในห้อง
+              เธชเธณเธซเธฃเธฑเธเน€เธเธทเนเธญเธเนเธเธซเนเธญเธ
             </button>
             <button
               onClick={() => setActiveTab("treasurer")}
-              className={\lex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all \\}
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all ${
+                activeTab === "treasurer"
+                  ? "bg-white text-[#9333EA] shadow-sm"
+                  : "text-[#7B708A] hover:text-[#581C87]"
+              }`}
             >
               <Key className="w-4 h-4" />
-              สำหรับเหรัญญิก
+              เธชเธณเธซเธฃเธฑเธเน€เธซเธฃเธฑเธเธเธดเธ
             </button>
           </div>
 
@@ -58,18 +66,18 @@ export default function ManualModal({ onClose }: ManualModalProps) {
               <div className="space-y-3">
                 <h3 className="font-bold text-[#332941] flex items-center gap-2 text-sm sm:text-base">
                   <span className="w-6 h-6 rounded-full bg-[#EFE8F6] flex items-center justify-center text-[#9333EA] text-xs">1</span>
-                  วิธีดูยอดเงินและสถานะการจ่าย
+                  เธงเธดเธเธตเธ”เธนเธขเธญเธ”เน€เธเธดเธเนเธฅเธฐเธชเธ–เธฒเธเธฐเธเธฒเธฃเธเนเธฒเธข
                 </h3>
                 <div className="bg-[#FAF5FF] p-4 rounded-2xl border border-[#E9D5FF] text-sm text-[#581C87]">
-                  <p>ในหน้าหลักของห้อง คุณสามารถดูสถานะการจ่ายเงินของเพื่อนแต่ละคนได้จากสีของป้ายชื่อ:</p>
+                  <p>เนเธเธซเธเนเธฒเธซเธฅเธฑเธเธเธญเธเธซเนเธญเธ เธเธธเธ“เธชเธฒเธกเธฒเธฃเธ–เธ”เธนเธชเธ–เธฒเธเธฐเธเธฒเธฃเธเนเธฒเธขเน€เธเธดเธเธเธญเธเน€เธเธทเนเธญเธเนเธ•เนเธฅเธฐเธเธเนเธ”เนเธเธฒเธเธชเธตเธเธญเธเธเนเธฒเธขเธเธทเนเธญ:</p>
                   <ul className="mt-3 space-y-2">
                     <li className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
-                      <span className="font-semibold text-[#065F46]">สีเขียว (จ่ายแล้ว):</span> เพื่อนจ่ายเงินของวันนี้เรียบร้อยแล้ว
+                      <span className="font-semibold text-[#065F46]">เธชเธตเน€เธเธตเธขเธง (เธเนเธฒเธขเนเธฅเนเธง):</span> เน€เธเธทเนเธญเธเธเนเธฒเธขเน€เธเธดเธเธเธญเธเธงเธฑเธเธเธตเนเน€เธฃเธตเธขเธเธฃเนเธญเธขเนเธฅเนเธง
                     </li>
                     <li className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-[#F43F5E]"></div>
-                      <span className="font-semibold text-[#9F1239]">สีแดง (ยังไม่จ่าย):</span> เพื่อนยังไม่ได้จ่ายเงินของวันนี้
+                      <span className="font-semibold text-[#9F1239]">เธชเธตเนเธ”เธ (เธขเธฑเธเนเธกเนเธเนเธฒเธข):</span> เน€เธเธทเนเธญเธเธขเธฑเธเนเธกเนเนเธ”เนเธเนเธฒเธขเน€เธเธดเธเธเธญเธเธงเธฑเธเธเธตเน
                     </li>
                   </ul>
                 </div>
@@ -78,11 +86,11 @@ export default function ManualModal({ onClose }: ManualModalProps) {
               <div className="space-y-3">
                 <h3 className="font-bold text-[#332941] flex items-center gap-2 text-sm sm:text-base">
                   <span className="w-6 h-6 rounded-full bg-[#EFE8F6] flex items-center justify-center text-[#9333EA] text-xs">2</span>
-                  การอ่านกราฟรายรับ-รายจ่าย
+                  เธเธฒเธฃเธญเนเธฒเธเธเธฃเธฒเธเธฃเธฒเธขเธฃเธฑเธ-เธฃเธฒเธขเธเนเธฒเธข
                 </h3>
                 <div className="bg-[#FAF5FF] p-4 rounded-2xl border border-[#E9D5FF] text-sm text-[#581C87] space-y-2">
-                  <p>สามารถเลือกช่วงเวลา <strong>รายวัน, รายสัปดาห์, หรือรายเดือน</strong> ได้ที่ด้านล่างกราฟ</p>
-                  <p>เส้นกราฟสีเขียวแทนรายรับ และสีแดงแทนรายจ่าย สามารถนำเมาส์ไปชี้ (หรือจิ้ม) ที่จุดบนกราฟเพื่อดูรายละเอียดจำนวนเงินในวันนั้นๆ</p>
+                  <p>เธชเธฒเธกเธฒเธฃเธ–เน€เธฅเธทเธญเธเธเนเธงเธเน€เธงเธฅเธฒ <strong>เธฃเธฒเธขเธงเธฑเธ, เธฃเธฒเธขเธชเธฑเธเธ”เธฒเธซเน, เธซเธฃเธทเธญเธฃเธฒเธขเน€เธ”เธทเธญเธ</strong> เนเธ”เนเธ—เธตเนเธ”เนเธฒเธเธฅเนเธฒเธเธเธฃเธฒเธ</p>
+                  <p>เน€เธชเนเธเธเธฃเธฒเธเธชเธตเน€เธเธตเธขเธงเนเธ—เธเธฃเธฒเธขเธฃเธฑเธ เนเธฅเธฐเธชเธตเนเธ”เธเนเธ—เธเธฃเธฒเธขเธเนเธฒเธข เธชเธฒเธกเธฒเธฃเธ–เธเธณเน€เธกเธฒเธชเนเนเธเธเธตเน (เธซเธฃเธทเธญเธเธดเนเธก) เธ—เธตเนเธเธธเธ”เธเธเธเธฃเธฒเธเน€เธเธทเนเธญเธ”เธนเธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เธเธณเธเธงเธเน€เธเธดเธเนเธเธงเธฑเธเธเธฑเนเธเน</p>
                 </div>
               </div>
             </div>
@@ -94,32 +102,32 @@ export default function ManualModal({ onClose }: ManualModalProps) {
               <div className="space-y-3">
                 <h3 className="font-bold text-[#332941] flex items-center gap-2 text-sm sm:text-base">
                   <span className="w-6 h-6 rounded-full bg-[#EFE8F6] flex items-center justify-center text-[#9333EA] text-xs">1</span>
-                  วิธีล็อกอินเข้าสู่โหมดเหรัญญิก
+                  เธงเธดเธเธตเธฅเนเธญเธเธญเธดเธเน€เธเนเธฒเธชเธนเนเนเธซเธกเธ”เน€เธซเธฃเธฑเธเธเธดเธ
                 </h3>
                 <div className="bg-[#FAF5FF] p-4 rounded-2xl border border-[#E9D5FF] text-sm text-[#581C87]">
-                  กดปุ่ม <strong>"ล็อกอินเหรัญญิก"</strong> หรือไอคอนฟันเฟืองที่มุมขวาบนของหน้าห้องเรียน รหัสผ่านเริ่มต้นคือ <strong>1234</strong> (แนะนำให้เปลี่ยนรหัสผ่านในหน้าตั้งค่า)
+                  เธเธ”เธเธธเนเธก <strong>&quot;เธฅเนเธญเธเธญเธดเธเน€เธซเธฃเธฑเธเธเธดเธ&quot;</strong> เธซเธฃเธทเธญเนเธญเธเธญเธเธเธฑเธเน€เธเธทเธญเธเธ—เธตเนเธกเธธเธกเธเธงเธฒเธเธเธเธญเธเธซเธเนเธฒเธซเนเธญเธเน€เธฃเธตเธขเธ เธฃเธซเธฑเธชเธเนเธฒเธเน€เธฃเธดเนเธกเธ•เนเธเธเธทเธญ <strong>1234</strong> (เนเธเธฐเธเธณเนเธซเนเน€เธเธฅเธตเนเธขเธเธฃเธซเธฑเธชเธเนเธฒเธเนเธเธซเธเนเธฒเธ•เธฑเนเธเธเนเธฒ)
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h3 className="font-bold text-[#332941] flex items-center gap-2 text-sm sm:text-base">
                   <span className="w-6 h-6 rounded-full bg-[#EFE8F6] flex items-center justify-center text-[#9333EA] text-xs">2</span>
-                  วิธีเช็คชื่อและเก็บเงิน
+                  เธงเธดเธเธตเน€เธเนเธเธเธทเนเธญเนเธฅเธฐเน€เธเนเธเน€เธเธดเธ
                 </h3>
                 <div className="bg-[#FAF5FF] p-4 rounded-2xl border border-[#E9D5FF] text-sm text-[#581C87] space-y-2">
-                  <p>1. ในแท็บหน้าแรก ให้ติ๊กเครื่องหมายถูกหน้ารายชื่อเพื่อนที่จ่ายเงินแล้ว</p>
-                  <p>2. ระบบจะคำนวณยอดเงินรวมให้อัตโนมัติ</p>
-                  <p>3. **สำคัญมาก:** ต้องกดปุ่ม <strong>"บันทึกข้อมูลวันนี้"</strong> ทุกครั้ง ข้อมูลถึงจะอัปเดตลงบัญชีรายรับของห้อง!</p>
+                  <p>1. เนเธเนเธ—เนเธเธซเธเนเธฒเนเธฃเธ เนเธซเนเธ•เธดเนเธเน€เธเธฃเธทเนเธญเธเธซเธกเธฒเธขเธ–เธนเธเธซเธเนเธฒเธฃเธฒเธขเธเธทเนเธญเน€เธเธทเนเธญเธเธ—เธตเนเธเนเธฒเธขเน€เธเธดเธเนเธฅเนเธง</p>
+                  <p>2. เธฃเธฐเธเธเธเธฐเธเธณเธเธงเธ“เธขเธญเธ”เน€เธเธดเธเธฃเธงเธกเนเธซเนเธญเธฑเธ•เนเธเธกเธฑเธ•เธด</p>
+                  <p>3. **เธชเธณเธเธฑเธเธกเธฒเธ:** เธ•เนเธญเธเธเธ”เธเธธเนเธก <strong>&quot;เธเธฑเธเธ—เธถเธเธเนเธญเธกเธนเธฅเธงเธฑเธเธเธตเน&quot;</strong> เธ—เธธเธเธเธฃเธฑเนเธ เธเนเธญเธกเธนเธฅเธ–เธถเธเธเธฐเธญเธฑเธเน€เธ”เธ•เธฅเธเธเธฑเธเธเธตเธฃเธฒเธขเธฃเธฑเธเธเธญเธเธซเนเธญเธ!</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h3 className="font-bold text-[#332941] flex items-center gap-2 text-sm sm:text-base">
                   <span className="w-6 h-6 rounded-full bg-[#EFE8F6] flex items-center justify-center text-[#9333EA] text-xs">3</span>
-                  การจัดการรายรับ-รายจ่ายเพิ่มเติม
+                  เธเธฒเธฃเธเธฑเธ”เธเธฒเธฃเธฃเธฒเธขเธฃเธฑเธ-เธฃเธฒเธขเธเนเธฒเธขเน€เธเธดเนเธกเน€เธ•เธดเธก
                 </h3>
                 <div className="bg-[#FAF5FF] p-4 rounded-2xl border border-[#E9D5FF] text-sm text-[#581C87]">
-                  ไปที่แท็บ <strong>"รายรับ/รายจ่าย"</strong> เพื่อบันทึกการใช้จ่ายอื่นๆ ของห้อง เช่น ค่าพานไหว้ครู, ค่าปริ้นงาน โดยกดปุ่ม "เพิ่มรายการ"
+                  เนเธเธ—เธตเนเนเธ—เนเธ <strong>&quot;เธฃเธฒเธขเธฃเธฑเธ/เธฃเธฒเธขเธเนเธฒเธข&quot;</strong> เน€เธเธทเนเธญเธเธฑเธเธ—เธถเธเธเธฒเธฃเนเธเนเธเนเธฒเธขเธญเธทเนเธเน เธเธญเธเธซเนเธญเธ เน€เธเนเธ เธเนเธฒเธเธฒเธเนเธซเธงเนเธเธฃเธน, เธเนเธฒเธเธฃเธดเนเธเธเธฒเธ เนเธ”เธขเธเธ”เธเธธเนเธก &quot;เน€เธเธดเนเธกเธฃเธฒเธขเธเธฒเธฃ&quot;
                 </div>
               </div>
             </div>
@@ -131,9 +139,9 @@ export default function ManualModal({ onClose }: ManualModalProps) {
           <div className="flex items-start gap-3 bg-white p-3 rounded-xl border border-[#F1EDF7]">
             <AlertCircle className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[#7B708A] leading-relaxed">
-              <strong>กรณีจำรหัสแอดมินไม่ได้:</strong><br />
-              ติดต่อ นายวิรัตน์ ธีรพิพัฒนปัญญา<br />
-              กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี
+              <strong>เธเธฃเธ“เธตเธเธณเธฃเธซเธฑเธชเนเธญเธ”เธกเธดเธเนเธกเนเนเธ”เน:</strong><br />
+              เธ•เธดเธ”เธ•เนเธญ เธเธฒเธขเธงเธดเธฃเธฑเธ•เธเน เธเธตเธฃเธเธดเธเธฑเธ’เธเธเธฑเธเธเธฒ<br />
+              เธเธฅเธธเนเธกเธชเธฒเธฃเธฐเธเธฒเธฃเน€เธฃเธตเธขเธเธฃเธนเนเธงเธดเธ—เธขเธฒเธจเธฒเธชเธ•เธฃเนเนเธฅเธฐเน€เธ—เธเนเธเนเธฅเธขเธต
             </p>
           </div>
         </div>
