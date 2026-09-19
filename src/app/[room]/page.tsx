@@ -20,16 +20,12 @@ import { ConfirmModal } from "@/components/Modals";
 import GraduationCountdownModal from "@/components/GraduationCountdownModal";
 import ManualModal from "@/components/ManualModal";
 import {
-  Wallet,
-  ArrowDownLeft,
-  ArrowUpRight,
   ShieldCheck,
   School,
   BarChart3,
   LogOut,
   History,
-  Calendar,
-  Users,
+  BookOpen,
 } from "lucide-react";
 
 export default function RoomDashboardPage({

@@ -25,7 +25,6 @@ import {
   PlusCircle,
   Lock,
   ArrowLeft,
-  CheckCircle2,
   KeyRound,
   Coins,
   ArrowRight,
