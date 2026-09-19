@@ -282,21 +282,15 @@ export async function syncRoomWithServer(roomSlug: string): Promise<RoomData> {
           updated = true;
         }
 
-        // 2. Sync Daily Checkins if server has records
-        if (json.dailyCheckins && Object.keys(json.dailyCheckins).length > 0) {
-          mergedData.dailyCheckins = {
-            ...(mergedData.dailyCheckins || {}),
-            ...json.dailyCheckins,
-          };
+        // 2. Sync Daily Checkins (Trust cloud as source of truth to avoid zombie data on delete)
+        if (json.dailyCheckins) {
+          mergedData.dailyCheckins = json.dailyCheckins;
           updated = true;
         }
 
-        // 3. Sync Transactions (Merge by ID, newest first)
-        if (Array.isArray(json.transactions) && json.transactions.length > 0) {
-          const txMap = new Map<string, Transaction>();
-          (mergedData.transactions || []).forEach((t) => txMap.set(t.id, t));
-          json.transactions.forEach((t: Transaction) => txMap.set(t.id, t));
-          mergedData.transactions = Array.from(txMap.values()).sort(
+        // 3. Sync Transactions (Trust cloud as source of truth)
+        if (Array.isArray(json.transactions)) {
+          mergedData.transactions = json.transactions.sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
           updated = true;
