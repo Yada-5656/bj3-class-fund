@@ -14,7 +14,14 @@ import {
   Pencil,
   Trash2,
   Check,
+  CheckCircle2,
+  CheckCheck,
   X,
+  XCircle,
+  UserCog,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 interface StudentListProps {

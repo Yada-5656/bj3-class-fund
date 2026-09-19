@@ -10,6 +10,10 @@ import {
   Edit,
   ChevronDown,
   ChevronUp,
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Users,
 } from "lucide-react";
 
 interface TransactionTableProps {
