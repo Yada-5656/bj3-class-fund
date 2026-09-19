@@ -64,8 +64,7 @@ export default function LoginPage() {
     }
 
     if (cleanUser.toLowerCase() === expectedAdminUser && cleanPass === expectedAdminPass) {
-      sessionStorage.setItem("bj3_admin_auth", "true");
-      localStorage.removeItem("bj3_admin_auth");
+      localStorage.setItem("bj3_admin_auth", "true");
       router.push("/admin");
       return;
     }
@@ -84,8 +83,7 @@ export default function LoginPage() {
       const data = await res.json();
       if (res.ok && data.success) {
         if (data.isAdmin) {
-          sessionStorage.setItem("bj3_admin_auth", "true");
-          localStorage.removeItem("bj3_admin_auth");
+          localStorage.setItem("bj3_admin_auth", "true");
           router.push("/admin");
           return;
         }
