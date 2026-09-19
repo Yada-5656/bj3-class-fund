@@ -17,7 +17,6 @@ import {
   Calendar,
   Save,
   LogOut,
-  Sparkles,
   Search,
   RotateCcw,
   ExternalLink,

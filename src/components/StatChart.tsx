@@ -18,7 +18,7 @@ interface StatChartProps {
   transactions: Transaction[];
 }
 
-function createSmoothPath(points: { x: number; y: number }[], baselineY: number) {
+function createSmoothPath(points: { x: number; y: number }[]) {
   if (points.length === 0) return "";
   if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
 
@@ -217,8 +217,8 @@ export default function StatChart({ transactions }: StatChartProps) {
     return { incomePoints, expensePoints };
   }, [data, maxVal, innerWidth, innerHeight, paddingTop]);
 
-  const incomeLinePath = useMemo(() => createSmoothPath(points.incomePoints, baselineY), [points.incomePoints, baselineY]);
-  const expenseLinePath = useMemo(() => createSmoothPath(points.expensePoints, baselineY), [points.expensePoints, baselineY]);
+  const incomeLinePath = useMemo(() => createSmoothPath(points.incomePoints), [points.incomePoints]);
+  const expenseLinePath = useMemo(() => createSmoothPath(points.expensePoints), [points.expensePoints]);
 
   const incomeAreaPath = points.incomePoints.length > 0 
     ? `${incomeLinePath} L ${points.incomePoints[points.incomePoints.length - 1].x} ${baselineY} L ${points.incomePoints[0].x} ${baselineY} Z` 

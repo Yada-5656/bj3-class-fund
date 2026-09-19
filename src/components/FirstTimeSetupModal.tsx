@@ -12,7 +12,6 @@ interface FirstTimeSetupModalProps {
 
 export default function FirstTimeSetupModal({
   isOpen,
-  roomSlug,
   displayName,
   onComplete,
 }: FirstTimeSetupModalProps) {

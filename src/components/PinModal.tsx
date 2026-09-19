@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Lock, Delete, KeyRound, AlertCircle, ArrowLeft } from "lucide-react";
+import { Lock, Delete, AlertCircle, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { loadRoomFromClientStorage } from "@/lib/db";
