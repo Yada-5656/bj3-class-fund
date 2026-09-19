@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       const state = await fetchCloudState();
       
       // Verify Admin Password
-      const currentAdminPassword = state.adminPassword || process.env.ADMIN_PASSWORD || "admin1234";
+      const currentAdminPassword = state.adminPassword || process.env.ADMIN_PASSWORD || "1706";
       if (adminPassword !== currentAdminPassword) {
         return NextResponse.json({ error: "รหัสแอดมินไม่ถูกต้อง" }, { status: 401 });
       }
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
       const { resetType, adminPassword } = body;
       const state = await fetchCloudState();
       
-      const currentAdminPassword = state.adminPassword || process.env.ADMIN_PASSWORD || "admin1234";
+      const currentAdminPassword = state.adminPassword || process.env.ADMIN_PASSWORD || "1706";
       if (adminPassword !== currentAdminPassword) {
         return NextResponse.json({ error: "รหัสแอดมินไม่ถูกต้อง" }, { status: 401 });
       }
@@ -219,6 +219,17 @@ export async function POST(req: NextRequest) {
           rooms: nextRooms
         };
       });
+      return NextResponse.json({ success: true });
+    }
+
+    // 6. Update Admin Credentials
+    if (action === "update_admin_credentials") {
+      const { adminUsername, adminPassword } = body;
+      await saveCloudState((prev) => ({
+        ...prev,
+        adminUsername,
+        adminPassword,
+      }));
       return NextResponse.json({ success: true });
     }
 

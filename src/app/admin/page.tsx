@@ -205,7 +205,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleSaveAdminCredentials = (e: React.FormEvent) => {
+  const handleSaveAdminCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminCredError(null);
 
@@ -225,12 +225,26 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    localStorage.setItem("bj3_admin_username", user);
-    localStorage.setItem("bj3_admin_password", pass);
-    setAdminPasswordInput("");
-    setConfirmAdminPasswordInput("");
-    setNotice("บันทึกชื่อผู้ใช้และรหัสผ่านแอดมินใหม่เรียบร้อยแล้ว");
-    setTimeout(() => setNotice(null), 4000);
+    try {
+      await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_admin_credentials",
+          adminUsername: user,
+          adminPassword: pass,
+        }),
+      });
+      
+      localStorage.setItem("bj3_admin_username", user);
+      localStorage.setItem("bj3_admin_password", pass);
+      setAdminPasswordInput("");
+      setConfirmAdminPasswordInput("");
+      setNotice("บันทึกชื่อผู้ใช้และรหัสผ่านแอดมินใหม่เรียบร้อยแล้ว");
+      setTimeout(() => setNotice(null), 4000);
+    } catch (err) {
+      setAdminCredError("ไม่สามารถบันทึกไปยังเซิร์ฟเวอร์ได้");
+    }
   };
 
   const handleLogout = () => {
