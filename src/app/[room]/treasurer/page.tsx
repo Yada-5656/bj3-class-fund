@@ -107,26 +107,45 @@ export default function TreasurerDashboardPage({
 
     const currentPaidList = paidStudentIds ?? (mergedCheckins[selectedDate] || []);
     const paidCount = currentPaidList.length;
-    const fee = roomData.settings.fundFeePerStudent || 20;
+    let feeToUse = roomData.settings.fundFeePerStudent || 20;
 
-    // Rule: "เงินห้องอะให้มีแค่1วัน1แถบพอ"
-    // Filter out ANY existing fund transaction(s) for selectedDate so we only update the single row
-    let remainingTx = roomData.transactions.filter(
-      (t) => !(t.type === "fund" && t.date === selectedDate)
-    );
+    let remainingTx = roomData.transactions;
 
-    if (recordTransaction && paidCount > 0) {
-      const fundRecord: Transaction = {
-        id: `tx-${roomSlug}-fund-${selectedDate}`,
-        roomId: roomSlug,
-        type: "fund",
-        category: "เงินห้อง",
-        description: `เก็บเงินห้อง (${paidCount} คน x ${fee} บาท)`,
-        amount: paidCount * fee,
-        date: selectedDate || getTodayISODate(),
-        createdAt: new Date().toISOString(),
-      };
-      remainingTx.unshift(fundRecord);
+    if (recordTransaction) {
+      // Find existing transaction to infer the historical fee rate
+      const existingTx = roomData.transactions.find(
+        (t) => t.type === "fund" && t.date === selectedDate
+      );
+      
+      if (existingTx && existingTx.amount) {
+        // Try to infer fee from previous checkin count
+        const oldPaidCount = (roomData.dailyCheckins?.[selectedDate] || []).length;
+        if (oldPaidCount > 0) {
+          const inferredFee = existingTx.amount / oldPaidCount;
+          if (inferredFee > 0 && inferredFee % 1 === 0) {
+            feeToUse = inferredFee;
+          }
+        }
+      }
+
+      // Filter out ANY existing fund transaction(s) for selectedDate
+      remainingTx = roomData.transactions.filter(
+        (t) => !(t.type === "fund" && t.date === selectedDate)
+      );
+
+      if (paidCount > 0) {
+        const fundRecord: Transaction = {
+          id: `tx-${roomSlug}-fund-${selectedDate}`,
+          roomId: roomSlug,
+          type: "fund",
+          category: "เงินห้อง",
+          description: `เก็บเงินห้อง (${paidCount} คน x ${feeToUse} บาท)`,
+          amount: paidCount * feeToUse,
+          date: selectedDate || getTodayISODate(),
+          createdAt: new Date().toISOString(),
+        };
+        remainingTx.unshift(fundRecord);
+      }
     }
 
     const updatedTx = remainingTx.sort(
