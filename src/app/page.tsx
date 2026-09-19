@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { findRoom, validateLogin } from "@/lib/rooms";
+import { validateLogin } from "@/lib/rooms";
 import { checkAndRunPromotion } from "@/lib/db";
 import {
   School,
