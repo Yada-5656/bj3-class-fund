@@ -62,14 +62,11 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const auth = sessionStorage.getItem("bj3_admin_auth") || localStorage.getItem("bj3_admin_auth");
+      const auth = localStorage.getItem("bj3_admin_auth");
       if (auth !== "true") {
         router.replace("/");
         return;
       }
-      // Strictly session-only as requested: "ถ้าเข้าไปแล้วไม่ต้องเซฟหน้านั้นไว้ เฉพาะหน้าแอดมินนะ"
-      sessionStorage.setItem("bj3_admin_auth", "true");
-      localStorage.removeItem("bj3_admin_auth");
       setIsAuthorized(true);
 
       // Load ranked rooms

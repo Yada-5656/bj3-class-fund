@@ -45,14 +45,17 @@ export default function RoomDashboardPage({
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [promotionDate, setPromotionDate] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
-  // Default to "stats" as requested by user ("ให้เข้าเว็บมาแล้วมันตั้งค่าให้อยู่หน้าสถิติ")
+  // Default to "stats" as requested by user
   const [activeTab, setActiveTab] = useState<"stats" | "history">("stats");
 
   // Room Guard & load room data (Local + Cloud Sync + Live Polling)
   useEffect(() => {
     let isMounted = true;
     if (typeof window !== "undefined") {
+      setIsSuperAdmin(localStorage.getItem("bj3_admin_auth") === "true");
+
       const activeRoom = localStorage.getItem("bj3_active_room");
       if (!activeRoom || activeRoom !== roomSlug) {
         router.replace("/");
@@ -95,6 +98,14 @@ export default function RoomDashboardPage({
     router.replace("/");
   };
 
+  const handleExitRoom = () => {
+    if (isSuperAdmin) {
+      router.push("/admin");
+    } else {
+      setShowLogoutModal(true);
+    }
+  };
+
   if (!roomData) {
     return (
       <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
@@ -117,8 +128,14 @@ export default function RoomDashboardPage({
             <School className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-[#332941]">
+            <h1 className="text-lg sm:text-xl font-bold text-[#332941] flex items-center gap-2">
               ห้อง {displayName}
+              {isSuperAdmin && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] flex items-center gap-1 shadow-xs">
+                  <ShieldCheck className="w-3 h-3" />
+                  Super Admin
+                </span>
+              )}
             </h1>
           </div>
         </div>
@@ -126,11 +143,12 @@ export default function RoomDashboardPage({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setShowLogoutModal(true)}
+            onClick={handleExitRoom}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] shadow-xs transition-all"
           >
             <LogOut className="w-4 h-4" />
-            <span>ออกจากระบบ</span>
+            <span className="hidden sm:inline">{isSuperAdmin ? "กลับหน้าแอดมิน" : "ออกจากระบบ"}</span>
+            <span className="sm:hidden">{isSuperAdmin ? "กลับ" : "ออก"}</span>
           </button>
           <Link
             href={`/${roomSlug}/treasurer`}

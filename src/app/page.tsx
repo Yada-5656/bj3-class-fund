@@ -24,6 +24,11 @@ export default function LoginPage() {
       // Automatic promotion check if date reached
       checkAndRunPromotion();
 
+      if (localStorage.getItem("bj3_admin_auth") === "true") {
+        router.replace("/admin");
+        return;
+      }
+
       const activeRoom = localStorage.getItem("bj3_active_room");
       if (activeRoom) {
         // If room was M.3 or M.6 and graduated/wiped, clear active room
@@ -96,8 +101,7 @@ export default function LoginPage() {
       // Client fallback check
       const check = validateLogin(cleanUser, cleanPass);
       if (check.isAdmin) {
-        sessionStorage.setItem("bj3_admin_auth", "true");
-        localStorage.removeItem("bj3_admin_auth");
+        localStorage.setItem("bj3_admin_auth", "true");
         router.push("/admin");
         return;
       }

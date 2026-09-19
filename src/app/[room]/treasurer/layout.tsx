@@ -27,7 +27,9 @@ export default function TreasurerLayout({
   useEffect(() => {
     let isMounted = true;
     const isAuth = sessionStorage.getItem(`bj3_treasurer_auth_${roomSlug}`);
-    if (isAuth === "true") {
+    const isAdminAuth = localStorage.getItem("bj3_admin_auth") === "true";
+    
+    if (isAuth === "true" || isAdminAuth) {
       setIsAuthenticated(true);
       setIsCheckingStatus(false);
       return;
