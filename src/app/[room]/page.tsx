@@ -18,6 +18,7 @@ import TransactionTable from "@/components/TransactionTable";
 import StatChart from "@/components/StatChart";
 import { ConfirmModal } from "@/components/Modals";
 import GraduationCountdownModal from "@/components/GraduationCountdownModal";
+import ManualModal from "@/components/ManualModal";
 import {
   Wallet,
   ArrowDownLeft,
@@ -44,6 +45,7 @@ export default function RoomDashboardPage({
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showManualModal, setShowManualModal] = useState(false);
   const [promotionDate, setPromotionDate] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
@@ -141,6 +143,15 @@ export default function RoomDashboardPage({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowManualModal(true)}
+            className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl text-[#9333EA] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] transition-all"
+            title="คู่มือการใช้งาน"
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline sm:ml-1.5 text-xs font-semibold">คู่มือ</span>
+          </button>
           <button
             type="button"
             onClick={handleExitRoom}
@@ -355,6 +366,11 @@ export default function RoomDashboardPage({
         displayName={displayName}
         promotionDate={promotionDate}
       />
+
+      {/* Manual Modal */}
+      {showManualModal && (
+        <ManualModal onClose={() => setShowManualModal(false)} />
+      )}
     </div>
   );
 }

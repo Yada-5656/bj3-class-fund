@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Transaction } from "@/lib/db";
 import { formatCurrency, getTodayISODate } from "@/lib/utils";
+import { ChevronUp } from "lucide-react";
 
 type Timeframe = "day" | "week" | "month";
 
@@ -11,73 +12,101 @@ interface DataPoint {
   fullLabel: string;
   income: number;
   expense: number;
+  dateVal: number; // for sorting
 }
 
 interface StatChartProps {
   transactions: Transaction[];
 }
 
-// Generate smooth monotonic SVG path that never dips below baseline or overshoots
-function createSmoothPath(points: { x: number; y: number }[], baselineY: number): string {
+function createSmoothPath(points: { x: number; y: number }[], baselineY: number) {
   if (points.length === 0) return "";
-  if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  if (points.length === 1) return \M \ \\;
 
-  let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  let d = \M \ \\;
 
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
     const p2 = points[i + 1];
 
-    // If both points are at baseline (0), draw a straight line along the baseline
     if (Math.abs(p1.y - baselineY) < 1 && Math.abs(p2.y - baselineY) < 1) {
-      d += ` L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+      d += \ L \ \\;
       continue;
     }
 
-    // Monotonic bezier transition that never dips below baseline
     const midX = (p1.x + p2.x) / 2;
     const cp1y = Math.min(baselineY, p1.y);
     const cp2y = Math.min(baselineY, p2.y);
-    d += ` C ${midX.toFixed(1)} ${cp1y.toFixed(1)}, ${midX.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    d += \ C \ \, \ \, \ \\;
   }
 
   return d;
 }
 
 export default function StatChart({ transactions }: StatChartProps) {
-  // Default timeframe is now "day" or "week", let's default to "day" as first button
   const [timeframe, setTimeframe] = useState<Timeframe>("day");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Date Range State
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("present");
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    const s = localStorage.getItem("bj3_chart_start");
+    const e = localStorage.getItem("bj3_chart_end");
+    if (s) setStartDate(s);
+    if (e) setEndDate(e);
+    setIsMounted(true);
+  }, []);
+
+  const handleDateChange = (type: "start" | "end", val: string) => {
+    if (type === "start") {
+      setStartDate(val);
+      localStorage.setItem("bj3_chart_start", val);
+    } else {
+      setEndDate(val);
+      localStorage.setItem("bj3_chart_end", val);
+    }
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
     }
-  }, [timeframe]);
+  }, [timeframe, startDate, endDate]);
 
-  // Compute aggregated data points based on timeframe and transactions (100% REAL DATA)
   const data: DataPoint[] = useMemo(() => {
-    const anchorDateStr =
-      transactions.length > 0 && transactions[0].date
-        ? transactions[0].date
-        : getTodayISODate();
+    if (!isMounted) return [];
 
-    const thaiMonths = ["‡∏°.‡∏Ñ.", "‡∏Å.‡∏û.", "‡∏°‡∏µ.‡∏Ñ.", "‡πÄ‡∏°.‡∏¢.", "‡∏û.‡∏Ñ.", "‡∏°‡∏¥.‡∏¢.", "‡∏Å.‡∏Ñ.", "‡∏™.‡∏Ñ.", "‡∏Å.‡∏¢.", "‡∏ï.‡∏Ñ.", "‡∏û.‡∏¢.", "‡∏ò.‡∏Ñ."];
-    const fullThaiMonths = ["‡∏°‡∏Å‡∏£‡∏≤‡∏Ñ‡∏°", "‡∏Å‡∏∏‡∏°‡∏†‡∏≤‡∏û‡∏±‡∏ô‡∏ò‡πå", "‡∏°‡∏µ‡∏ô‡∏≤‡∏Ñ‡∏°", "‡πÄ‡∏°‡∏©‡∏≤‡∏¢‡∏ô", "‡∏û‡∏§‡∏©‡∏†‡∏≤‡∏Ñ‡∏°", "‡∏°‡∏¥‡∏ñ‡∏∏‡∏ô‡∏≤‡∏¢‡∏ô", "‡∏Å‡∏£‡∏Å‡∏é‡∏≤‡∏Ñ‡∏°", "‡∏™‡∏¥‡∏á‡∏´‡∏≤‡∏Ñ‡∏°", "‡∏Å‡∏±‡∏ô‡∏¢‡∏≤‡∏¢‡∏ô", "‡∏ï‡∏∏‡∏•‡∏≤‡∏Ñ‡∏°", "‡∏û‡∏§‡∏®‡∏à‡∏¥‡∏Å‡∏≤‡∏¢‡∏ô", "‡∏ò‡∏±‡∏ô‡∏ß‡∏≤‡∏Ñ‡∏°"];
+    const todayStr = getTodayISODate();
+    const actualEndStr = endDate === "present" || !endDate ? todayStr : endDate;
+    
+    // Default start date if empty: 30 days ago
+    let actualStartStr = startDate;
+    if (!actualStartStr) {
+       const d = new Date(actualEndStr);
+       d.setDate(d.getDate() - 30);
+       actualStartStr = d.toISOString().split("T")[0];
+    }
+
+    const start = new Date(actualStartStr);
+    const end = new Date(actualEndStr);
+    if (start > end) return [];
+
+    const thaiMonths = ["¡.§.", "°.æ.", "¡’.§.", "‡¡.¬.", "æ.§.", "¡‘.¬.", "°.§.", " .§.", "°.¬.", "µ.§.", "æ.¬.", "∏.§."];
+    const fullThaiMonths = ["¡°√“§¡", "°ÿ¡¿“æ—π∏Ï", "¡’π“§¡", "‡¡…“¬π", "æƒ…¿“§¡", "¡‘∂ÿπ“¬π", "°√°Æ“§¡", " ‘ßÀ“§¡", "°—π¬“¬π", "µÿ≈“§¡", "æƒ»®‘°“¬π", "∏—π«“§¡"];
+
+    const arr: DataPoint[] = [];
 
     if (timeframe === "day") {
-      const [year, month, day] = anchorDateStr.split("-").map(Number);
-      const anchor = new Date(year, month - 1, day);
-      
-      const arr: DataPoint[] = [];
-      for (let i = 29; i >= 0; i--) {
-        const cur = new Date(anchor);
-        cur.setDate(anchor.getDate() - i);
+      const cur = new Date(start);
+      while (cur <= end) {
         const y = cur.getFullYear();
         const m = String(cur.getMonth() + 1).padStart(2, "0");
         const d = String(cur.getDate()).padStart(2, "0");
-        const dateStr = `${y}-${m}-${d}`;
+        const dateStr = \\-\-\\;
 
         const dayIncome = transactions
           .filter((t) => (t.type === "income" || t.type === "fund") && t.date === dateStr)
@@ -88,29 +117,31 @@ export default function StatChart({ transactions }: StatChartProps) {
           .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
         arr.push({
-          label: `${cur.getDate()} ${thaiMonths[cur.getMonth()]}`,
-          fullLabel: `${cur.getDate()} ${fullThaiMonths[cur.getMonth()]}`,
+          label: \\ \\,
+          fullLabel: \\ \ \\,
           income: dayIncome,
           expense: dayExpense,
+          dateVal: cur.getTime()
         });
+        cur.setDate(cur.getDate() + 1);
       }
-      return arr;
     } else if (timeframe === "week") {
-      const [year, month] = anchorDateStr.split("-").map(Number);
-      const arr: DataPoint[] = [];
-      for (let i = 5; i >= 0; i--) {
-        const mDate = new Date(year, month - 1 - i, 1);
-        const mY = mDate.getFullYear();
-        const mM = String(mDate.getMonth() + 1).padStart(2, "0");
-        const mStr = `${mY}-${mM}`;
-        const mName = thaiMonths[mDate.getMonth()];
-        const fullMName = fullThaiMonths[mDate.getMonth()];
+      // iterate months between start and end
+      const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+      const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+      
+      while (cur <= endMonth) {
+        const mY = cur.getFullYear();
+        const mM = String(cur.getMonth() + 1).padStart(2, "0");
+        const mStr = \\-\\;
+        const mName = thaiMonths[cur.getMonth()];
+        const fullMName = fullThaiMonths[cur.getMonth()];
 
         const weeksConfig = [
-          { label: "W1", full: "‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå‡∏ó‡∏µ‡πà 1 (1-7)", start: 1, end: 7 },
-          { label: "W2", full: "‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå‡∏ó‡∏µ‡πà 2 (8-14)", start: 8, end: 14 },
-          { label: "W3", full: "‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå‡∏ó‡∏µ‡πà 3 (15-21)", start: 15, end: 21 },
-          { label: "W4", full: "‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå‡∏ó‡∏µ‡πà 4 (22+)", start: 22, end: 31 },
+          { label: "W1", full: " —ª¥“ÀÏ∑’Ë 1 (1-7)", start: 1, end: 7 },
+          { label: "W2", full: " —ª¥“ÀÏ∑’Ë 2 (8-14)", start: 8, end: 14 },
+          { label: "W3", full: " —ª¥“ÀÏ∑’Ë 3 (15-21)", start: 15, end: 21 },
+          { label: "W4", full: " —ª¥“ÀÏ∑’Ë 4 (22+)", start: 22, end: 31 },
         ];
 
         for (const cfg of weeksConfig) {
@@ -128,23 +159,26 @@ export default function StatChart({ transactions }: StatChartProps) {
             .filter((t) => t.type === "expense")
             .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-          arr.push({
-            label: `${cfg.label} ${mName}`,
-            fullLabel: `${cfg.full} ${fullMName}`,
-            income: weekIncome,
-            expense: weekExpense,
-          });
+          if (weekIncome > 0 || weekExpense > 0) {
+            arr.push({
+              label: \\ \\,
+              fullLabel: \\ \ \\,
+              income: weekIncome,
+              expense: weekExpense,
+              dateVal: cur.getTime() + cfg.start
+            });
+          }
         }
+        cur.setMonth(cur.getMonth() + 1);
       }
-      return arr;
     } else {
-      const [year, month] = anchorDateStr.split("-").map(Number);
-      const arr: DataPoint[] = [];
-      for (let i = 11; i >= 0; i--) {
-        const mDate = new Date(year, month - 1 - i, 1);
-        const mY = mDate.getFullYear();
-        const mM = String(mDate.getMonth() + 1).padStart(2, "0");
-        const mStr = `${mY}-${mM}`;
+      const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+      const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+      
+      while (cur <= endMonth) {
+        const mY = cur.getFullYear();
+        const mM = String(cur.getMonth() + 1).padStart(2, "0");
+        const mStr = \\-\\;
 
         const monthTxs = transactions.filter((t) => t.date.startsWith(mStr));
 
@@ -156,354 +190,228 @@ export default function StatChart({ transactions }: StatChartProps) {
           .filter((t) => t.type === "expense")
           .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-        const mName = thaiMonths[mDate.getMonth()];
-        const fullMName = fullThaiMonths[mDate.getMonth()];
-        const thaiYear = mY + 543;
+        if (monthIncome > 0 || monthExpense > 0) {
+          const mName = thaiMonths[cur.getMonth()];
+          const fullMName = fullThaiMonths[cur.getMonth()];
+          const thaiYear = mY + 543;
 
-        arr.push({
-          label: `${mName} ${String(thaiYear).slice(-2)}`,
-          fullLabel: `${fullMName} ${thaiYear}`,
-          income: monthIncome,
-          expense: monthExpense,
-        });
+          arr.push({
+            label: \\ \\,
+            fullLabel: \\ \\,
+            income: monthIncome,
+            expense: monthExpense,
+            dateVal: cur.getTime()
+          });
+        }
+        cur.setMonth(cur.getMonth() + 1);
       }
-      return arr;
     }
-  }, [timeframe, transactions]);
+    
+    return arr;
+  }, [timeframe, transactions, startDate, endDate, isMounted]);
 
-  // Chart dimensions & scaling
   const chartWidth = Math.max(600, data.length * 60);
   const chartHeight = 220;
-  const paddingX = 45;
+  const paddingX = 20; // Reduce X padding since Y-axis is extracted
   const paddingTop = 25;
   const paddingBottom = 35;
+  const yAxisWidth = 40;
 
   const innerWidth = chartWidth - paddingX * 2;
   const innerHeight = chartHeight - paddingTop - paddingBottom;
   const baselineY = paddingTop + innerHeight;
 
   const maxVal = useMemo(() => {
-    const highest = Math.max(
-      ...data.map((d) => Math.max(d.income, d.expense)),
-      0
-    );
+    const highest = Math.max(...data.map((d) => Math.max(d.income, d.expense)), 0);
     if (highest === 0) return 100;
-    return highest * 1.15; // 15% headroom above max value
+    return highest * 1.15;
   }, [data]);
 
   const points = useMemo(() => {
     const step = innerWidth / (data.length - 1 || 1);
-
     const incomePoints = data.map((d, i) => {
       const ratio = maxVal > 0 ? d.income / maxVal : 0;
-      const y = Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight));
-      return {
-        x: paddingX + i * step,
-        y,
-      };
+      return { x: paddingX + i * step, y: Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight)) };
     });
-
     const expensePoints = data.map((d, i) => {
       const ratio = maxVal > 0 ? d.expense / maxVal : 0;
-      const y = Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight));
-      return {
-        x: paddingX + i * step,
-        y,
-      };
+      return { x: paddingX + i * step, y: Math.min(baselineY, Math.max(paddingTop, baselineY - ratio * innerHeight)) };
     });
-
     return { incomePoints, expensePoints };
   }, [data, innerWidth, innerHeight, maxVal, paddingX, paddingTop, baselineY]);
 
-  const incomeLinePath = useMemo(
-    () => createSmoothPath(points.incomePoints, baselineY),
-    [points.incomePoints, baselineY]
-  );
-  const expenseLinePath = useMemo(
-    () => createSmoothPath(points.expensePoints, baselineY),
-    [points.expensePoints, baselineY]
-  );
+  const incomeLinePath = useMemo(() => createSmoothPath(points.incomePoints, baselineY), [points.incomePoints, baselineY]);
+  const expenseLinePath = useMemo(() => createSmoothPath(points.expensePoints, baselineY), [points.expensePoints, baselineY]);
 
-  const incomeAreaPath = useMemo(() => {
-    if (points.incomePoints.length === 0) return "";
-    const first = points.incomePoints[0];
-    const last = points.incomePoints[points.incomePoints.length - 1];
-    return `${incomeLinePath} L ${last.x.toFixed(1)} ${baselineY} L ${first.x.toFixed(1)} ${baselineY} Z`;
-  }, [incomeLinePath, points.incomePoints, baselineY]);
+  const incomeAreaPath = \\ L \ \ L \ \ Z\;
+  const expenseAreaPath = \\ L \ \ L \ \ Z\;
 
-  const expenseAreaPath = useMemo(() => {
-    if (points.expensePoints.length === 0) return "";
-    const first = points.expensePoints[0];
-    const last = points.expensePoints[points.expensePoints.length - 1];
-    return `${expenseLinePath} L ${last.x.toFixed(1)} ${baselineY} L ${first.x.toFixed(1)} ${baselineY} Z`;
-  }, [expenseLinePath, points.expensePoints, baselineY]);
+  const totalPeriodIncome = data.reduce((sum, d) => sum + d.income, 0);
+  const totalPeriodExpense = data.reduce((sum, d) => sum + d.expense, 0);
 
-  const totalPeriodIncome = useMemo(
-    () => data.reduce((sum, d) => sum + d.income, 0),
-    [data]
-  );
-  const totalPeriodExpense = useMemo(
-    () => data.reduce((sum, d) => sum + d.expense, 0),
-    [data]
-  );
+  if (!isMounted) return null;
 
   return (
     <div className="space-y-4">
-      {/* Top Chart Header & Legend */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F1EDF7]">
-        <div>
+      <div className="pastel-card p-4 sm:p-5 bg-white border border-[#E9D5FF] shadow-pastel">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-[#332941]">‡ª√’¬∫‡∑’¬∫√“¬√—∫·≈–√“¬®Ë“¬</h3>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#FAF5FF] text-[#C084FC] text-[10px] font-bold border border-[#E9D5FF]">
+              {timeframe === "day" ? "√“¬«—π" : timeframe === "week" ? "√“¬ —ª¥“ÀÏ" : "√“¬‡¥◊Õπ"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[#10B981]"></div>
+              <span className="text-[#332941] font-semibold">√“¬√—∫</span>
+              <span className="text-[#10B981] font-bold text-[11px]">(+{formatCurrency(totalPeriodIncome)})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-[#F43F5E]"></div>
+              <span className="text-[#332941] font-semibold">√“¬®Ë“¬</span>
+              <span className="text-[#F43F5E] font-bold text-[11px]">(-{formatCurrency(totalPeriodExpense)})</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Date Range Picker */}
+        <div className="flex flex-wrap items-center gap-2 mb-4 bg-[#F8F5FB] p-2 rounded-xl border border-[#EFE8F6]">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-[#7B708A]">
-              ‡πÄ‡∏õ‡∏£‡∏µ‡∏¢‡∏ö‡πÄ‡∏ó‡∏µ‡∏¢‡∏ö‡∏£‡∏≤‡∏¢‡∏£‡∏±‡∏ö‡πÅ‡∏•‡∏∞‡∏£‡∏≤‡∏¢‡∏à‡πà‡∏≤‡∏¢
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF]">
-              {timeframe === "day"
-                ? "‡∏£‡∏≤‡∏¢‡∏ß‡∏±‡∏ô"
-                : timeframe === "week"
-                ? "‡∏£‡∏≤‡∏¢‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå"
-                : "‡∏£‡∏≤‡∏¢‡πÄ‡∏î‡∏∑‡∏≠‡∏ô"}
-            </span>
+            <label className="text-[11px] font-semibold text-[#7B708A]">µ—Èß·µË:</label>
+            <input 
+              type="date" 
+              value={startDate}
+              onChange={(e) => handleDateChange("start", e.target.value)}
+              className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC]"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-semibold text-[#7B708A]">∂÷ß:</label>
+            <select
+              value={endDate === "present" ? "present" : "custom"}
+              onChange={(e) => {
+                if (e.target.value === "present") handleDateChange("end", "present");
+                else handleDateChange("end", getTodayISODate());
+              }}
+              className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC] cursor-pointer bg-white"
+            >
+              <option value="present">ª—®®ÿ∫—π</option>
+              <option value="custom">°”Àπ¥‡Õß...</option>
+            </select>
+            {endDate !== "present" && (
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => handleDateChange("end", e.target.value)}
+                className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC]"
+              />
+            )}
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center gap-4 text-xs font-medium">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[#10B981] shadow-xs" />
-            <span className="text-[#065F46] font-semibold">‡∏£‡∏≤‡∏¢‡∏£‡∏±‡∏ö</span>
-            <span className="text-[#10B981] font-bold text-[11px]">
-              (+{formatCurrency(totalPeriodIncome)})
-            </span>
+        {/* Outer Wrapper for Fixed Tooltip and Fixed Y-Axis */}
+        <div className="relative bg-gradient-to-b from-[#FAF5FF]/50 to-white rounded-2xl border border-[#EFE8F6] flex">
+          
+          {/* FIXED Y-AXIS (Overlay on the left) */}
+          <div className="w-[40px] flex-shrink-0 relative z-10 bg-white/80 backdrop-blur-sm border-r border-[#EFE8F6]/50 rounded-l-2xl py-2 sm:py-4 pointer-events-none">
+             {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+               const y = paddingTop + innerHeight * (1 - ratio);
+               const val = Math.round(maxVal * ratio);
+               return (
+                 <div key={i} className="absolute w-full text-right pr-1" style={{ top: \\px\ }}>
+                   <span className="text-[9px] sm:text-[10px] text-[#A89BB7] font-medium">
+                     {val >= 1_000_000 ? \\M\ : val >= 1000 ? \\k\ : val}
+                   </span>
+                 </div>
+               )
+             })}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-[#F43F5E] shadow-xs" />
-            <span className="text-[#9F1239] font-semibold">‡∏£‡∏≤‡∏¢‡∏à‡πà‡∏≤‡∏¢</span>
-            <span className="text-[#F43F5E] font-bold text-[11px]">
-              (-{formatCurrency(totalPeriodExpense)})
-            </span>
+
+          {/* SCROLLABLE CHART AREA */}
+          <div 
+            ref={scrollRef}
+            className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar relative py-2 sm:py-4"
+          >
+            {data.length === 0 ? (
+               <div className="h-[220px] flex items-center justify-center text-xs text-[#A89BB7]">‰¡Ë¡’¢ÈÕ¡Ÿ≈„π™Ë«ß‡«≈“π’È</div>
+            ) : (
+              <div style={{ width: chartWidth, minWidth: '100%' }}>
+                <svg viewBox={\  0 \ \\} className="w-full h-auto overflow-visible select-none">
+                  <defs>
+                    <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
+                      <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
+                    </linearGradient>
+
+                    <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#F43F5E" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+
+                  {/* Horizontal Grid Lines inside SVG to match Y-axis */}
+                  {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                    const y = paddingTop + innerHeight * (1 - ratio);
+                    return (
+                      <line key={i} x1="0" y1={y} x2={chartWidth} y2={y} stroke="#EFE8F6" strokeDasharray={ratio === 0 ? undefined : "3 3"} strokeWidth="1" />
+                    );
+                  })}
+
+                  <path d={incomeAreaPath} fill="url(#incomeGradient)" />
+                  <path d={expenseAreaPath} fill="url(#expenseGradient)" />
+                  <path d={incomeLinePath} fill="none" stroke="#10B981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d={expenseLinePath} fill="none" stroke="#F43F5E" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+
+                  {data.map((d, i) => {
+                    const incPt = points.incomePoints[i];
+                    const expPt = points.expensePoints[i];
+                    const isHovered = hoveredIndex === i;
+
+                    return (
+                      <g key={i}>
+                        {isHovered && <line x1={incPt.x} y1={paddingTop} x2={incPt.x} y2={baselineY} stroke="#E9D5FF" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.8" />}
+                        <circle cx={incPt.x} cy={incPt.y} r={isHovered ? 5.5 : 4} fill="#FFFFFF" stroke="#10B981" strokeWidth={isHovered ? "3" : "2.5"} className="transition-all duration-200" />
+                        <circle cx={expPt.x} cy={expPt.y} r={isHovered ? 5.5 : 4} fill="#FFFFFF" stroke="#F43F5E" strokeWidth={isHovered ? "3" : "2.5"} className="transition-all duration-200" />
+                        <text x={incPt.x} y={paddingTop + innerHeight + 18} textAnchor="middle" fill={isHovered ? "#332941" : "#7B708A"} fontSize="11" fontWeight={isHovered ? "bold" : "normal"} fontFamily="inherit">{d.label}</text>
+                        <rect x={incPt.x - (innerWidth / (data.length - 1 || 1)) / 2} y={0} width={innerWidth / (data.length - 1 || 1)} height={chartHeight} fill="transparent" className="cursor-pointer" onMouseEnter={() => setHoveredIndex(i)} onMouseLeave={() => setHoveredIndex(null)} onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)} />
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+            )}
           </div>
+          
+          {/* FIXED Floating Tooltip (Positioned inside outer wrapper) */}
+          {hoveredIndex !== null && data[hoveredIndex] && (
+            <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-[#E9D5FF] shadow-lg text-xs space-y-1 pointer-events-none transition-all">
+              <div className="font-bold text-[#332941] text-xs pb-1 border-b border-[#F1EDF7]">
+                {data[hoveredIndex].fullLabel}
+              </div>
+              <div className="flex items-center justify-between gap-4 text-[#065F46]">
+                <span>√“¬√—∫:</span>
+                <span className="font-bold">+{formatCurrency(data[hoveredIndex].income)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4 text-[#9F1239]">
+                <span>√“¬®Ë“¬:</span>
+                <span className="font-bold">-{formatCurrency(data[hoveredIndex].expense)}</span>
+              </div>
+              <div className="flex items-center justify-between gap-4 text-[#7B708A] pt-1 border-t border-[#F1EDF7] font-medium">
+                <span>§ß‡À≈◊Õ ÿ∑∏‘:</span>
+                <span className="font-bold text-[#332941]">{formatCurrency(data[hoveredIndex].income - data[hoveredIndex].expense)}</span>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
 
-      {/* SVG Interactive Chart Canvas */}
-      <div 
-        ref={scrollRef}
-        className="relative bg-gradient-to-b from-[#FAF5FF]/50 to-white rounded-2xl p-2 sm:p-4 border border-[#EFE8F6] overflow-x-auto overflow-y-hidden custom-scrollbar"
-      >
-        <div style={{ width: chartWidth, minWidth: '100%' }}>
-          <svg
-            viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-            className="w-full h-auto overflow-visible select-none"
-          >
-          <defs>
-            <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
-            </linearGradient>
-
-            <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#F43F5E" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#F43F5E" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-
-          {/* Background Grid Lines & Y-Axis Labels */}
-          {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
-            const y = paddingTop + innerHeight * (1 - ratio);
-            const val = Math.round(maxVal * ratio);
-            return (
-              <g key={i}>
-                <line
-                  x1={paddingX}
-                  y1={y}
-                  x2={chartWidth - paddingX}
-                  y2={y}
-                  stroke="#EFE8F6"
-                  strokeDasharray={ratio === 0 ? undefined : "3 3"}
-                  strokeWidth="1"
-                />
-                <text
-                  x={paddingX - 8}
-                  y={y + 3}
-                  textAnchor="end"
-                  fill="#A89BB7"
-                  fontSize="10"
-                  fontFamily="inherit"
-                >
-                  {val >= 1_000_000
-                    ? `${(val / 1_000_000).toFixed(1)}M`
-                    : val >= 1000
-                    ? `${(val / 1000).toFixed(val >= 10000 ? 0 : 1)}k`
-                    : val}
-                </text>
-              </g>
-            );
-          })}
-
-          {/* Area Fills */}
-          <path d={incomeAreaPath} fill="url(#incomeGradient)" />
-          <path d={expenseAreaPath} fill="url(#expenseGradient)" />
-
-          {/* Smooth Stroke Lines */}
-          <path
-            d={incomeLinePath}
-            fill="none"
-            stroke="#10B981"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={expenseLinePath}
-            fill="none"
-            stroke="#F43F5E"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Data Points & Interactive Hover Columns */}
-          {data.map((d, i) => {
-            const incPt = points.incomePoints[i];
-            const expPt = points.expensePoints[i];
-            const isHovered = hoveredIndex === i;
-
-            return (
-              <g key={i}>
-                {isHovered && (
-                  <line
-                    x1={incPt.x}
-                    y1={paddingTop}
-                    x2={incPt.x}
-                    y2={paddingTop + innerHeight}
-                    stroke="#C084FC"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 4"
-                    opacity="0.8"
-                  />
-                )}
-
-                <circle
-                  cx={incPt.x}
-                  cy={incPt.y}
-                  r={isHovered ? 5.5 : 4}
-                  fill="#FFFFFF"
-                  stroke="#10B981"
-                  strokeWidth={isHovered ? "3" : "2.5"}
-                  className="transition-all duration-200"
-                />
-
-                <circle
-                  cx={expPt.x}
-                  cy={expPt.y}
-                  r={isHovered ? 5.5 : 4}
-                  fill="#FFFFFF"
-                  stroke="#F43F5E"
-                  strokeWidth={isHovered ? "3" : "2.5"}
-                  className="transition-all duration-200"
-                />
-
-                <text
-                  x={incPt.x}
-                  y={paddingTop + innerHeight + 18}
-                  textAnchor="middle"
-                  fill={isHovered ? "#332941" : "#7B708A"}
-                  fontSize="11"
-                  fontWeight={isHovered ? "bold" : "normal"}
-                  fontFamily="inherit"
-                >
-                  {d.label}
-                </text>
-
-                <rect
-                  x={incPt.x - (innerWidth / (data.length - 1 || 1)) / 2}
-                  y={0}
-                  width={innerWidth / (data.length - 1 || 1)}
-                  height={chartHeight}
-                  fill="transparent"
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHoveredIndex(i)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)}
-                />
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Floating Tooltip when hovering a point */}
-        {hoveredIndex !== null && data[hoveredIndex] && (
-          <div
-            className="absolute top-2 left-1/2 -translate-x-1/2 sm:translate-x-0 sm:left-auto sm:right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-[#E9D5FF] shadow-lg text-xs space-y-1 pointer-events-none transition-all"
-          >
-            <div className="font-bold text-[#332941] text-xs pb-1 border-b border-[#F1EDF7]">
-              {data[hoveredIndex].fullLabel}
-            </div>
-            <div className="flex items-center justify-between gap-4 text-[#065F46]">
-              <span>‡∏£‡∏≤‡∏¢‡∏£‡∏±‡∏ö:</span>
-              <span className="font-bold">+{formatCurrency(data[hoveredIndex].income)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4 text-[#9F1239]">
-              <span>‡∏£‡∏≤‡∏¢‡∏à‡πà‡∏≤‡∏¢:</span>
-              <span className="font-bold">-{formatCurrency(data[hoveredIndex].expense)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4 text-[#7B708A] pt-1 border-t border-[#F1EDF7] font-medium">
-              <span>‡∏Ñ‡∏á‡πÄ‡∏´‡∏•‡∏∑‡∏≠‡∏™‡∏∏‡∏ó‡∏ò‡∏¥:</span>
-              <span className="font-bold text-[#332941]">
-                {formatCurrency(data[hoveredIndex].income - data[hoveredIndex].expense)}
-              </span>
-            </div>
-          </div>
-        )}
-        </div>
-      </div>
-
-      {/* Crucial Requirement: 3 Selector Buttons at Bottom: [ ‡∏£‡∏≤‡∏¢‡∏ß‡∏±‡∏ô ] [ ‡∏£‡∏≤‡∏¢‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå ] [ ‡∏£‡∏≤‡∏¢‡πÄ‡∏î‡∏∑‡∏≠‡∏ô ] */}
       <div className="flex items-center justify-center gap-2 pt-1">
-        <button
-          type="button"
-          onClick={() => {
-            setTimeframe("day");
-            setHoveredIndex(null);
-          }}
-          className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            timeframe === "day"
-              ? "bg-[#C084FC] text-white shadow-pastel scale-102"
-              : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
-          }`}
-        >
-          ‡∏£‡∏≤‡∏¢‡∏ß‡∏±‡∏ô
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setTimeframe("week");
-            setHoveredIndex(null);
-          }}
-          className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            timeframe === "week"
-              ? "bg-[#C084FC] text-white shadow-pastel scale-102"
-              : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
-          }`}
-        >
-          ‡∏£‡∏≤‡∏¢‡∏™‡∏±‡∏õ‡∏î‡∏≤‡∏´‡πå
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setTimeframe("month");
-            setHoveredIndex(null);
-          }}
-          className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            timeframe === "month"
-              ? "bg-[#C084FC] text-white shadow-pastel scale-102"
-              : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
-          }`}
-        >
-          ‡∏£‡∏≤‡∏¢‡πÄ‡∏î‡∏∑‡∏≠‡∏ô
-        </button>
+        <button type="button" onClick={() => { setTimeframe("day"); setHoveredIndex(null); }} className={\lex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all \\}>√“¬«—π</button>
+        <button type="button" onClick={() => { setTimeframe("week"); setHoveredIndex(null); }} className={\lex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all \\}>√“¬ —ª¥“ÀÏ</button>
+        <button type="button" onClick={() => { setTimeframe("month"); setHoveredIndex(null); }} className={\lex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all \\}>√“¬‡¥◊Õπ</button>
       </div>
     </div>
   );

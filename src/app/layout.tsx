@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "เธฃเธฐเธเธเธเธฑเธ”เธเธฒเธฃเน€เธเธดเธเธซเนเธญเธเน€เธฃเธตเธขเธ - เนเธฃเธเน€เธฃเธตเธขเธเธเธฃเธฃเธซเธฒเธฃเนเธเนเธกเนเธชเธงเธดเธ—เธขเธฒ 3 (BJ3)",
-  description: "เธฃเธฐเธเธเธเธฑเธ”เธเธฒเธฃเน€เธเธดเธเธซเนเธญเธเน€เธฃเธตเธขเธเนเธฅเธฐเน€เธเนเธเธเธทเนเธญเธเนเธฒเธซเนเธญเธ เธฃเธญเธเธฃเธฑเธ 77 เธซเนเธญเธเน€เธฃเธตเธขเธ เนเธฃเธเน€เธฃเธตเธขเธเธเธฃเธฃเธซเธฒเธฃเนเธเนเธกเนเธชเธงเธดเธ—เธขเธฒ 3",
+  title: "ระบบจัดการเงินห้องเรียน - โรงเรียนบรรหารแจ่มใสวิทยา 3 (BJ3)",
+  description: "ระบบจัดการเงินห้องเรียนและเช็คชื่อค่าห้อง รองรับ 77 ห้องเรียน โรงเรียนบรรหารแจ่มใสวิทยา 3",
 };
 
 export default function RootLayout({
@@ -15,6 +16,7 @@ export default function RootLayout({
     <html lang="th">
       <body className="min-h-screen bg-[#F8F5FB] text-[#332941] antialiased selection:bg-[#E9D5FF] selection:text-[#581C87]">
         {children}
+        <ScrollToTop />
       </body>
     </html>
   );

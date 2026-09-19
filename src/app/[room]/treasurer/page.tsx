@@ -16,6 +16,7 @@ import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import StudentList from "@/components/StudentList";
 import TransactionTable from "@/components/TransactionTable";
 import { TransactionModal, ConfirmModal } from "@/components/Modals";
+import ManualModal from "@/components/ManualModal";
 import {
   ShieldCheck,
   CheckSquare,
@@ -28,6 +29,7 @@ import {
   KeyRound,
   Coins,
   ArrowRight,
+  BookOpen,
 } from "lucide-react";
 
 export default function TreasurerDashboardPage({
@@ -42,6 +44,7 @@ export default function TreasurerDashboardPage({
 
   const [roomData, setRoomData] = useState<RoomData | null>(null);
   const [activeTab, setActiveTab] = useState<"menu" | "checkin" | "transactions" | "settings">("menu");
+  const [showManualModal, setShowManualModal] = useState(false);
 
   // Modals state
   const [txModalOpen, setTxModalOpen] = useState(false);
@@ -282,13 +285,22 @@ export default function TreasurerDashboardPage({
             <span>แดชบอร์ด</span>
           </Link>
 
-          <button
-            onClick={handleLockSession}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
-          >
-            <Lock className="w-3.5 h-3.5" />
-            <span>{isSuperAdmin ? "กลับไปหน้าห้อง" : "ออกจากระบบ"}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowManualModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#9333EA] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] rounded-xl transition-colors"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>คู่มือ</span>
+            </button>
+            <button
+              onClick={handleLockSession}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] rounded-xl shadow-xs transition-colors"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>{isSuperAdmin ? "กลับไปหน้าห้อง" : "ออกจากระบบ"}</span>
+            </button>
+          </div>
         </div>
 
         {/* Header Title (Minimal - No explanation paragraphs) */}
@@ -550,6 +562,11 @@ export default function TreasurerDashboardPage({
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteId(null)}
       />
+
+      {/* Manual Modal */}
+      {showManualModal && (
+        <ManualModal onClose={() => setShowManualModal(false)} />
+      )}
     </div>
   );
 }
