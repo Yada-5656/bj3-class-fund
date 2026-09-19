@@ -42,6 +42,7 @@ export default function AdminDashboardPage() {
   const [promotionDateInput, setPromotionDateInput] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"balance-desc" | "balance-asc" | "room-asc" | "room-desc">("balance-desc");
   const [showPromoteConfirm, setShowPromoteConfirm] = useState(false);
 
   // Admin Credentials state
@@ -271,7 +272,27 @@ export default function AdminDashboardPage() {
 
   const filteredRooms = rankedRooms.filter((r) =>
     r.displayName.toLowerCase().includes(searchQuery.trim().toLowerCase())
-  );
+  ).sort((a, b) => {
+    if (sortBy === "balance-desc") return b.summary.totalBalance - a.summary.totalBalance;
+    if (sortBy === "balance-asc") return a.summary.totalBalance - b.summary.totalBalance;
+    
+    const parseRoom = (slug: string) => {
+      const parts = slug.split('-');
+      return { grade: parseInt(parts[0] || "0", 10), room: parseInt(parts[1] || "0", 10) };
+    };
+    const roomA = parseRoom(a.roomSlug);
+    const roomB = parseRoom(b.roomSlug);
+    
+    if (sortBy === "room-asc") {
+      if (roomA.grade !== roomB.grade) return roomA.grade - roomB.grade;
+      return roomA.room - roomB.room;
+    }
+    if (sortBy === "room-desc") {
+      if (roomA.grade !== roomB.grade) return roomB.grade - roomA.grade;
+      return roomB.room - roomA.room;
+    }
+    return 0;
+  });
 
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto pb-12">
@@ -462,21 +483,43 @@ export default function AdminDashboardPage() {
         </form>
       </div>
 
-      {/* Classroom Rankings List (เรียงมาเลย 1-77 โดยไม่มีคำว่า "ตารางจัดอันดับ") */}
+      {/* Classroom Rankings List */}
       <div className="space-y-3">
-        {/* Search bar */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="w-4 h-4 text-[#9E94AD] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาห้อง เช่น 3/15"
-              className="w-full pl-9 pr-3.5 py-2 bg-white border border-[#EFE8F6] rounded-xl text-xs text-[#332941] focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
-            />
+        {/* Search & Sort bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-1 items-center gap-2 max-w-lg">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-[#9E94AD] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="ค้นหาห้อง เช่น 3/15"
+                className="w-full pl-9 pr-3.5 py-2 bg-white border border-[#EFE8F6] rounded-xl text-xs text-[#332941] focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+              />
+            </div>
+            
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="appearance-none pl-3 pr-8 py-2 bg-white border border-[#EFE8F6] rounded-xl text-xs text-[#7B708A] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC] cursor-pointer"
+              >
+                <option value="balance-desc">เงิน (มากไปน้อย)</option>
+                <option value="balance-asc">เงิน (น้อยไปมาก)</option>
+                <option value="room-asc">ห้อง (น้อยไปมาก)</option>
+                <option value="room-desc">ห้อง (มากไปน้อย)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#7B708A]">
+                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex items-center gap-2 justify-between sm:justify-end">
+            <span className="text-xs text-[#7B708A] font-medium inline sm:hidden">
+              {filteredRooms.length} ห้อง
+            </span>
             <button
               onClick={() => openResetModal(null)}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#FFF1F2] text-[#E11D48] hover:bg-[#FFE4E6] border border-[#FECDD3] rounded-xl text-xs font-bold transition-colors"

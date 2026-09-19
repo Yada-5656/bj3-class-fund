@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Transaction } from "@/lib/db";
 import { formatCurrency, getTodayISODate } from "@/lib/utils";
 
@@ -48,108 +48,105 @@ export default function StatChart({ transactions }: StatChartProps) {
   // Default timeframe is now "day" or "week", let's default to "day" as first button
   const [timeframe, setTimeframe] = useState<Timeframe>("day");
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [timeframe]);
 
   // Compute aggregated data points based on timeframe and transactions (100% REAL DATA)
   const data: DataPoint[] = useMemo(() => {
-    // Determine the anchor date from the latest transaction, or today
     const anchorDateStr =
       transactions.length > 0 && transactions[0].date
         ? transactions[0].date
         : getTodayISODate();
 
+    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+    const fullThaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
     if (timeframe === "day") {
-      // รายวัน: 7 วันในสัปดาห์ (จ. - อา.) ตามสัปดาห์ของรายการล่าสุด
       const [year, month, day] = anchorDateStr.split("-").map(Number);
       const anchor = new Date(year, month - 1, day);
-      const dayOfWeek = anchor.getDay(); // 0=Sun, 1=Mon...
-      const diffToMon = (dayOfWeek + 6) % 7;
-      const monday = new Date(year, month - 1, day - diffToMon);
-
-      const daysConfig = [
-        { label: "จ.", fullLabel: "วันจันทร์" },
-        { label: "อ.", fullLabel: "วันอังคาร" },
-        { label: "พ.", fullLabel: "วันพุธ" },
-        { label: "พฤ.", fullLabel: "วันพฤหัสบดี" },
-        { label: "ศ.", fullLabel: "วันศุกร์" },
-        { label: "ส.", fullLabel: "วันเสาร์" },
-        { label: "อา.", fullLabel: "วันอาทิตย์" },
-      ];
-
-      return daysConfig.map((cfg, idx) => {
-        const cur = new Date(monday);
-        cur.setDate(monday.getDate() + idx);
+      
+      const arr: DataPoint[] = [];
+      for (let i = 29; i >= 0; i--) {
+        const cur = new Date(anchor);
+        cur.setDate(anchor.getDate() - i);
         const y = cur.getFullYear();
         const m = String(cur.getMonth() + 1).padStart(2, "0");
         const d = String(cur.getDate()).padStart(2, "0");
         const dateStr = `${y}-${m}-${d}`;
 
-        // Aggregate actual income and expenses for this exact date
         const dayIncome = transactions
-          .filter(
-            (t) => (t.type === "income" || t.type === "fund") && t.date === dateStr
-          )
+          .filter((t) => (t.type === "income" || t.type === "fund") && t.date === dateStr)
           .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
         const dayExpense = transactions
           .filter((t) => t.type === "expense" && t.date === dateStr)
           .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-        return {
-          label: cfg.label,
-          fullLabel: `${cfg.fullLabel} (${d}/${m})`,
+        arr.push({
+          label: `${cur.getDate()} ${thaiMonths[cur.getMonth()]}`,
+          fullLabel: `${cur.getDate()} ${fullThaiMonths[cur.getMonth()]}`,
           income: dayIncome,
           expense: dayExpense,
-        };
-      });
+        });
+      }
+      return arr;
     } else if (timeframe === "week") {
-      // รายสัปดาห์: แบ่ง 4 สัปดาห์ของเดือน
-      const [yStr, mStr] = anchorDateStr.split("-");
-      const weeksConfig = [
-        { label: "สัปดาห์ 1", fullLabel: "สัปดาห์ที่ 1 (วันที่ 1-7)", start: 1, end: 7 },
-        { label: "สัปดาห์ 2", fullLabel: "สัปดาห์ที่ 2 (วันที่ 8-14)", start: 8, end: 14 },
-        { label: "สัปดาห์ 3", fullLabel: "สัปดาห์ที่ 3 (วันที่ 15-21)", start: 15, end: 21 },
-        { label: "สัปดาห์ 4", fullLabel: "สัปดาห์ที่ 4 (วันที่ 22+)", start: 22, end: 31 },
-      ];
+      const [year, month] = anchorDateStr.split("-").map(Number);
+      const arr: DataPoint[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const mDate = new Date(year, month - 1 - i, 1);
+        const mY = mDate.getFullYear();
+        const mM = String(mDate.getMonth() + 1).padStart(2, "0");
+        const mStr = `${mY}-${mM}`;
+        const mName = thaiMonths[mDate.getMonth()];
+        const fullMName = fullThaiMonths[mDate.getMonth()];
 
-      return weeksConfig.map((cfg) => {
-        const weekTxs = transactions.filter((t) => {
-          if (!t.date.startsWith(`${yStr}-${mStr}`)) return false;
-          const dayNum = parseInt(t.date.split("-")[2], 10);
-          return dayNum >= cfg.start && dayNum <= cfg.end;
-        });
+        const weeksConfig = [
+          { label: "W1", full: "สัปดาห์ที่ 1 (1-7)", start: 1, end: 7 },
+          { label: "W2", full: "สัปดาห์ที่ 2 (8-14)", start: 8, end: 14 },
+          { label: "W3", full: "สัปดาห์ที่ 3 (15-21)", start: 15, end: 21 },
+          { label: "W4", full: "สัปดาห์ที่ 4 (22+)", start: 22, end: 31 },
+        ];
 
-        const weekIncome = weekTxs
-          .filter((t) => t.type === "income" || t.type === "fund")
-          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+        for (const cfg of weeksConfig) {
+          const weekTxs = transactions.filter((t) => {
+            if (!t.date.startsWith(mStr)) return false;
+            const dayNum = parseInt(t.date.split("-")[2], 10);
+            return dayNum >= cfg.start && dayNum <= cfg.end;
+          });
 
-        const weekExpense = weekTxs
-          .filter((t) => t.type === "expense")
-          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+          const weekIncome = weekTxs
+            .filter((t) => t.type === "income" || t.type === "fund")
+            .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-        return {
-          label: cfg.label,
-          fullLabel: cfg.fullLabel,
-          income: weekIncome,
-          expense: weekExpense,
-        };
-      });
+          const weekExpense = weekTxs
+            .filter((t) => t.type === "expense")
+            .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+          arr.push({
+            label: `${cfg.label} ${mName}`,
+            fullLabel: `${cfg.full} ${fullMName}`,
+            income: weekIncome,
+            expense: weekExpense,
+          });
+        }
+      }
+      return arr;
     } else {
-      // รายเดือน: ภาคเรียนที่ 1 (พ.ค. - ต.ค.)
-      const monthsConfig = [
-        { label: "พ.ค.", fullLabel: "พฤษภาคม", monthNum: 5 },
-        { label: "มิ.ย.", fullLabel: "มิถุนายน", monthNum: 6 },
-        { label: "ก.ค.", fullLabel: "กรกฎาคม", monthNum: 7 },
-        { label: "ส.ค.", fullLabel: "สิงหาคม", monthNum: 8 },
-        { label: "ก.ย.", fullLabel: "กันยายน", monthNum: 9 },
-        { label: "ต.ค.", fullLabel: "ตุลาคม", monthNum: 10 },
-      ];
+      const [year, month] = anchorDateStr.split("-").map(Number);
+      const arr: DataPoint[] = [];
+      for (let i = 11; i >= 0; i--) {
+        const mDate = new Date(year, month - 1 - i, 1);
+        const mY = mDate.getFullYear();
+        const mM = String(mDate.getMonth() + 1).padStart(2, "0");
+        const mStr = `${mY}-${mM}`;
 
-      return monthsConfig.map((cfg) => {
-        const mFilter = String(cfg.monthNum).padStart(2, "0");
-        const monthTxs = transactions.filter((t) => {
-          const parts = t.date.split("-");
-          return parts[1] === mFilter;
-        });
+        const monthTxs = transactions.filter((t) => t.date.startsWith(mStr));
 
         const monthIncome = monthTxs
           .filter((t) => t.type === "income" || t.type === "fund")
@@ -159,18 +156,23 @@ export default function StatChart({ transactions }: StatChartProps) {
           .filter((t) => t.type === "expense")
           .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-        return {
-          label: cfg.label,
-          fullLabel: cfg.fullLabel,
+        const mName = thaiMonths[mDate.getMonth()];
+        const fullMName = fullThaiMonths[mDate.getMonth()];
+        const thaiYear = mY + 543;
+
+        arr.push({
+          label: `${mName} ${String(thaiYear).slice(-2)}`,
+          fullLabel: `${fullMName} ${thaiYear}`,
           income: monthIncome,
           expense: monthExpense,
-        };
-      });
+        });
+      }
+      return arr;
     }
   }, [timeframe, transactions]);
 
   // Chart dimensions & scaling
-  const chartWidth = 600;
+  const chartWidth = Math.max(600, data.length * 60);
   const chartHeight = 220;
   const paddingX = 45;
   const paddingTop = 25;
@@ -284,11 +286,15 @@ export default function StatChart({ transactions }: StatChartProps) {
       </div>
 
       {/* SVG Interactive Chart Canvas */}
-      <div className="relative bg-gradient-to-b from-[#FAF5FF]/50 to-white rounded-2xl p-2 sm:p-4 border border-[#EFE8F6]">
-        <svg
-          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          className="w-full h-auto overflow-visible select-none"
-        >
+      <div 
+        ref={scrollRef}
+        className="relative bg-gradient-to-b from-[#FAF5FF]/50 to-white rounded-2xl p-2 sm:p-4 border border-[#EFE8F6] overflow-x-auto overflow-y-hidden custom-scrollbar"
+      >
+        <div style={{ width: chartWidth, minWidth: '100%' }}>
+          <svg
+            viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+            className="w-full h-auto overflow-visible select-none"
+          >
           <defs>
             <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
@@ -449,6 +455,7 @@ export default function StatChart({ transactions }: StatChartProps) {
             </div>
           </div>
         )}
+        </div>
       </div>
 
       {/* Crucial Requirement: 3 Selector Buttons at Bottom: [ รายวัน ] [ รายสัปดาห์ ] [ รายเดือน ] */}
