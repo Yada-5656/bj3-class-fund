@@ -25,6 +25,11 @@ import {
   ArrowLeft,
   ArrowRight,
   BookOpen,
+  CheckSquare,
+  Settings,
+  CheckCircle2,
+  KeyRound,
+  Coins,
 } from "lucide-react";
 
 export default function TreasurerDashboardPage({

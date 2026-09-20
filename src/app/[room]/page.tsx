@@ -25,6 +25,11 @@ import {
   LogOut,
   History,
   BookOpen,
+  Wallet,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Calendar,
+  Users,
 } from "lucide-react";
 
 export default function RoomDashboardPage({

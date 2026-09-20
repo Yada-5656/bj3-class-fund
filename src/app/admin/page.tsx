@@ -21,6 +21,9 @@ import {
   ExternalLink,
   Users,
   AlertCircle,
+  CheckCircle2,
+  KeyRound,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function AdminDashboardPage() {
