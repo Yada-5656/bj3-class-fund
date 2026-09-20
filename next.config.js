@@ -7,6 +7,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  generateBuildId: async () => {
+    return 'build-' + Date.now();
+  }
 };
 
 module.exports = nextConfig;
