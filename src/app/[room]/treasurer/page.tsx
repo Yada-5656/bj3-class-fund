@@ -110,7 +110,7 @@ export default function TreasurerDashboardPage({
 
     const currentPaidList = paidStudentIds ?? (mergedCheckins[selectedDate] || []);
     const paidCount = currentPaidList.length;
-    let feeToUse = roomData.settings.fundFeePerStudent || 20;
+    let feeToUse = roomData.settings?.fundFeePerStudent || 20;
 
     let remainingTx = roomData.transactions;
 
@@ -245,7 +245,7 @@ export default function TreasurerDashboardPage({
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     const feeNum = parseFloat(newFee) || 20;
-    const pin = newPin.trim() || roomData.settings.treasurerPin || "1234";
+    const pin = newPin.trim() || roomData.settings?.treasurerPin || "1234";
 
     const nextData: RoomData = {
       ...roomData,
@@ -442,10 +442,10 @@ export default function TreasurerDashboardPage({
       {activeTab === "checkin" && (
         <div className="space-y-4">
           <StudentList
-            students={roomData.students}
-            dailyCheckins={roomData.dailyCheckins}
+            students={roomData.students || []}
+            dailyCheckins={roomData.dailyCheckins || {}}
             mode="treasurer-manage"
-            feePerStudent={roomData.settings.fundFeePerStudent || 20}
+            feePerStudent={roomData.settings?.fundFeePerStudent || 20}
             onSave={handleSaveStudents}
           />
         </div>
@@ -472,9 +472,9 @@ export default function TreasurerDashboardPage({
           </div>
 
           <TransactionTable
-            transactions={roomData.transactions}
-            students={roomData.students}
-            dailyCheckins={roomData.dailyCheckins}
+            transactions={roomData.transactions || []}
+            students={roomData.students || []}
+            dailyCheckins={roomData.dailyCheckins || {}}
             isTreasurer={true}
             onEdit={(tx) => {
               setEditingTransaction(tx);

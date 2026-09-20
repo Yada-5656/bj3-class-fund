@@ -300,7 +300,7 @@ export default function RoomDashboardPage({
         <div className="pastel-card p-4 sm:p-6 bg-white border-2 border-[#E9D5FF] rounded-b-2xl rounded-tr-2xl relative z-0">
           {activeTab === "stats" ? (
             /* Tab Content: สถิติ (Interactive Curve Chart with Week/Month/Term) */
-            <StatChart transactions={roomData.transactions} />
+            <StatChart transactions={roomData.transactions || []} />
           ) : (
             /* Tab Content: ประวัติ (Transaction History Table & Unpaid Roster) */
             <div className="space-y-6">
@@ -327,8 +327,8 @@ export default function RoomDashboardPage({
                       </span>
                     </div>
                     <StudentList
-                      students={roomData.students}
-                      dailyCheckins={roomData.dailyCheckins}
+                      students={roomData.students || []}
+                      dailyCheckins={roomData.dailyCheckins || {}}
                       mode="public-unpaid"
                       feePerStudent={feePerStudent}
                     />
@@ -339,9 +339,9 @@ export default function RoomDashboardPage({
               {/* Transaction History Table */}
               <div className="pt-2 border-t border-[#F1EDF7]">
                 <TransactionTable
-                  transactions={roomData.transactions}
-                  students={roomData.students}
-                  dailyCheckins={roomData.dailyCheckins}
+                  transactions={roomData.transactions || []}
+                  students={roomData.students || []}
+                  dailyCheckins={roomData.dailyCheckins || {}}
                   showFilters={true}
                 />
               </div>
