@@ -116,7 +116,7 @@ export default function TreasurerDashboardPage({
 
     if (recordTransaction) {
       // Find existing transaction to infer the historical fee rate
-      const existingTx = roomData.transactions.find(
+      const existingTx = ((Array.isArray(roomData.transactions) ? roomData.transactions : []).find)(
         (t) => t.type === "fund" && t.date === selectedDate
       );
       
@@ -132,7 +132,7 @@ export default function TreasurerDashboardPage({
       }
 
       // Filter out ANY existing fund transaction(s) for selectedDate
-      remainingTx = roomData.transactions.filter(
+      remainingTx = ((Array.isArray(roomData.transactions) ? roomData.transactions : []).filter)(
         (t) => !(t.type === "fund" && t.date === selectedDate)
       );
 
@@ -233,7 +233,7 @@ export default function TreasurerDashboardPage({
 
     const nextData: RoomData = {
       ...roomData,
-      transactions: roomData.transactions.filter((t) => t.id !== deleteId),
+      transactions: ((Array.isArray(roomData.transactions) ? roomData.transactions : []).filter)((t) => t.id !== deleteId),
     };
 
     setRoomData(nextData);

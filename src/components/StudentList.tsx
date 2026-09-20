@@ -53,7 +53,7 @@ export default function StudentList({
       return initialDailyCheckins;
     }
     const today = getTodayISODate();
-    const paidIds = initialStudents.filter((s) => s && s.isPaid).map((s) => s.id);
+    const paidIds = initial((Array.isArray(students) ? students : []).filter)((s) => s && s.isPaid).map((s) => s.id);
     return paidIds.length > 0 ? { [today]: paidIds } : {};
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,14 +91,14 @@ export default function StudentList({
     // In edit mode, show all students so reordering / editing works across the full roster
     if (isEditMode) {
       if (!searchQuery.trim()) return students;
-      return students.filter(
+      return ((Array.isArray(students) ? students : []).filter)(
         (s) =>
           s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           String(s.rollNumber).includes(searchQuery)
       );
     }
 
-    return students.filter((s) => { if (!s) return false;
+    return ((Array.isArray(students) ? students : []).filter)((s) => { if (!s) return false;
       const isPaid = currentPaidIds.has(s.id);
       const matchesSearch =
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,8 +115,8 @@ export default function StudentList({
   }, [students, searchQuery, filterStatus, mode, isEditMode, currentPaidIds]);
 
   // Calculations for currently selected date
-  const paidCount = students.filter((s) => s && currentPaidIds.has(s.id)).length;
-  const unpaidCount = students.length - paidCount;
+  const paidCount = ((Array.isArray(students) ? students : []).filter)((s) => s && currentPaidIds.has(s.id)).length;
+  const unpaidCount = (Array.isArray(students) ? students.length : 0) - paidCount;
   const totalFundCalculated = paidCount * feePerStudent;
 
   // Toggle student status using selected checkinDate
@@ -141,7 +141,7 @@ export default function StudentList({
   const handleSelectAllPaid = () => {
     setCheckinHistory((prev) => ({
       ...prev,
-      [checkinDate]: students.filter(s => s).map((s) => s.id),
+      [checkinDate]: ((Array.isArray(students) ? students : []).filter)(s => s).map((s) => s.id),
     }));
   };
 
@@ -153,7 +153,7 @@ export default function StudentList({
   };
 
   // Combined single button toggle between Select All and Unselect All
-  const isAllPaid = students.length > 0 && students.every((s) => s && currentPaidIds.has(s.id));
+  const isAllPaid = (Array.isArray(students) ? students.length : 0) > 0 && ((Array.isArray(students) ? students : []).every)((s) => s && currentPaidIds.has(s.id));
 
   const handleToggleAll = () => {
     if (isAllPaid) {
@@ -169,7 +169,7 @@ export default function StudentList({
     setIsSaving(true);
     try {
       const paidIds = checkinHistory[checkinDate] || [];
-      const updatedStudents = students.filter(s => s).map((s) => ({
+      const updatedStudents = ((Array.isArray(students) ? students : []).filter)(s => s).map((s) => ({
         ...s,
         isPaid: paidIds.includes(s.id),
         paidDate: paidIds.includes(s.id) ? checkinDate : undefined,
@@ -213,7 +213,7 @@ export default function StudentList({
 
     const newStudent: Student = {
       id: `student-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      rollNumber: students.length + 1,
+      rollNumber: (Array.isArray(students) ? students.length : 0) + 1,
       name: trimmed,
       isPaid: false,
     };
@@ -236,7 +236,7 @@ export default function StudentList({
       return;
     }
 
-    const updated = students.map((s) =>
+    const updated = ((Array.isArray(students) ? students : []).map)((s) =>
       s.id === id ? { ...s, name: trimmed } : s
     );
 
@@ -260,7 +260,7 @@ export default function StudentList({
 
   // 4. Reorder / Move Students Up or Down ("กดค้างเพื่อเปลี่ยนตำแหน่งของชื่อ แบบย้ายชื่อขึ้นลงอะ")
   const handleMoveStudent = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= students.length) return;
+    if (toIndex < 0 || toIndex >= (Array.isArray(students) ? students.length : 0)) return;
     const copy = [...students];
     const [moved] = copy.splice(fromIndex, 1);
     copy.splice(toIndex, 0, moved);
@@ -290,7 +290,7 @@ export default function StudentList({
   // MODE 1: Public Dashboard View (Shows ONLY Unpaid Students)
   // -------------------------------------------------------------
   if (mode === "public-unpaid") {
-    const unpaidList = students.filter((s) => s && !currentPaidIds.has(s.id));
+    const unpaidList = ((Array.isArray(students) ? students : []).filter)((s) => s && !currentPaidIds.has(s.id));
 
     return (
       <div className="pastel-card p-5">
@@ -360,7 +360,7 @@ export default function StudentList({
           </div>
           <div>
             <div className="text-xs text-[#7B708A]">ทั้งหมด</div>
-            <div className="text-base font-bold text-[#332941]">{students.length} คน</div>
+            <div className="text-base font-bold text-[#332941]">{(Array.isArray(students) ? students.length : 0)} คน</div>
           </div>
         </div>
 
@@ -436,7 +436,7 @@ export default function StudentList({
                     : "text-[#7B708A] hover:text-[#332941]"
                 }`}
               >
-                ทั้งหมด ({students.length})
+                ทั้งหมด ({(Array.isArray(students) ? students.length : 0)})
               </button>
               <button
                 type="button"
@@ -572,7 +572,7 @@ export default function StudentList({
         {isEditMode && isAddingStudent && (
           <div className="p-3 bg-[#F0FDF4] border-b border-[#BBF7D0] flex items-center gap-3 animate-fadeIn">
             <div className="w-7 h-7 rounded-xl bg-[#22C55E] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-              {students.length + 1}
+              {(Array.isArray(students) ? students.length : 0) + 1}
             </div>
             <input
               type="text"
@@ -615,12 +615,12 @@ export default function StudentList({
         )}
 
         <div className="divide-y divide-[#F1EDF7]">
-          {filteredStudents.length === 0 ? (
+          {filtered(Array.isArray(students) ? students.length : 0) === 0 ? (
             <div className="p-8 text-center text-xs text-[#9E94AD]">
               ไม่พบข้อมูล
             </div>
           ) : (
-            filteredStudents.map((student, index) => { if (!student) return null;
+            ((Array.isArray(filteredStudents) ? filteredStudents : []).map)((student, index) => { if (!student) return null;
               const isPaid = currentPaidIds.has(student.id);
               const isBeingDragged = draggedIndex === index;
 
@@ -729,7 +729,7 @@ export default function StudentList({
                         <button
                           type="button"
                           onClick={() => handleMoveStudent(index, index + 1)}
-                          disabled={index === students.length - 1}
+                          disabled={index === (Array.isArray(students) ? students.length : 0) - 1}
                           className="p-1 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20 rounded"
                           title="เลื่อนลง"
                         >
