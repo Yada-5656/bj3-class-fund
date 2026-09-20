@@ -53,7 +53,7 @@ export default function StudentList({
       return initialDailyCheckins;
     }
     const today = getTodayISODate();
-    const paidIds = initialStudents.filter((s) => s.isPaid).map((s) => s.id);
+    const paidIds = initialStudents.filter((s) => s && s.isPaid).map((s) => s.id);
     return paidIds.length > 0 ? { [today]: paidIds } : {};
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,7 +98,7 @@ export default function StudentList({
       );
     }
 
-    return students.filter((s) => {
+    return students.filter((s) => { if (!s) return false;
       const isPaid = currentPaidIds.has(s.id);
       const matchesSearch =
         s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -115,7 +115,7 @@ export default function StudentList({
   }, [students, searchQuery, filterStatus, mode, isEditMode, currentPaidIds]);
 
   // Calculations for currently selected date
-  const paidCount = students.filter((s) => currentPaidIds.has(s.id)).length;
+  const paidCount = students.filter((s) => s && currentPaidIds.has(s.id)).length;
   const unpaidCount = students.length - paidCount;
   const totalFundCalculated = paidCount * feePerStudent;
 
@@ -141,7 +141,7 @@ export default function StudentList({
   const handleSelectAllPaid = () => {
     setCheckinHistory((prev) => ({
       ...prev,
-      [checkinDate]: students.map((s) => s.id),
+      [checkinDate]: students.filter(s => s).map((s) => s.id),
     }));
   };
 
@@ -153,7 +153,7 @@ export default function StudentList({
   };
 
   // Combined single button toggle between Select All and Unselect All
-  const isAllPaid = students.length > 0 && students.every((s) => currentPaidIds.has(s.id));
+  const isAllPaid = students.length > 0 && students.every((s) => s && currentPaidIds.has(s.id));
 
   const handleToggleAll = () => {
     if (isAllPaid) {
@@ -169,7 +169,7 @@ export default function StudentList({
     setIsSaving(true);
     try {
       const paidIds = checkinHistory[checkinDate] || [];
-      const updatedStudents = students.map((s) => ({
+      const updatedStudents = students.filter(s => s).map((s) => ({
         ...s,
         isPaid: paidIds.includes(s.id),
         paidDate: paidIds.includes(s.id) ? checkinDate : undefined,
@@ -290,7 +290,7 @@ export default function StudentList({
   // MODE 1: Public Dashboard View (Shows ONLY Unpaid Students)
   // -------------------------------------------------------------
   if (mode === "public-unpaid") {
-    const unpaidList = students.filter((s) => !currentPaidIds.has(s.id));
+    const unpaidList = students.filter((s) => s && !currentPaidIds.has(s.id));
 
     return (
       <div className="pastel-card p-5">
@@ -620,7 +620,7 @@ export default function StudentList({
               ไม่พบข้อมูล
             </div>
           ) : (
-            filteredStudents.map((student, index) => {
+            filteredStudents.map((student, index) => { if (!student) return null;
               const isPaid = currentPaidIds.has(student.id);
               const isBeingDragged = draggedIndex === index;
 
