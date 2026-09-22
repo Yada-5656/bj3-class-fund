@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Student } from "@/lib/db";
+import { ConfirmModal } from "@/components/Modals";
 import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import {
   Search,
@@ -58,6 +59,8 @@ export default function StudentList({
   const [newStudentName, setNewStudentName] = useState("");
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmToggleAction, setConfirmToggleAction] = useState<"pay_all" | "cancel_all" | null>(null);
 
   // --- INITIALIZATION ---
   useEffect(() => {
@@ -156,6 +159,7 @@ export default function StudentList({
         return { ...prev, [checkinDate]: students.map(s => s.id) };
       }
     });
+    setConfirmToggleAction(null);
   };
 
   const handleSaveCheckin = async () => {
@@ -203,8 +207,6 @@ export default function StudentList({
   };
 
   const handleDeleteStudent = (id: string) => {
-    if (!window.confirm("แน่ใจหรือไม่ที่จะลบรายชื่อนี้?")) return;
-    
     const updated = students
       .filter(s => s.id !== id)
       .map((s, idx) => ({ ...s, rollNumber: idx + 1 }));
@@ -216,6 +218,7 @@ export default function StudentList({
     
     setCheckinHistory(cleanedHistory);
     handleAutoPersistRoster(updated, cleanedHistory);
+    setConfirmDeleteId(null);
   };
 
   const handleMoveStudent = (fromIndex: number, toIndex: number) => {
@@ -414,7 +417,7 @@ export default function StudentList({
                         <button onClick={() => handleMoveStudent(index, index + 1)} disabled={index === students.length - 1} className="p-0.5 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20"><ChevronDown className="w-4 h-4" /></button>
                       </div>
                       <button onClick={() => { setEditingStudentId(student.id); setEditingName(student.name); }} className="p-2 text-[#7B708A] hover:bg-[#F3E8FF] hover:text-[#9333EA] rounded-xl"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => handleDeleteStudent(student.id)} className="p-2 text-[#7B708A] hover:bg-[#FEF2F2] hover:text-[#E11D48] rounded-xl"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => setConfirmDeleteId(student.id)} className="p-2 text-[#7B708A] hover:bg-[#FEF2F2] hover:text-[#E11D48] rounded-xl"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ) : (
                     <div className="shrink-0">
@@ -460,7 +463,7 @@ export default function StudentList({
 
           <div className="flex flex-col sm:flex-row gap-3">
             <button
-              onClick={handleToggleAll}
+              onClick={() => setConfirmToggleAction(isAllPaid ? "cancel_all" : "pay_all")}
               className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0 ${
                 isAllPaid
                   ? "bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2]"
@@ -496,6 +499,26 @@ export default function StudentList({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!confirmDeleteId}
+        title="ยืนยันการลบรายชื่อ"
+        message="แน่ใจหรือไม่ที่จะลบรายชื่อนี้? ข้อมูลการจ่ายเงินที่ผ่านมาจะถูกลบด้วย"
+        confirmText="ลบรายชื่อ"
+        onConfirm={() => confirmDeleteId && handleDeleteStudent(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
+
+      {/* Toggle All Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!confirmToggleAction}
+        title={confirmToggleAction === "pay_all" ? "ยืนยันชำระทั้งหมด" : "ยืนยันยกเลิกชำระทั้งหมด"}
+        message={confirmToggleAction === "pay_all" ? "แน่ใจหรือไม่ที่จะทำเครื่องหมายว่า 'ทุกคนจ่ายแล้ว' สำหรับวันนี้?" : "แน่ใจหรือไม่ที่จะ 'ยกเลิกการชำระเงินของทุกคน' สำหรับวันนี้?"}
+        confirmText="ยืนยัน"
+        onConfirm={handleToggleAll}
+        onCancel={() => setConfirmToggleAction(null)}
+      />
     </div>
   );
 }
