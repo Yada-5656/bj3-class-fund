@@ -60,7 +60,7 @@ export default function StudentList({
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmToggleAction, setConfirmToggleAction] = useState<"pay_all" | "cancel_all" | null>(null);
+
 
   // --- INITIALIZATION ---
   useEffect(() => {
@@ -159,7 +159,6 @@ export default function StudentList({
         return { ...prev, [checkinDate]: students.map(s => s.id) };
       }
     });
-    setConfirmToggleAction(null);
   };
 
   const handleSaveCheckin = async () => {
@@ -463,7 +462,7 @@ export default function StudentList({
 
           <div className="flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => setConfirmToggleAction(isAllPaid ? "cancel_all" : "pay_all")}
+              onClick={handleToggleAll}
               className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0 ${
                 isAllPaid
                   ? "bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2]"

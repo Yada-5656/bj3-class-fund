@@ -344,7 +344,7 @@ export function getAllRoomsRanked(): {
   const results = roomList.map((r) => {
     const data = loadRoomFromClientStorage(r.slug);
     const summary = calculateSummary(data);
-    const totalCollected = summary.totalIncome;
+    const totalCollected = summary.totalBalance;
     return {
       roomSlug: r.slug,
       displayName: r.displayName,
