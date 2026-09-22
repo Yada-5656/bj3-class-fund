@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Student } from "@/lib/db";
 import { formatCurrency, getTodayISODate } from "@/lib/utils";
 import {
@@ -8,259 +8,211 @@ import {
   RotateCcw,
   Save,
   Users,
-  AlertCircle,
   Calendar,
   Plus,
   Pencil,
   Trash2,
   Check,
   CheckCircle2,
-  CheckCheck,
   X,
-  XCircle,
   UserCog,
-  GripVertical,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
 
 interface StudentListProps {
   students: Student[];
-  dailyCheckins?: Record<string, string[]>;
+  dailyCheckins: Record<string, string[]>;
   mode?: "public-unpaid" | "treasurer-manage";
   feePerStudent?: number;
   onSave?: (
     updatedStudents: Student[],
     recordTransaction: boolean,
     selectedDate: string,
-    paidStudentIds?: string[],
-    allDailyCheckins?: Record<string, string[]>
-  ) => Promise<void> | void;
-  isLoading?: boolean;
+    paidStudentIds: string[],
+    allDailyCheckins: Record<string, string[]>
+  ) => void;
 }
 
 export default function StudentList({
-  students: initialStudents,
-  dailyCheckins: initialDailyCheckins,
+  students: initialStudents = [],
+  dailyCheckins: initialDailyCheckins = {},
   mode = "public-unpaid",
   feePerStudent = 20,
   onSave,
-  isLoading = false,
 }: StudentListProps) {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
-  const [checkinHistory, setCheckinHistory] = useState<Record<string, string[]>>(() => {
-    if (initialDailyCheckins && Object.keys(initialDailyCheckins).length > 0) {
-      return initialDailyCheckins;
-    }
-    const today = getTodayISODate();
-    const paidIds = initial((Array.isArray(students) ? students : []).filter)((s) => s && s.isPaid).map((s) => s.id);
-    return paidIds.length > 0 ? { [today]: paidIds } : {};
-  });
+  // --- STATE ---
+  const [students, setStudents] = useState<Student[]>([]);
+  const [checkinHistory, setCheckinHistory] = useState<Record<string, string[]>>({});
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
   const [recordAsTransaction, setRecordAsTransaction] = useState(true);
-  const [checkinDate, setCheckinDate] = useState<string>(getTodayISODate());
+  const [checkinDate, setCheckinDate] = useState<string>("");
+  
   const [isSaving, setIsSaving] = useState(false);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
-  // Edit Mode state ("ตรงหน้าเช็คชื่อจ่ายเงินห้องอะ ให้มีปุ่มกดแก้ไขรายชื่อด้วย")
   const [isEditMode, setIsEditMode] = useState(false);
   const [isAddingStudent, setIsAddingStudent] = useState(false);
   const [newStudentName, setNewStudentName] = useState("");
   const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  React.useEffect(() => {
-    setStudents(initialStudents);
+  // --- INITIALIZATION ---
+  useEffect(() => {
+    // Safely parse initial students
+    if (Array.isArray(initialStudents)) {
+      setStudents(initialStudents.filter(Boolean));
+    }
   }, [initialStudents]);
 
-  React.useEffect(() => {
-    if (initialDailyCheckins) {
+  useEffect(() => {
+    // Safely parse initial daily checkins
+    if (initialDailyCheckins && typeof initialDailyCheckins === 'object') {
       setCheckinHistory(initialDailyCheckins);
     }
-  }, [initialDailyCheckins]);
+    
+    // Set initial date if not set
+    if (!checkinDate) {
+      setCheckinDate(getTodayISODate());
+    }
+  }, [initialDailyCheckins, checkinDate]);
 
-  // Current paid student IDs for the selected checkinDate
+  // --- DERIVED STATE ---
   const currentPaidIds = useMemo(() => {
-    return new Set(checkinHistory[checkinDate] || []);
+    if (!checkinDate) return new Set<string>();
+    const ids = checkinHistory[checkinDate];
+    return new Set<string>(Array.isArray(ids) ? ids : []);
   }, [checkinHistory, checkinDate]);
 
-  // Filter students based on search and status
+  const paidCount = useMemo(() => {
+    return students.filter(s => currentPaidIds.has(s.id)).length;
+  }, [students, currentPaidIds]);
+
+  const unpaidCount = Math.max(0, students.length - paidCount);
+  const totalFundCalculated = paidCount * feePerStudent;
+
   const filteredStudents = useMemo(() => {
-    // In edit mode, show all students so reordering / editing works across the full roster
-    if (isEditMode) {
-      if (!searchQuery.trim()) return students;
-      return ((Array.isArray(students) ? students : []).filter)(
-        (s) =>
-          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          String(s.rollNumber).includes(searchQuery)
+    let result = [...students];
+    
+    // Filter by search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        String(s.rollNumber).includes(query)
       );
     }
 
-    return ((Array.isArray(students) ? students : []).filter)((s) => { if (!s) return false;
-      const isPaid = currentPaidIds.has(s.id);
-      const matchesSearch =
-        s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        String(s.rollNumber).includes(searchQuery);
-
-      if (mode === "public-unpaid") {
-        return !isPaid && matchesSearch;
+    // Filter by status
+    if (mode === "public-unpaid") {
+      result = result.filter(s => !currentPaidIds.has(s.id));
+    } else if (!isEditMode) {
+      if (filterStatus === "paid") {
+        result = result.filter(s => currentPaidIds.has(s.id));
+      } else if (filterStatus === "unpaid") {
+        result = result.filter(s => !currentPaidIds.has(s.id));
       }
+    }
 
-      if (filterStatus === "paid") return isPaid && matchesSearch;
-      if (filterStatus === "unpaid") return !isPaid && matchesSearch;
-      return matchesSearch;
-    });
-  }, [students, searchQuery, filterStatus, mode, isEditMode, currentPaidIds]);
+    return result;
+  }, [students, searchQuery, filterStatus, isEditMode, mode, currentPaidIds]);
 
-  // Calculations for currently selected date
-  const paidCount = ((Array.isArray(students) ? students : []).filter)((s) => s && currentPaidIds.has(s.id)).length;
-  const unpaidCount = (Array.isArray(students) ? students.length : 0) - paidCount;
-  const totalFundCalculated = paidCount * feePerStudent;
-
-  // Toggle student status using selected checkinDate
-  const handleToggle = (id: string) => {
-    if (isEditMode) return;
-    setCheckinHistory((prev) => {
-      const existingList = prev[checkinDate] || [];
-      const nextSet = new Set(existingList);
-      if (nextSet.has(id)) {
-        nextSet.delete(id);
-      } else {
-        nextSet.add(id);
-      }
-      return {
-        ...prev,
-        [checkinDate]: Array.from(nextSet),
-      };
-    });
-  };
-
-  // Bulk actions using selected checkinDate
-  const handleSelectAllPaid = () => {
-    setCheckinHistory((prev) => ({
-      ...prev,
-      [checkinDate]: ((Array.isArray(students) ? students : []).filter)(s => s).map((s) => s.id),
-    }));
-  };
-
-  const handleSelectAllUnpaid = () => {
-    setCheckinHistory((prev) => ({
-      ...prev,
-      [checkinDate]: [],
-    }));
-  };
-
-  // Combined single button toggle between Select All and Unselect All
-  const isAllPaid = (Array.isArray(students) ? students.length : 0) > 0 && ((Array.isArray(students) ? students : []).every)((s) => s && currentPaidIds.has(s.id));
-
-  const handleToggleAll = () => {
-    if (isAllPaid) {
-      handleSelectAllUnpaid();
-    } else {
-      handleSelectAllPaid();
+  // --- HANDLERS ---
+  const handleAutoPersistRoster = (newStudents: Student[], newHistory = checkinHistory) => {
+    setStudents(newStudents);
+    if (onSave) {
+      const currentPaid = Array.isArray(newHistory[checkinDate]) ? newHistory[checkinDate] : [];
+      onSave(newStudents, recordAsTransaction, checkinDate, currentPaid, newHistory);
     }
   };
 
-  // Save changes
-  const handleSave = async () => {
+  const handleToggleCheckin = (studentId: string) => {
+    if (mode === "public-unpaid" || isEditMode) return;
+    
+    setCheckinHistory(prev => {
+      const current = Array.isArray(prev[checkinDate]) ? prev[checkinDate] : [];
+      const isCurrentlyPaid = current.includes(studentId);
+      
+      let nextPaid: string[];
+      if (isCurrentlyPaid) {
+        nextPaid = current.filter(id => id !== studentId);
+      } else {
+        nextPaid = [...current, studentId];
+      }
+      
+      return { ...prev, [checkinDate]: nextPaid };
+    });
+  };
+
+  const handleResetCheckin = () => {
+    if (!window.confirm(`แน่ใจหรือไม่ที่จะลบข้อมูลการจ่ายเงินของวันที่ ${checkinDate} ทั้งหมด?`)) return;
+    setCheckinHistory(prev => ({ ...prev, [checkinDate]: [] }));
+  };
+
+  const handleSaveCheckin = async () => {
     if (!onSave) return;
     setIsSaving(true);
     try {
-      const paidIds = checkinHistory[checkinDate] || [];
-      const updatedStudents = ((Array.isArray(students) ? students : []).filter)(s => s).map((s) => ({
-        ...s,
-        isPaid: paidIds.includes(s.id),
-        paidDate: paidIds.includes(s.id) ? checkinDate : undefined,
-      }));
-      await onSave(
-        updatedStudents,
-        recordAsTransaction,
-        checkinDate,
-        paidIds,
-        checkinHistory
-      );
+      const currentPaid = Array.isArray(checkinHistory[checkinDate]) ? checkinHistory[checkinDate] : [];
+      await onSave(students, recordAsTransaction, checkinDate, currentPaid, checkinHistory);
       setSuccessNotice("บันทึกเรียบร้อย");
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err) {
       console.error(err);
+      alert("เกิดข้อผิดพลาดในการบันทึก");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Auto-persist student roster changes
-  const handleAutoPersistRoster = (
-    updated: Student[],
-    nextHistory?: Record<string, string[]>
-  ) => {
-    setStudents(updated);
-    if (onSave) {
-      const historyToSave = nextHistory || checkinHistory;
-      const paidIds = historyToSave[checkinDate] || [];
-      onSave(updated, false, checkinDate, paidIds, historyToSave);
-    }
-  };
-
-  // 1. Add Student ("ละกะปุ่มกดเพิ่มรายชื่ออะไม่ต้องให้ใส่เลขที่นะ")
+  // Roster Management
   const handleAddStudent = () => {
     const trimmed = newStudentName.trim();
     if (!trimmed) {
       setIsAddingStudent(false);
       return;
     }
-
     const newStudent: Student = {
       id: `student-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-      rollNumber: (Array.isArray(students) ? students.length : 0) + 1,
+      rollNumber: students.length + 1,
       name: trimmed,
-      isPaid: false,
     };
-
-    const updated = [...students, newStudent].map((s, idx) => ({
-      ...s,
-      rollNumber: idx + 1,
-    }));
-
+    const updated = [...students, newStudent];
     setNewStudentName("");
-    setIsAddingStudent(false);
     handleAutoPersistRoster(updated);
   };
 
-  // 2. Edit Student Name
   const handleSaveEditStudent = (id: string) => {
     const trimmed = editingName.trim();
     if (!trimmed) {
       setEditingStudentId(null);
       return;
     }
-
-    const updated = ((Array.isArray(students) ? students : []).map)((s) =>
-      s.id === id ? { ...s, name: trimmed } : s
-    );
-
+    const updated = students.map(s => s.id === id ? { ...s, name: trimmed } : s);
     setEditingStudentId(null);
     handleAutoPersistRoster(updated);
   };
 
-  // 3. Delete Student
   const handleDeleteStudent = (id: string) => {
+    if (!window.confirm("แน่ใจหรือไม่ที่จะลบรายชื่อนี้?")) return;
+    
     const updated = students
-      .filter((s) => s.id !== id)
+      .filter(s => s.id !== id)
       .map((s, idx) => ({ ...s, rollNumber: idx + 1 }));
 
     const cleanedHistory: Record<string, string[]> = {};
     for (const [date, ids] of Object.entries(checkinHistory)) {
-      cleanedHistory[date] = ids.filter((studentId) => studentId !== id);
+      cleanedHistory[date] = Array.isArray(ids) ? ids.filter(studentId => studentId !== id) : [];
     }
+    
     setCheckinHistory(cleanedHistory);
     handleAutoPersistRoster(updated, cleanedHistory);
   };
 
-  // 4. Reorder / Move Students Up or Down ("กดค้างเพื่อเปลี่ยนตำแหน่งของชื่อ แบบย้ายชื่อขึ้นลงอะ")
   const handleMoveStudent = (fromIndex: number, toIndex: number) => {
-    if (toIndex < 0 || toIndex >= (Array.isArray(students) ? students.length : 0)) return;
+    if (toIndex < 0 || toIndex >= students.length) return;
     const copy = [...students];
     const [moved] = copy.splice(fromIndex, 1);
     copy.splice(toIndex, 0, moved);
@@ -268,524 +220,207 @@ export default function StudentList({
     handleAutoPersistRoster(reindexed);
   };
 
-  // HTML5 Drag and Drop handlers
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (targetIndex: number) => {
-    if (draggedIndex === null || draggedIndex === targetIndex) {
-      setDraggedIndex(null);
-      return;
-    }
-    handleMoveStudent(draggedIndex, targetIndex);
-    setDraggedIndex(null);
-  };
-
-  // -------------------------------------------------------------
-  // MODE 1: Public Dashboard View (Shows ONLY Unpaid Students)
-  // -------------------------------------------------------------
-  if (mode === "public-unpaid") {
-    const unpaidList = ((Array.isArray(students) ? students : []).filter)((s) => s && !currentPaidIds.has(s.id));
-
-    return (
-      <div className="pastel-card p-5">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F1EDF7]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center">
-              <AlertCircle className="w-4 h-4" />
-            </div>
-            <h3 className="font-semibold text-base text-[#332941]">
-              รายชื่อค้างชำระ
-            </h3>
-          </div>
-          <span className="px-3 py-1 bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] text-xs font-semibold rounded-full">
-            {unpaidList.length} คน
-          </span>
-        </div>
-
-        {unpaidList.length === 0 ? (
-          <div className="text-center py-6 text-sm text-[#059669] bg-[#ECFDF5] rounded-2xl border border-[#D1FAE5]">
-            <CheckCircle2 className="w-6 h-6 mx-auto mb-1 text-[#10B981]" />
-            <span className="font-medium">ชำระครบทุกคน</span>
-          </div>
-        ) : (
-          <div className="flex flex-col space-y-1.5">
-            {unpaidList.map((student) => (
-              <div
-                key={student.id}
-                className="flex items-center justify-between p-2.5 bg-[#FAF5FF] hover:bg-[#F5EDFD] rounded-xl border border-[#EFE8F6] text-sm transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-lg bg-white text-[#9333EA] font-bold text-xs flex items-center justify-center border border-[#E9D5FF]">
-                    {student.rollNumber}
-                  </span>
-                  <span className="text-[#332941] font-medium text-xs sm:text-sm">
-                    {student.name}
-                  </span>
-                </div>
-                <span className="text-xs font-semibold text-[#E11D48] bg-[#FFF1F2] px-2.5 py-0.5 rounded-lg border border-[#FECDD3]">
-                  {formatCurrency(feePerStudent)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // -------------------------------------------------------------
-  // MODE 2: Treasurer Interactive Check-in System (Clean Minimal)
-  // -------------------------------------------------------------
+  // --- RENDER ---
   return (
-    <div className="space-y-4 animate-fadeIn">
-      {/* Success Notification Banner */}
-      {successNotice && (
-        <div className="p-2.5 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl text-xs sm:text-sm text-[#065F46] flex items-center gap-2 shadow-xs">
-          <CheckCircle2 className="w-4 h-4 text-[#10B981] flex-shrink-0" />
-          <span className="font-medium">{successNotice}</span>
+    <div className="space-y-4 font-sans relative">
+      {/* HEADER SECTION (Treasurer only) */}
+      {mode === "treasurer-manage" && (
+        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F1EDF7] space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <h2 className="text-[#332941] font-bold flex items-center gap-2">
+              <div className="w-2 h-6 bg-[#C084FC] rounded-full"></div>
+              เช็คชื่อรายวัน
+            </h2>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C084FC]" />
+                <input
+                  type="date"
+                  value={checkinDate}
+                  onChange={(e) => setCheckinDate(e.target.value)}
+                  className="w-full sm:w-auto pl-9 pr-3 py-2 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl text-sm font-semibold text-[#332941] focus:outline-none focus:border-[#C084FC]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditMode(!isEditMode)}
+                className={`p-2 rounded-xl border transition-colors ${
+                  isEditMode 
+                    ? "bg-[#332941] border-[#332941] text-white" 
+                    : "bg-[#F8F5FB] border-[#EFE8F6] text-[#7B708A] hover:bg-[#EFE8F6]"
+                }`}
+                title="จัดการรายชื่อ"
+              >
+                <UserCog className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-[#F0FDF4] border border-[#BBF7D0] p-3 rounded-2xl flex flex-col items-center justify-center">
+              <span className="text-[#166534] text-xs font-bold mb-1">จ่ายแล้ว</span>
+              <span className="text-xl font-black text-[#15803D]">{paidCount}</span>
+            </div>
+            <div className="bg-[#FEF2F2] border border-[#FECDD3] p-3 rounded-2xl flex flex-col items-center justify-center">
+              <span className="text-[#9F1239] text-xs font-bold mb-1">ยังไม่จ่าย</span>
+              <span className="text-xl font-black text-[#BE123C]">{unpaidCount}</span>
+            </div>
+            <div className="bg-[#FAF5FF] border border-[#E9D5FF] p-3 rounded-2xl flex flex-col items-center justify-center">
+              <span className="text-[#6B21A8] text-xs font-bold mb-1">ยอดรวมวันนี้</span>
+              <span className="text-xl font-black text-[#7E22CE] truncate w-full text-center">
+                {formatCurrency(totalFundCalculated, false)}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Summary Stat Cards (Minimal) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="pastel-card p-3.5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FAF5FF] text-[#9333EA] flex items-center justify-center">
-            <Users className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs text-[#7B708A]">ทั้งหมด</div>
-            <div className="text-base font-bold text-[#332941]">{(Array.isArray(students) ? students.length : 0)} คน</div>
-          </div>
-        </div>
-
-        <div className="pastel-card p-3.5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs text-[#7B708A]">ชำระแล้ว ({formatCurrency(totalFundCalculated)})</div>
-            <div className="text-base font-bold text-[#059669]">{paidCount} คน</div>
-          </div>
-        </div>
-
-        <div className="pastel-card p-3.5 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center">
-            <XCircle className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="text-xs text-[#7B708A]">ค้างชำระ</div>
-            <div className="text-base font-bold text-[#E11D48]">{unpaidCount} คน</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Control Panel: Date Picker + Search + Status Filters */}
-      <div className="pastel-card p-4 space-y-3.5">
-        {/* Date Picker Row */}
-        <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#F1EDF7]">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#FAF5FF] text-[#9333EA] flex items-center justify-center">
-              <Calendar className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-xs font-bold text-[#9333EA]">
-              พ.ศ. {formatThaiDate(checkinDate)}
-            </span>
-          </div>
-
-          <input
-            type="date"
-            value={checkinDate}
-            onChange={(e) => {
-              if (e.target.value) {
-                setCheckinDate(e.target.value);
-              }
-            }}
-            className="px-2.5 py-1 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs font-medium text-[#332941] focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
-          />
-        </div>
-
-        {/* Search & Filter Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          {/* Search Box */}
-          <div className="relative flex-1 max-w-sm">
-            <Search className="w-4 h-4 text-[#9E94AD] absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* LIST SECTION */}
+      <div className="bg-white rounded-3xl shadow-sm border border-[#F1EDF7] overflow-hidden flex flex-col h-[500px]">
+        {/* Toolbar */}
+        <div className="p-3 sm:p-4 border-b border-[#F1EDF7] space-y-3 bg-white z-10 shrink-0">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E94AD]" />
             <input
               type="text"
+              placeholder="ค้นหาชื่อ หรือ เลขที่..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ค้นหาชื่อ หรือเลขที่..."
-              className="w-full pl-9 pr-3 py-1.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#C084FC] text-[#332941]"
+              className="w-full pl-9 pr-4 py-2.5 bg-[#F8F5FB] border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E9D5FF] text-[#332941]"
             />
           </div>
 
-          {/* Filter Status Tabs */}
-          {!isEditMode && (
-            <div className="flex items-center gap-1 bg-[#F8F5FB] p-1 rounded-xl border border-[#EFE8F6] self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => setFilterStatus("all")}
-                className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
-                  filterStatus === "all"
-                    ? "bg-white text-[#9333EA] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
-                }`}
-              >
-                ทั้งหมด ({(Array.isArray(students) ? students.length : 0)})
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterStatus("paid")}
-                className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
-                  filterStatus === "paid"
-                    ? "bg-white text-[#059669] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
-                }`}
-              >
-                ชำระแล้ว ({paidCount})
-              </button>
-              <button
-                type="button"
-                onClick={() => setFilterStatus("unpaid")}
-                className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
-                  filterStatus === "unpaid"
-                    ? "bg-white text-[#E11D48] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
-                }`}
-              >
-                ค้างชำระ ({unpaidCount})
-              </button>
+          {mode === "treasurer-manage" && !isEditMode && (
+            <div className="flex bg-[#F8F5FB] p-1 rounded-xl">
+              {(["all", "paid", "unpaid"] as const).map(status => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                    filterStatus === status 
+                      ? "bg-white text-[#9333EA] shadow-xs" 
+                      : "text-[#7B708A] hover:text-[#332941]"
+                  }`}
+                >
+                  {status === "all" ? "ทั้งหมด" : status === "paid" ? "จ่ายแล้ว" : "ยังไม่จ่าย"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {isEditMode && (
+            <button
+              type="button"
+              onClick={() => setIsAddingStudent(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#FAF5FF] text-[#9333EA] hover:bg-[#F3E8FF] rounded-xl text-sm font-bold transition-colors border border-[#E9D5FF] border-dashed"
+            >
+              <Plus className="w-4 h-4" />
+              เพิ่มรายชื่อนักเรียน
+            </button>
+          )}
+
+          {isAddingStudent && (
+            <div className="flex items-center gap-2 p-2 bg-[#F8F5FB] rounded-xl border border-[#EFE8F6]">
+              <div className="w-7 h-7 rounded-lg bg-[#E9D5FF] text-[#7E22CE] flex items-center justify-center text-xs font-bold shrink-0">
+                {students.length + 1}
+              </div>
+              <input
+                type="text"
+                placeholder="พิมพ์ชื่อนักเรียน..."
+                value={newStudentName}
+                onChange={(e) => setNewStudentName(e.target.value)}
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddStudent();
+                  else if (e.key === "Escape") setIsAddingStudent(false);
+                }}
+                className="flex-1 px-2 py-1.5 text-sm bg-white border border-[#D8B4FE] rounded-lg focus:outline-none"
+              />
+              <div className="flex items-center gap-1 shrink-0">
+                <button onClick={handleAddStudent} className="p-1.5 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A]"><Check className="w-4 h-4" /></button>
+                <button onClick={() => setIsAddingStudent(false)} className="p-1.5 bg-white text-[#7B708A] border border-[#EFE8F6] rounded-lg hover:bg-[#F1EDF7]"><X className="w-4 h-4" /></button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Action Controls: Bulk Actions, Edit Mode Toggle & Save */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-2.5 border-t border-[#F1EDF7]">
-          <div className="flex items-center gap-2">
-            {!isEditMode ? (
-              <button
-                type="button"
-                onClick={handleToggleAll}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all ${
-                  isAllPaid
-                    ? "bg-[#FAF5FF] text-[#7B708A] hover:bg-[#F3E8FF] hover:text-[#332941] border-[#E9D5FF]"
-                    : "bg-[#ECFDF5] text-[#059669] hover:bg-[#D1FAE5] border-[#A7F3D0]"
-                }`}
-              >
-                {isAllPaid ? (
-                  <>
-                    <RotateCcw className="w-3.5 h-3.5 text-[#7B708A]" />
-                    <span>ยกเลิกทั้งหมด</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCheck className="w-3.5 h-3.5 text-[#059669]" />
-                    <span>เลือกชำระทั้งหมด</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <span className="text-xs text-[#7B708A]">
-                ลากหรือกดลูกศรเพื่อเลื่อนลำดับเลขที่
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Button to toggle Edit Mode ("ปุ่มกดแก้ไขรายชื่อ") */}
-            <button
-              type="button"
-              onClick={() => {
-                setIsEditMode(!isEditMode);
-                setIsAddingStudent(false);
-                setEditingStudentId(null);
-              }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                isEditMode
-                  ? "bg-[#9333EA] text-white shadow-xs"
-                  : "bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] hover:bg-[#F3E8FF]"
-              }`}
-            >
-              <UserCog className="w-3.5 h-3.5" />
-              <span>{isEditMode ? "เสร็จสิ้น" : "แก้ไขรายชื่อ"}</span>
-            </button>
-
-            {!isEditMode && (
-              <>
-                <label className="flex items-center gap-1.5 text-xs text-[#7B708A] cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={recordAsTransaction}
-                    onChange={(e) => setRecordAsTransaction(e.target.checked)}
-                    className="w-3.5 h-3.5 accent-[#C084FC] rounded"
-                  />
-                  <span>บันทึกเป็นรายการเงินห้อง</span>
-                </label>
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={isSaving || isLoading}
-                  className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] disabled:opacity-50 rounded-xl shadow-pastel transition-all"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  <span>{isSaving ? "กำลังบันทึก..." : "บันทึก"}</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* VERTICAL Student List */}
-      <div className="pastel-card overflow-hidden">
-        {/* Table Header with Plus Button when in Edit Mode */}
-        <div className="p-3 bg-[#FAF5FF] border-b border-[#EFE8F6] flex items-center justify-between text-xs font-semibold text-[#7B708A]">
-          <div className="flex items-center gap-4">
-            {isEditMode && <span className="w-4" />}
-            <span className="w-8 text-center">เลขที่</span>
-            <span>ชื่อ - นามสกุล</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Add Student Button: Plus Icon ("พอกดแล้วจะมีให้เพิ่มรายชื่อเป็นรูปบวก") */}
-            {isEditMode && (
-              <button
-                type="button"
-                onClick={() => setIsAddingStudent(true)}
-                className="flex items-center justify-center w-6 h-6 rounded-lg bg-[#22C55E] hover:bg-[#16A34A] text-white shadow-xs transition-colors"
-                title="เพิ่มรายชื่อ"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <span className="pr-1">{isEditMode ? "จัดการ" : "สถานะ"}</span>
-          </div>
-        </div>
-
-        {/* Inline Add Student Form ("ไม่ต้องให้ใส่เลขที่นะ") */}
-        {isEditMode && isAddingStudent && (
-          <div className="p-3 bg-[#F0FDF4] border-b border-[#BBF7D0] flex items-center gap-3 animate-fadeIn">
-            <div className="w-7 h-7 rounded-xl bg-[#22C55E] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-              {(Array.isArray(students) ? students.length : 0) + 1}
-            </div>
-            <input
-              type="text"
-              value={newStudentName}
-              onChange={(e) => setNewStudentName(e.target.value)}
-              placeholder="ชื่อ - นามสกุล นักเรียน..."
-              className="flex-1 px-3 py-1.5 text-xs sm:text-sm bg-white border border-[#86EFAC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#22C55E] text-[#332941]"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddStudent();
-                } else if (e.key === "Escape") {
-                  setIsAddingStudent(false);
-                }
-              }}
-            />
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={handleAddStudent}
-                className="p-1.5 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A] transition-colors"
-                title="บันทึก"
-              >
-                <Check className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsAddingStudent(false);
-                  setNewStudentName("");
-                }}
-                className="p-1.5 text-[#7B708A] hover:bg-[#EFE8F6] rounded-lg transition-colors"
-                title="ยกเลิก"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="divide-y divide-[#F1EDF7]">
-          {filtered(Array.isArray(students) ? students.length : 0) === 0 ? (
-            <div className="p-8 text-center text-xs text-[#9E94AD]">
-              ไม่พบข้อมูล
+        {/* Scrollable List */}
+        <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1 bg-[#F8F5FB]/50">
+          {filteredStudents.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3">
+              <Users className="w-12 h-12 opacity-20" />
+              <span className="text-sm font-medium">ไม่พบรายชื่อ</span>
             </div>
           ) : (
-            ((Array.isArray(filteredStudents) ? filteredStudents : []).map)((student, index) => { if (!student) return null;
+            filteredStudents.map((student, index) => {
               const isPaid = currentPaidIds.has(student.id);
-              const isBeingDragged = draggedIndex === index;
-
               return (
                 <div
                   key={student.id}
-                  draggable={isEditMode}
-                  onDragStart={() => handleDragStart(index)}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(index)}
-                  onClick={() => handleToggle(student.id)}
-                  className={`flex items-center justify-between p-2.5 sm:px-4 select-none transition-colors ${
-                    isBeingDragged
-                      ? "bg-[#FAF5FF] opacity-40 border-2 border-dashed border-[#C084FC]"
-                      : isPaid && !isEditMode
-                      ? "bg-[#F0FDF4]/60 hover:bg-[#DCFCE7]"
+                  onClick={() => !isEditMode && handleToggleCheckin(student.id)}
+                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition-all ${
+                    isPaid && !isEditMode
+                      ? "bg-[#F0FDF4] border border-[#BBF7D0]"
                       : isEditMode
-                      ? "bg-white hover:bg-[#FAF5FF]"
-                      : "bg-white hover:bg-[#FAF5FF] cursor-pointer"
+                      ? "bg-white border border-[#EFE8F6]"
+                      : "bg-white border border-transparent hover:border-[#EFE8F6] cursor-pointer shadow-xs"
                   }`}
                 >
-                  {/* Left: Drag Handle (if in edit mode) + Roll Number + Name */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 pr-2">
-                    {isEditMode && (
-                      <div
-                        className="cursor-grab active:cursor-grabbing text-[#9E94AD] hover:text-[#332941] p-1 flex-shrink-0"
-                        title="กดค้างเพื่อเลื่อนตำแหน่ง"
-                      >
-                        <GripVertical className="w-4 h-4" />
-                      </div>
-                    )}
-
-                    <div
-                      className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
-                        isPaid && !isEditMode
-                          ? "bg-[#22C55E] text-white shadow-xs"
-                          : "bg-[#F8F5FB] text-[#7B708A] border border-[#EFE8F6]"
-                      }`}
-                    >
+                  {/* Left Side */}
+                  <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
+                      isPaid && !isEditMode
+                        ? "bg-[#22C55E] text-white shadow-xs"
+                        : "bg-[#F1EDF7] text-[#7B708A]"
+                    }`}>
                       {student.rollNumber}
                     </div>
 
-                    {/* Student Name or Inline Edit Input */}
                     {isEditMode && editingStudentId === student.id ? (
-                      <div
-                        className="flex items-center gap-1.5 flex-1 max-w-sm"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+                      <div className="flex items-center gap-1.5 flex-1" onClick={e => e.stopPropagation()}>
                         <input
                           type="text"
                           value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          className="w-full px-2.5 py-1 text-xs sm:text-sm bg-white border border-[#C084FC] rounded-lg focus:outline-none text-[#332941]"
+                          onChange={e => setEditingName(e.target.value)}
+                          className="w-full px-2 py-1 text-sm border border-[#C084FC] rounded-lg focus:outline-none"
                           autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleSaveEditStudent(student.id);
-                            } else if (e.key === "Escape") {
-                              setEditingStudentId(null);
-                            }
+                          onKeyDown={e => {
+                            if (e.key === "Enter") handleSaveEditStudent(student.id);
+                            else if (e.key === "Escape") setEditingStudentId(null);
                           }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => handleSaveEditStudent(student.id)}
-                          className="p-1 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A] flex-shrink-0"
-                          title="บันทึกชื่อ"
-                        >
-                          <Check className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingStudentId(null)}
-                          className="p-1 text-[#7B708A] hover:bg-[#EFE8F6] rounded-lg flex-shrink-0"
-                          title="ยกเลิก"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                        <button onClick={() => handleSaveEditStudent(student.id)} className="p-1 bg-[#22C55E] text-white rounded-md"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => setEditingStudentId(null)} className="p-1 bg-[#F1EDF7] text-[#7B708A] rounded-md"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
-                      <div className="text-xs sm:text-sm font-medium text-[#332941] truncate">
+                      <div className="text-sm font-bold text-[#332941] truncate">
                         {student.name}
                       </div>
                     )}
                   </div>
 
-                  {/* Right: Actions */}
+                  {/* Right Side */}
                   {isEditMode ? (
-                    /* Edit Mode: Up/Down arrow buttons + Edit & Delete Icon Buttons ("เอาเป็นสัญลักพอไมต้องเขียนชื่อปุ่ม") */
-                    <div
-                      className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {/* Move Up / Down Buttons */}
-                      <div className="flex items-center bg-[#F8F5FB] rounded-lg border border-[#EFE8F6] p-0.5">
-                        <button
-                          type="button"
-                          onClick={() => handleMoveStudent(index, index - 1)}
-                          disabled={index === 0}
-                          className="p-1 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20 rounded"
-                          title="เลื่อนขึ้น"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMoveStudent(index, index + 1)}
-                          disabled={index === (Array.isArray(students) ? students.length : 0) - 1}
-                          className="p-1 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20 rounded"
-                          title="เลื่อนลง"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
+                    <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                      <div className="flex flex-col bg-[#F8F5FB] rounded-lg border border-[#EFE8F6]">
+                        <button onClick={() => handleMoveStudent(index, index - 1)} disabled={index === 0} className="p-0.5 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20"><ChevronUp className="w-4 h-4" /></button>
+                        <button onClick={() => handleMoveStudent(index, index + 1)} disabled={index === students.length - 1} className="p-0.5 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20"><ChevronDown className="w-4 h-4" /></button>
                       </div>
-
-                      {/* Edit Icon Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingStudentId(student.id);
-                          setEditingName(student.name);
-                        }}
-                        className="p-1.5 rounded-lg text-[#7B708A] hover:text-[#9333EA] hover:bg-[#FAF5FF] border border-transparent hover:border-[#E9D5FF] transition-colors"
-                        title="แก้ไขชื่อ"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Delete Icon Button */}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteStudent(student.id)}
-                        className="p-1.5 rounded-lg text-[#7B708A] hover:text-[#E11D48] hover:bg-[#FFF1F2] border border-transparent hover:border-[#FECDD3] transition-colors"
-                        title="ลบรายชื่อ"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <button onClick={() => { setEditingStudentId(student.id); setEditingName(student.name); }} className="p-2 text-[#7B708A] hover:bg-[#F3E8FF] hover:text-[#9333EA] rounded-xl"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => handleDeleteStudent(student.id)} className="p-2 text-[#7B708A] hover:bg-[#FEF2F2] hover:text-[#E11D48] rounded-xl"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ) : (
-                    /* Check-in Mode: Toggle Paid Button */
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggle(student.id);
-                      }}
-                      className={`flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
-                        isPaid
-                          ? "bg-[#22C55E] text-white shadow-xs"
-                          : "bg-[#F8F5FB] hover:bg-[#EFE8F6] text-[#7B708A] border border-[#EFE8F6]"
-                      }`}
-                    >
+                    <div className="shrink-0">
                       {isPaid ? (
-                        <>
-                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                          <span>ชำระแล้ว</span>
-                        </>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#22C55E] text-white rounded-xl text-xs font-bold shadow-xs">
+                          <CheckCircle2 className="w-4 h-4" /> ชำระแล้ว
+                        </div>
                       ) : (
-                        <>
-                          <div className="w-3 h-3 rounded-full border border-[#9E94AD]" />
-                          <span>ยังไม่ชำระ</span>
-                        </>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8F5FB] text-[#7B708A] border border-[#EFE8F6] rounded-xl text-xs font-bold">
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-[#9E94AD]" /> ยังไม่ชำระ
+                        </div>
                       )}
-                    </button>
+                    </div>
                   )}
                 </div>
               );
@@ -793,6 +428,54 @@ export default function StudentList({
           )}
         </div>
       </div>
+
+      {/* FOOTER ACTIONS (Treasurer only) */}
+      {mode === "treasurer-manage" && (
+        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F1EDF7] space-y-4">
+          <label className="flex items-center gap-3 p-3 rounded-2xl bg-[#F8F5FB] border border-[#EFE8F6] cursor-pointer hover:border-[#E9D5FF] transition-colors">
+            <input
+              type="checkbox"
+              checked={recordAsTransaction}
+              onChange={(e) => setRecordAsTransaction(e.target.checked)}
+              className="w-5 h-5 rounded border-[#C084FC] text-[#9333EA] focus:ring-[#E9D5FF]"
+            />
+            <span className="text-sm font-semibold text-[#332941]">
+              บันทึกเป็นรายรับลงในบัญชีอัตโนมัติ
+            </span>
+          </label>
+
+          {successNotice && (
+            <div className="p-3 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] text-sm font-bold flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-5 h-5" />
+              {successNotice}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleResetCheckin}
+              className="px-6 py-3 bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2] rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0"
+            >
+              <RotateCcw className="w-4 h-4" />
+              ล้างค่า
+            </button>
+            <button
+              onClick={handleSaveCheckin}
+              disabled={isSaving}
+              className="flex-1 py-3 bg-[#9333EA] hover:bg-[#7E22CE] text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50"
+            >
+              {isSaving ? (
+                "กำลังบันทึก..."
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  บันทึกข้อมูล
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
