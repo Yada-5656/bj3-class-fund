@@ -16,10 +16,12 @@ export default function Error({
     const lastReload = sessionStorage.getItem("last_error_reload");
     const now = Date.now();
     
-    // If we haven't reloaded in the last 10 seconds, do a hard reload
     if (!lastReload || now - parseInt(lastReload) > 10000) {
       sessionStorage.setItem("last_error_reload", now.toString());
-      window.location.reload();
+      // Force cache bypass by appending a timestamp query string
+      const url = new URL(window.location.href);
+      url.searchParams.set("v", now.toString());
+      window.location.replace(url.toString());
     }
   }, [error]);
 
@@ -39,7 +41,9 @@ export default function Error({
       <button
         onClick={() => {
           sessionStorage.setItem("last_error_reload", Date.now().toString());
-          window.location.reload();
+          const url = new URL(window.location.href);
+          url.searchParams.set("v", Date.now().toString());
+          window.location.replace(url.toString());
         }}
         className="px-6 py-2.5 bg-[#9333EA] text-white rounded-xl text-sm font-semibold hover:bg-[#7E22CE] transition-all shadow-sm"
       >
