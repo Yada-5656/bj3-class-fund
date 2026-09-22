@@ -146,9 +146,16 @@ export default function StudentList({
     });
   };
 
-  const handleResetCheckin = () => {
-    if (!window.confirm(`แน่ใจหรือไม่ที่จะลบข้อมูลการจ่ายเงินของวันที่ ${checkinDate} ทั้งหมด?`)) return;
-    setCheckinHistory(prev => ({ ...prev, [checkinDate]: [] }));
+  const isAllPaid = students.length > 0 && paidCount === students.length;
+
+  const handleToggleAll = () => {
+    setCheckinHistory(prev => {
+      if (isAllPaid) {
+        return { ...prev, [checkinDate]: [] };
+      } else {
+        return { ...prev, [checkinDate]: students.map(s => s.id) };
+      }
+    });
   };
 
   const handleSaveCheckin = async () => {
@@ -276,7 +283,7 @@ export default function StudentList({
       )}
 
       {/* LIST SECTION */}
-      <div className="bg-white rounded-3xl shadow-sm border border-[#F1EDF7] overflow-hidden flex flex-col h-[500px]">
+      <div className="bg-white rounded-3xl shadow-sm border border-[#F1EDF7] overflow-hidden flex flex-col">
         {/* Toolbar */}
         <div className="p-3 sm:p-4 border-b border-[#F1EDF7] space-y-3 bg-white z-10 shrink-0">
           <div className="relative">
@@ -345,7 +352,7 @@ export default function StudentList({
         </div>
 
         {/* Scrollable List */}
-        <div className="flex-1 overflow-y-auto p-2 sm:p-3 space-y-1 bg-[#F8F5FB]/50">
+        <div className="p-2 sm:p-3 space-y-1 bg-[#F8F5FB]/50">
           {filteredStudents.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3">
               <Users className="w-12 h-12 opacity-20" />
@@ -453,11 +460,24 @@ export default function StudentList({
 
           <div className="flex flex-col sm:flex-row gap-3">
             <button
-              onClick={handleResetCheckin}
-              className="px-6 py-3 bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2] rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0"
+              onClick={handleToggleAll}
+              className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0 ${
+                isAllPaid
+                  ? "bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2]"
+                  : "bg-white text-[#22C55E] border border-[#BBF7D0] hover:bg-[#F0FDF4]"
+              }`}
             >
-              <RotateCcw className="w-4 h-4" />
-              ล้างค่า
+              {isAllPaid ? (
+                <>
+                  <RotateCcw className="w-4 h-4" />
+                  ยกเลิกชำระทั้งหมด
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  ชำระทั้งหมด
+                </>
+              )}
             </button>
             <button
               onClick={handleSaveCheckin}
