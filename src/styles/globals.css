@@ -5,11 +5,11 @@
 @tailwind utilities;
 
 :root {
-  --background: #F8F5FB;
-  --foreground: #332941;
-  --primary: #C084FC;
-  --primary-light: #E9D5FF;
-  --primary-dark: #9333EA;
+  --background: #FFF5F8;
+  --foreground: #5C435A;
+  --primary: #EB9AB2;
+  --primary-light: #EFCFE3;
+  --primary-dark: #E27396;
   --success: #50F2C8;
   --success-light: #D1FAE5;
   --danger: #FF96A8;
@@ -18,6 +18,8 @@
 
 body {
   background-color: var(--background);
+  background-image: radial-gradient(#FAD7E4 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
   color: var(--foreground);
   font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -30,7 +32,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #F1EDF7;
+  background: #FDF2F6;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb {
@@ -38,24 +40,24 @@ body {
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #C084FC;
+  background: #EB9AB2;
 }
 
 /* Card & Glass Utilities */
 .pastel-card {
   background: #FFFFFF;
-  border: 1px solid #EFE8F6;
+  border: 1px solid #FCE4EC;
   border-radius: 1.25rem;
-  box-shadow: 0 4px 20px -2px rgba(192, 132, 252, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(235, 154, 178, 0.1);
   transition: all 0.2s ease-in-out;
 }
 
 .pastel-card:hover {
-  box-shadow: 0 8px 30px -4px rgba(192, 132, 252, 0.15);
+  box-shadow: 0 8px 30px -4px rgba(235, 154, 178, 0.2);
 }
 
 .pastel-btn-primary {
-  background-color: #C084FC;
+  background-color: #EB9AB2;
   color: #FFFFFF;
   border-radius: 0.875rem;
   font-weight: 500;
@@ -63,7 +65,7 @@ body {
 }
 
 .pastel-btn-primary:hover {
-  background-color: #A855F7;
+  background-color: #D9849D;
   transform: translateY(-1px);
 }
 

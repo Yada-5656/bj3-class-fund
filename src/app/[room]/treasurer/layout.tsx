@@ -101,7 +101,7 @@ export default function TreasurerLayout({
 
   if (isCheckingStatus && isAuthenticated === null) {
     return (
-      <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
+      <div className="flex items-center justify-center py-20 text-xs text-[#9C8599]">
         กำลังตรวจสอบสิทธิ์เหรัญญิก...
       </div>
     );

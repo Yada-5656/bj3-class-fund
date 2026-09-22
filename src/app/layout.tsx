@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
-      <body className="min-h-screen bg-[#F8F5FB] text-[#332941] antialiased selection:bg-[#E9D5FF] selection:text-[#581C87]">
+      <body className="min-h-screen bg-[#FFF5F8] text-[#5C435A] antialiased selection:bg-[#EFCFE3] selection:text-[#581C87]">
         {children}
         <ScrollToTop />
       </body>

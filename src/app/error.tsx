@@ -26,16 +26,16 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F5FB] p-6 text-center font-sans">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#FFF5F8] p-6 text-center font-sans">
       <div className="w-16 h-16 bg-red-100 text-red-500 flex items-center justify-center rounded-2xl mb-4 shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
       </div>
-      <h2 className="text-xl font-bold text-[#332941] mb-2">
+      <h2 className="text-xl font-bold text-[#5C435A] mb-2">
         กำลังโหลดระบบเวอร์ชันล่าสุด...
       </h2>
-      <p className="text-[#7B708A] text-sm mb-6 max-w-xs mx-auto leading-relaxed">
+      <p className="text-[#9C8599] text-sm mb-6 max-w-xs mx-auto leading-relaxed">
         ระบบตรวจพบเวอร์ชันเก่าในเครื่องของคุณ กำลังล้างแคชและรีเฟรชหน้าจออัตโนมัติ กรุณารอสักครู่ครับ
       </p>
       <button
@@ -45,7 +45,7 @@ export default function Error({
           url.searchParams.set("v", Date.now().toString());
           window.location.replace(url.toString());
         }}
-        className="px-6 py-2.5 bg-[#9333EA] text-white rounded-xl text-sm font-semibold hover:bg-[#7E22CE] transition-all shadow-sm"
+        className="px-6 py-2.5 bg-[#E27396] text-white rounded-xl text-sm font-semibold hover:bg-[#D65A80] transition-all shadow-sm"
       >
         กดที่นี่หากระบบไม่รีเฟรช
       </button>

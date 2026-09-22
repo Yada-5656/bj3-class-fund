@@ -66,13 +66,13 @@ export default function GraduationCountdownModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#332941]/40 backdrop-blur-xs animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#5C435A]/40 backdrop-blur-xs animate-fadeIn">
       <div className="relative pastel-card w-full max-w-md bg-white p-6 sm:p-7 shadow-pastel border-2 border-[#FCA5A5] text-center space-y-4">
         {/* Close Button [X] */}
         <button
           onClick={handleClose}
           type="button"
-          className="absolute top-4 right-4 p-1.5 rounded-full text-[#9E94AD] hover:text-[#332941] hover:bg-[#F8F5FB] transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-full text-[#BDA8BA] hover:text-[#5C435A] hover:bg-[#FFF5F8] transition-colors"
           title="ปิดการแจ้งเตือน"
         >
           <X className="w-5 h-5" />
@@ -84,49 +84,49 @@ export default function GraduationCountdownModal({
         </div>
 
         <div>
-          <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] mb-2">
+          <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FFF1F2] text-[#FF8DA1] border border-[#FFC4D0] mb-2">
             ประกาศสำคัญสำหรับนักเรียนห้อง {displayName}
           </span>
-          <h2 className="text-lg sm:text-xl font-extrabold text-[#332941]">
+          <h2 className="text-lg sm:text-xl font-extrabold text-[#5C435A]">
             แจ้งเตือนการสิ้นสุดปีการศึกษา
           </h2>
-          <p className="text-xs text-[#7B708A] mt-1">
+          <p className="text-xs text-[#9C8599] mt-1">
             เนื่องจากระดับชั้น ม.{grade} จะสำเร็จการศึกษา ระบบห้องเรียนจะปิดตัวลงในวันที่:
           </p>
-          <p className="text-sm font-bold text-[#E11D48] mt-0.5">
+          <p className="text-sm font-bold text-[#FF8DA1] mt-0.5">
             {formatThaiDate(promotionDate)}
           </p>
         </div>
 
         {/* Countdown Display */}
         <div className="grid grid-cols-4 gap-2 py-2">
-          <div className="bg-[#FFF5F7] border border-[#FECDD3] rounded-2xl p-2.5">
-            <div className="text-xl sm:text-2xl font-black text-[#E11D48]">
+          <div className="bg-[#FFF5F7] border border-[#FFC4D0] rounded-2xl p-2.5">
+            <div className="text-xl sm:text-2xl font-black text-[#FF8DA1]">
               {timeLeft.days}
             </div>
-            <div className="text-[10px] text-[#7B708A] font-semibold">วัน</div>
+            <div className="text-[10px] text-[#9C8599] font-semibold">วัน</div>
           </div>
-          <div className="bg-[#FFF5F7] border border-[#FECDD3] rounded-2xl p-2.5">
-            <div className="text-xl sm:text-2xl font-black text-[#E11D48]">
+          <div className="bg-[#FFF5F7] border border-[#FFC4D0] rounded-2xl p-2.5">
+            <div className="text-xl sm:text-2xl font-black text-[#FF8DA1]">
               {timeLeft.hours}
             </div>
-            <div className="text-[10px] text-[#7B708A] font-semibold">ชั่วโมง</div>
+            <div className="text-[10px] text-[#9C8599] font-semibold">ชั่วโมง</div>
           </div>
-          <div className="bg-[#FFF5F7] border border-[#FECDD3] rounded-2xl p-2.5">
-            <div className="text-xl sm:text-2xl font-black text-[#E11D48]">
+          <div className="bg-[#FFF5F7] border border-[#FFC4D0] rounded-2xl p-2.5">
+            <div className="text-xl sm:text-2xl font-black text-[#FF8DA1]">
               {timeLeft.minutes}
             </div>
-            <div className="text-[10px] text-[#7B708A] font-semibold">นาที</div>
+            <div className="text-[10px] text-[#9C8599] font-semibold">นาที</div>
           </div>
-          <div className="bg-[#FFF5F7] border border-[#FECDD3] rounded-2xl p-2.5">
-            <div className="text-xl sm:text-2xl font-black text-[#E11D48]">
+          <div className="bg-[#FFF5F7] border border-[#FFC4D0] rounded-2xl p-2.5">
+            <div className="text-xl sm:text-2xl font-black text-[#FF8DA1]">
               {timeLeft.seconds}
             </div>
-            <div className="text-[10px] text-[#7B708A] font-semibold">วินาที</div>
+            <div className="text-[10px] text-[#9C8599] font-semibold">วินาที</div>
           </div>
         </div>
 
-        <div className="text-[11px] text-[#9E94AD] bg-[#FAF5FF] p-2.5 rounded-xl border border-[#E9D5FF] text-left">
+        <div className="text-[11px] text-[#BDA8BA] bg-[#FFF5F8] p-2.5 rounded-xl border border-[#EFCFE3] text-left">
           ⚠️ ข้อมูลประวัติการเก็บเงินและรายชื่อห้อง ม.{grade} จะถูกล้างข้อมูลเมื่อถึงวันเลื่อนชั้น กรุณาเหรัญญิกและสมาชิกห้องสรุปบัญชีให้เรียบร้อย
         </div>
 

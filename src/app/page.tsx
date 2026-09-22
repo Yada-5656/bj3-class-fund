@@ -116,9 +116,9 @@ export default function LoginPage() {
 
   if (isCheckingSession) {
     return (
-      <div className="min-h-screen bg-[#F8F5FB] flex items-center justify-center">
-        <div className="text-xs text-[#7B708A] font-medium flex items-center gap-2">
-          <div className="w-4 h-4 border-2 border-[#C084FC] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#FFF5F8] flex items-center justify-center">
+        <div className="text-xs text-[#9C8599] font-medium flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-[#EB9AB2] border-t-transparent rounded-full animate-spin" />
           <span>กำลังโหลดระบบ...</span>
         </div>
       </div>
@@ -126,21 +126,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F5FB] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FFF5F8] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8">
       {/* Background Decorative Blobs */}
-      <div className="fixed top-12 left-10 w-72 h-72 bg-[#C084FC]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed top-12 left-10 w-72 h-72 bg-[#EB9AB2]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed bottom-12 right-10 w-80 h-80 bg-[#50F2C8]/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
         {/* Header Branding */}
         <div className="text-center space-y-3 mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#C084FC] to-[#A855F7] text-white shadow-pastel mb-1">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-tr from-[#EB9AB2] to-[#D9849D] text-white shadow-pastel mb-1">
             <School className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#332941]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#5C435A]">
             ระบบจัดการเงินห้องเรียน
           </h1>
-          <p className="text-sm text-[#7B708A] font-medium">
+          <p className="text-sm text-[#9C8599] font-medium">
             โรงเรียนบรรหารแจ่มใสวิทยา 3 (BJ3)
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function LoginPage() {
         {/* Main Login Card - Clean & Minimalist */}
         <div className="pastel-card p-6 sm:p-8 bg-white/95 backdrop-blur-md shadow-pastel">
           {error && (
-            <div className="mb-4 p-3 bg-[#FFF1F2] border border-[#FECDD3] rounded-xl text-xs sm:text-sm text-[#E11D48] flex items-center gap-2">
+            <div className="mb-4 p-3 bg-[#FFF1F2] border border-[#FFC4D0] rounded-xl text-xs sm:text-sm text-[#FF8DA1] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -157,7 +157,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Room Username Input */}
             <div>
-              <label className="block text-xs font-semibold text-[#7B708A] mb-1.5">
+              <label className="block text-xs font-semibold text-[#9C8599] mb-1.5">
                 ห้องเรียน
               </label>
               <input
@@ -166,14 +166,14 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="กรอกเลขห้อง เช่น 1/5 หรือ 3/15"
-                className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+                className="w-full px-3.5 py-2.5 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl text-sm text-[#5C435A] font-semibold focus:outline-none focus:ring-2 focus:ring-[#EB9AB2]"
                 autoFocus
               />
             </div>
 
             {/* Password Input */}
             <div>
-              <label className="block text-xs font-semibold text-[#7B708A] mb-1.5">
+              <label className="block text-xs font-semibold text-[#9C8599] mb-1.5">
                 รหัสผ่านประจำห้อง
               </label>
               <div className="relative">
@@ -183,7 +183,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="กรอกรหัสผ่านประจำห้อง"
-                  className="w-full px-3.5 py-2.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-sm text-[#332941] font-semibold focus:outline-none focus:ring-2 focus:ring-[#C084FC]"
+                  className="w-full px-3.5 py-2.5 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl text-sm text-[#5C435A] font-semibold focus:outline-none focus:ring-2 focus:ring-[#EB9AB2]"
                 />
               </div>
             </div>
@@ -192,7 +192,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || !username.trim() || !password.trim()}
-              className="w-full mt-3 py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#C084FC] to-[#A855F7] hover:opacity-95 shadow-pastel flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
+              className="w-full mt-3 py-3 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-[#EB9AB2] to-[#D9849D] hover:opacity-95 shadow-pastel flex items-center justify-center gap-2 transition-all active:scale-[0.99] disabled:opacity-50"
             >
               <span>{isLoading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบห้องเรียน"}</span>
               <ArrowRight className="w-4 h-4" />
@@ -201,7 +201,7 @@ export default function LoginPage() {
         </div>
 
         {/* Footer Info */}
-        <p className="text-center text-xs text-[#9E94AD] mt-6">
+        <p className="text-center text-xs text-[#BDA8BA] mt-6">
           © Class Fund Management System • โรงเรียนบรรหารแจ่มใสวิทยา 3
         </p>
       </div>

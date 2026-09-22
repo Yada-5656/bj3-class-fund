@@ -147,7 +147,7 @@ export default function TransactionTable({
     <div className="space-y-6">
       {/* Title & Filters Row (as drawn in user sketch) */}
       <div className="space-y-3">
-        <h3 className="font-bold text-base sm:text-lg text-[#332941]">
+        <h3 className="font-bold text-base sm:text-lg text-[#5C435A]">
           ประวัติรายการเงินห้องทั้งหมด
         </h3>
 
@@ -155,25 +155,25 @@ export default function TransactionTable({
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             {/* Search Box */}
             <div className="relative flex-1 max-w-sm">
-              <Search className="w-4 h-4 text-[#9E94AD] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#BDA8BA] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ค้นหารายการ..."
-                className="w-full pl-9 pr-3 py-1.5 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#C084FC] text-[#332941]"
+                className="w-full pl-9 pr-3 py-1.5 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#EB9AB2] text-[#5C435A]"
               />
             </div>
 
             {/* Type Filter Buttons (เหมือนเดิม) */}
-            <div className="flex items-center gap-1 bg-[#F8F5FB] p-1 rounded-xl border border-[#EFE8F6] overflow-x-auto">
+            <div className="flex items-center gap-1 bg-[#FFF5F8] p-1 rounded-xl border border-[#FCE4EC] overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setFilterType("all")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "all"
-                    ? "bg-white text-[#9333EA] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-white text-[#E27396] shadow-xs font-semibold"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 ทั้งหมด
@@ -183,8 +183,8 @@ export default function TransactionTable({
                 onClick={() => setFilterType("fund")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "fund"
-                    ? "bg-white text-[#9333EA] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-white text-[#E27396] shadow-xs font-semibold"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 เงินห้อง
@@ -194,8 +194,8 @@ export default function TransactionTable({
                 onClick={() => setFilterType("income")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "income"
-                    ? "bg-white text-[#059669] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-white text-[#76BFA0] shadow-xs font-semibold"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 รายรับอื่น
@@ -205,8 +205,8 @@ export default function TransactionTable({
                 onClick={() => setFilterType("expense")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "expense"
-                    ? "bg-white text-[#E11D48] shadow-xs font-semibold"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-white text-[#FF8DA1] shadow-xs font-semibold"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 รายจ่าย
@@ -218,7 +218,7 @@ export default function TransactionTable({
 
       {/* No Transactions Found */}
       {monthGroups.length === 0 && (
-        <div className="pastel-card p-8 text-center text-xs text-[#9E94AD]">
+        <div className="pastel-card p-8 text-center text-xs text-[#BDA8BA]">
           ไม่พบรายการข้อมูล
         </div>
       )}
@@ -228,18 +228,18 @@ export default function TransactionTable({
         <div key={group.key} className="space-y-1">
           {/* Protruding Month Folder Tab (ยื่นออกมาด้านบนซ้าย) */}
           <div className="flex items-end px-3">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-t-2xl font-bold bg-white text-[#9333EA] border-t-2 border-x-2 border-[#E9D5FF] text-xs sm:text-sm z-10 -mb-[2px] shadow-xs select-none">
-              <Calendar className="w-3.5 h-3.5 text-[#C084FC]" />
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-t-2xl font-bold bg-white text-[#E27396] border-t-2 border-x-2 border-[#EFCFE3] text-xs sm:text-sm z-10 -mb-[2px] shadow-xs select-none">
+              <Calendar className="w-3.5 h-3.5 text-[#EB9AB2]" />
               <span>{group.displayMonth}</span>
             </div>
           </div>
 
           {/* Table Container: Seamlessly connected to protruding month tab */}
-          <div className="pastel-card overflow-hidden border-2 border-[#E9D5FF] rounded-b-2xl rounded-tr-2xl bg-white relative z-0">
+          <div className="pastel-card overflow-hidden border-2 border-[#EFCFE3] rounded-b-2xl rounded-tr-2xl bg-white relative z-0">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead>
-                  <tr className="bg-[#FAF5FF] border-b border-[#EFE8F6] text-[#7B708A] font-semibold">
+                  <tr className="bg-[#FFF5F8] border-b border-[#FCE4EC] text-[#9C8599] font-semibold">
                     <th className="py-3 px-4 whitespace-nowrap">วันที่</th>
                     <th className="py-3 px-4 whitespace-nowrap">ประเภท</th>
                     <th className="py-3 px-4">รายการ</th>
@@ -253,7 +253,7 @@ export default function TransactionTable({
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#F1EDF7]">
+                <tbody className="divide-y divide-[#FDF2F6]">
                   {group.transactions.map((tx) => {
                     const isExpense = tx.type === "expense";
                     const isFund = tx.type === "fund";
@@ -272,29 +272,29 @@ export default function TransactionTable({
                     return (
                       <tr
                         key={tx.id}
-                        className="hover:bg-[#FAF5FF]/50 transition-colors"
+                        className="hover:bg-[#FFF5F8]/50 transition-colors"
                       >
                         {/* 1. วันที่ (Strictly DD/MM/YYYY Buddhist Era, NO TIME) */}
-                        <td className="py-3 px-4 whitespace-nowrap font-medium text-[#7B708A] text-xs align-top">
+                        <td className="py-3 px-4 whitespace-nowrap font-medium text-[#9C8599] text-xs align-top">
                           {formatThaiDate(tx.date)}
                         </td>
 
                         {/* 2. ประเภท */}
                         <td className="py-3 px-4 whitespace-nowrap align-top">
                           {isFund && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3]">
                               <Wallet className="w-3 h-3" />
                               เงินห้อง
                             </span>
                           )}
                           {isIncome && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#ECFDF5] text-[#76BFA0] border border-[#A7F3D0]">
                               <ArrowDownLeft className="w-3 h-3" />
                               รายรับ
                             </span>
                           )}
                           {isExpense && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFF1F2] text-[#FF8DA1] border border-[#FFC4D0]">
                               <ArrowUpRight className="w-3 h-3" />
                               รายจ่าย
                             </span>
@@ -302,7 +302,7 @@ export default function TransactionTable({
                         </td>
 
                         {/* 3. รายการ (Item description with past-date unpaid students accordion as in Sketch) */}
-                        <td className="py-3 px-4 font-medium text-[#332941] max-w-sm sm:max-w-md align-top">
+                        <td className="py-3 px-4 font-medium text-[#5C435A] max-w-sm sm:max-w-md align-top">
                           <div>{tx.description}</div>
                           {showUnpaidToggle && (
                             <div className="mt-1.5">
@@ -311,32 +311,32 @@ export default function TransactionTable({
                                 onClick={() => toggleExpand(tx.id)}
                                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded-lg border transition-all ${
                                   isExpanded
-                                    ? "bg-[#FFF1F2] text-[#E11D48] border-[#FECDD3]"
-                                    : "bg-[#F8F5FB] text-[#7B708A] hover:text-[#E11D48] hover:bg-[#FFF1F2] border-[#EFE8F6]"
+                                    ? "bg-[#FFF1F2] text-[#FF8DA1] border-[#FFC4D0]"
+                                    : "bg-[#FFF5F8] text-[#9C8599] hover:text-[#FF8DA1] hover:bg-[#FFF1F2] border-[#FCE4EC]"
                                 }`}
                               >
-                                <Users className="w-3 h-3 text-[#E11D48]" />
+                                <Users className="w-3 h-3 text-[#FF8DA1]" />
                                 <span>รายชื่อคนค้างจ่าย ({unpaidStudents.length} คน)</span>
                                 {isExpanded ? (
-                                  <ChevronUp className="w-3 h-3 text-[#E11D48]" />
+                                  <ChevronUp className="w-3 h-3 text-[#FF8DA1]" />
                                 ) : (
                                   <ChevronDown className="w-3 h-3" />
                                 )}
                               </button>
 
                               {isExpanded && (
-                                <div className="mt-2 p-2.5 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl animate-fadeIn space-y-1.5 max-w-md shadow-xs">
-                                  <div className="text-[11px] font-bold text-[#9333EA] flex items-center justify-between pb-1 border-b border-[#EFE8F6]">
+                                <div className="mt-2 p-2.5 bg-[#FFF5F8] border border-[#EFCFE3] rounded-xl animate-fadeIn space-y-1.5 max-w-md shadow-xs">
+                                  <div className="text-[11px] font-bold text-[#E27396] flex items-center justify-between pb-1 border-b border-[#FCE4EC]">
                                     <span>คนค้างจ่ายวันที่ {formatThaiDate(tx.date)}</span>
-                                    <span className="text-[#E11D48]">{unpaidStudents.length} คน</span>
+                                    <span className="text-[#FF8DA1]">{unpaidStudents.length} คน</span>
                                   </div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pt-0.5">
                                     {unpaidStudents.map((s) => (
                                       <div
                                         key={s.id}
-                                        className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-[#EFE8F6] text-xs text-[#332941]"
+                                        className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-[#FCE4EC] text-xs text-[#5C435A]"
                                       >
-                                        <span className="w-5 h-5 rounded-md bg-[#FAF5FF] text-[#9333EA] text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-[#E9D5FF]">
+                                        <span className="w-5 h-5 rounded-md bg-[#FFF5F8] text-[#E27396] text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-[#EFCFE3]">
                                           {s.rollNumber}
                                         </span>
                                         <span className="truncate font-medium">{s.name}</span>
@@ -352,7 +352,7 @@ export default function TransactionTable({
                         {/* 4. จำนวนเงิน */}
                         <td
                           className={`py-3 px-4 text-right font-bold whitespace-nowrap ${
-                            isExpense ? "text-[#E11D48]" : "text-[#059669]"
+                            isExpense ? "text-[#FF8DA1]" : "text-[#76BFA0]"
                           }`}
                         >
                           {isExpense ? "-" : "+"}
@@ -367,7 +367,7 @@ export default function TransactionTable({
                                 <button
                                   type="button"
                                   onClick={() => onEdit(tx)}
-                                  className="p-1.5 text-[#7B708A] hover:text-[#9333EA] hover:bg-[#FAF5FF] rounded-lg transition-colors"
+                                  className="p-1.5 text-[#9C8599] hover:text-[#E27396] hover:bg-[#FFF5F8] rounded-lg transition-colors"
                                   title="แก้ไขรายการ"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
@@ -377,7 +377,7 @@ export default function TransactionTable({
                                 <button
                                   type="button"
                                   onClick={() => onDelete(tx.id)}
-                                  className="p-1.5 text-[#7B708A] hover:text-[#E11D48] hover:bg-[#FFF1F2] rounded-lg transition-colors"
+                                  className="p-1.5 text-[#9C8599] hover:text-[#FF8DA1] hover:bg-[#FFF1F2] rounded-lg transition-colors"
                                   title="ลบรายการ"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
@@ -396,11 +396,11 @@ export default function TransactionTable({
 
           {/* Bottom-Right Monthly Sum: [ รวม : XXX ] as in User Sketch */}
           <div className="flex justify-end pt-1 pr-1">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-white border border-[#E9D5FF] shadow-xs text-xs sm:text-sm">
-              <span className="font-semibold text-[#7B708A]">รวม :</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-white border border-[#EFCFE3] shadow-xs text-xs sm:text-sm">
+              <span className="font-semibold text-[#9C8599]">รวม :</span>
               <span
                 className={`font-bold ${
-                  group.netTotal >= 0 ? "text-[#059669]" : "text-[#E11D48]"
+                  group.netTotal >= 0 ? "text-[#76BFA0]" : "text-[#FF8DA1]"
                 }`}
               >
                 {group.netTotal >= 0 ? "+" : ""}

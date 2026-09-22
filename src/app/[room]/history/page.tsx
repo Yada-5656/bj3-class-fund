@@ -34,7 +34,7 @@ export default function RoomHistoryPage({
 
   if (!roomData) {
     return (
-      <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
+      <div className="flex items-center justify-center py-20 text-xs text-[#9C8599]">
         กำลังโหลด...
       </div>
     );
@@ -55,20 +55,20 @@ export default function RoomHistoryPage({
         <div>
           <Link
             href={`/${roomSlug}`}
-            className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941] mb-2"
+            className="inline-flex items-center gap-1.5 text-xs text-[#9C8599] hover:text-[#5C435A] mb-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>แดชบอร์ด</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#332941] flex items-center gap-2">
-            <History className="w-6 h-6 text-[#C084FC]" />
+          <h1 className="text-xl sm:text-2xl font-bold text-[#5C435A] flex items-center gap-2">
+            <History className="w-6 h-6 text-[#EB9AB2]" />
             <span>ประวัติเงินห้อง ({displayName})</span>
           </h1>
         </div>
 
         <Link
           href={`/${roomSlug}/treasurer`}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all self-start sm:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#EB9AB2] hover:bg-[#D9849D] shadow-pastel transition-all self-start sm:self-auto"
         >
           <ShieldCheck className="w-4 h-4" />
           <span>เหรัญญิก</span>
@@ -79,36 +79,36 @@ export default function RoomHistoryPage({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">ทั้งหมด</span>
-            <div className="text-base font-bold text-[#332941]">
+            <span className="text-xs text-[#9C8599]">ทั้งหมด</span>
+            <div className="text-base font-bold text-[#5C435A]">
               {transactions.length} รายการ
             </div>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#C084FC] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#FFF5F8] text-[#EB9AB2] flex items-center justify-center">
             <Wallet className="w-4 h-4" />
           </div>
         </div>
 
         <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">รายรับรวม</span>
-            <div className="text-base font-bold text-[#059669]">
+            <span className="text-xs text-[#9C8599]">รายรับรวม</span>
+            <div className="text-base font-bold text-[#76BFA0]">
               +{formatCurrency(totalIncome)}
             </div>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-[#ECFDF5] text-[#059669] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#ECFDF5] text-[#76BFA0] flex items-center justify-center">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
 
         <div className="pastel-card p-3.5 flex items-center justify-between">
           <div>
-            <span className="text-xs text-[#7B708A]">รายจ่ายรวม</span>
-            <div className="text-base font-bold text-[#E11D48]">
+            <span className="text-xs text-[#9C8599]">รายจ่ายรวม</span>
+            <div className="text-base font-bold text-[#FF8DA1]">
               -{formatCurrency(totalExpense)}
             </div>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#FFF1F2] text-[#FF8DA1] flex items-center justify-center">
             <TrendingDown className="w-4 h-4" />
           </div>
         </div>

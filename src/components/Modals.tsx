@@ -217,21 +217,21 @@ export function TransactionModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
       <div className="pastel-card w-full max-w-md bg-white p-6 shadow-pastel space-y-4">
         {/* Title */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#F1EDF7]">
-          <h3 className="text-base font-bold text-[#332941]">
+        <div className="flex items-center justify-between pb-3 border-b border-[#FDF2F6]">
+          <h3 className="text-base font-bold text-[#5C435A]">
             {initialData ? "แก้ไขรายการบันทึก" : "เพิ่มรายการ รายรับ / รายจ่าย"}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-[#9E94AD] hover:text-[#332941] rounded-lg"
+            className="p-1 text-[#BDA8BA] hover:text-[#5C435A] rounded-lg"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {error && (
-          <div className="p-2.5 bg-[#FFF1F2] border border-[#FECDD3] text-xs text-[#E11D48] rounded-xl flex items-center gap-2">
+          <div className="p-2.5 bg-[#FFF1F2] border border-[#FFC4D0] text-xs text-[#FF8DA1] rounded-xl flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -240,17 +240,17 @@ export function TransactionModal({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
           {/* 1. ประเภทรายการ (2 buttons: รายรับ / รายจ่าย) */}
           <div>
-            <label className="block font-medium text-[#7B708A] mb-1.5 text-xs">
+            <label className="block font-medium text-[#9C8599] mb-1.5 text-xs">
               ประเภทรายการ
             </label>
-            <div className="grid grid-cols-2 gap-2 bg-[#F8F5FB] p-1 rounded-xl border border-[#EFE8F6]">
+            <div className="grid grid-cols-2 gap-2 bg-[#FFF5F8] p-1 rounded-xl border border-[#FCE4EC]">
               <button
                 type="button"
                 onClick={() => setType("income")}
                 className={`py-2 text-xs font-semibold rounded-lg transition-all ${
                   type === "income"
-                    ? "bg-[#ECFDF5] text-[#059669] shadow-xs border border-[#A7F3D0]"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-[#ECFDF5] text-[#76BFA0] shadow-xs border border-[#A7F3D0]"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 รายรับ
@@ -260,8 +260,8 @@ export function TransactionModal({
                 onClick={() => setType("expense")}
                 className={`py-2 text-xs font-semibold rounded-lg transition-all ${
                   type === "expense"
-                    ? "bg-[#FFF1F2] text-[#E11D48] shadow-xs border border-[#FECDD3]"
-                    : "text-[#7B708A] hover:text-[#332941]"
+                    ? "bg-[#FFF1F2] text-[#FF8DA1] shadow-xs border border-[#FFC4D0]"
+                    : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
                 รายจ่าย
@@ -272,10 +272,10 @@ export function TransactionModal({
           {/* 2. เพิ่มรายการ / บันทึกรายการ (Quick Presets with [+] chip and instant delete) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="font-medium text-[#7B708A] text-xs">
+              <label className="font-medium text-[#9C8599] text-xs">
                 เพิ่มรายการ
               </label>
-              <span className="text-[10px] text-[#9E94AD]">
+              <span className="text-[10px] text-[#BDA8BA]">
                 กดเพื่อเลือก • กดค้างเพื่อลบ
               </span>
             </div>
@@ -283,13 +283,13 @@ export function TransactionModal({
             <div className="flex flex-wrap items-center gap-2">
               {/* [+] Add preset button */}
               {isAddingPreset ? (
-                <div className="inline-flex items-center gap-1.5 p-1 bg-[#F8F5FB] border border-[#C084FC] rounded-xl animate-fadeIn">
+                <div className="inline-flex items-center gap-1.5 p-1 bg-[#FFF5F8] border border-[#EB9AB2] rounded-xl animate-fadeIn">
                   <input
                     type="text"
                     value={newPresetName}
                     onChange={(e) => setNewPresetName(e.target.value)}
                     placeholder="ชื่อรายการ..."
-                    className="w-24 px-2 py-0.5 text-xs bg-white border border-[#EFE8F6] rounded-lg focus:outline-none"
+                    className="w-24 px-2 py-0.5 text-xs bg-white border border-[#FCE4EC] rounded-lg focus:outline-none"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -303,14 +303,14 @@ export function TransactionModal({
                   <button
                     type="button"
                     onClick={handleAddPreset}
-                    className="px-2 py-0.5 text-white bg-[#C084FC] hover:bg-[#A855F7] rounded-lg text-[10px] font-bold"
+                    className="px-2 py-0.5 text-white bg-[#EB9AB2] hover:bg-[#D9849D] rounded-lg text-[10px] font-bold"
                   >
                     เพิ่ม
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsAddingPreset(false)}
-                    className="px-1 text-[#7B708A] hover:bg-[#EFE8F6] rounded-lg text-[10px]"
+                    className="px-1 text-[#9C8599] hover:bg-[#FCE4EC] rounded-lg text-[10px]"
                   >
                     ✕
                   </button>
@@ -319,7 +319,7 @@ export function TransactionModal({
                 <button
                   type="button"
                   onClick={() => setIsAddingPreset(true)}
-                  className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] hover:bg-[#F3E8FF] transition-colors"
+                  className="flex items-center justify-center w-8 h-8 rounded-xl bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3] hover:bg-[#FCE4EC] transition-colors"
                   title="เพิ่มรายการบันทึกใหม่"
                 >
                   <Plus className="w-4 h-4" />
@@ -338,8 +338,8 @@ export function TransactionModal({
                   onTouchCancel={handleCancelPress}
                   className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer select-none transition-all ${
                     description === preset
-                      ? "bg-[#C084FC] text-white shadow-xs"
-                      : "bg-[#F8F5FB] text-[#332941] hover:bg-[#FAF5FF] border border-[#EFE8F6]"
+                      ? "bg-[#EB9AB2] text-white shadow-xs"
+                      : "bg-[#FFF5F8] text-[#5C435A] hover:bg-[#FFF5F8] border border-[#FCE4EC]"
                   }`}
                   title="กดเพื่อเลือก หรือ กดค้างเพื่อลบ"
                 >
@@ -350,7 +350,7 @@ export function TransactionModal({
                       e.stopPropagation();
                       handleDeletePreset(preset);
                     }}
-                    className="opacity-0 group-hover:opacity-100 text-[#9E94AD] hover:text-[#E11D48] transition-opacity ml-0.5"
+                    className="opacity-0 group-hover:opacity-100 text-[#BDA8BA] hover:text-[#FF8DA1] transition-opacity ml-0.5"
                     title="ลบ"
                   >
                     <X className="w-3 h-3" />
@@ -359,7 +359,7 @@ export function TransactionModal({
               ))}
 
               {currentPresets.length === 0 && !isAddingPreset && (
-                <span className="text-xs text-[#9E94AD] italic">
+                <span className="text-xs text-[#BDA8BA] italic">
                   (กด + เพื่อเพิ่มรายการลัด)
                 </span>
               )}
@@ -368,7 +368,7 @@ export function TransactionModal({
 
           {/* 3. รายละเอียดรายการ (ช่องโล่งๆ ไม่มีตัวอย่าง) */}
           <div>
-            <label className="block font-medium text-[#7B708A] mb-1 text-xs">
+            <label className="block font-medium text-[#9C8599] mb-1 text-xs">
               รายละเอียดรายการ
             </label>
             <input
@@ -376,14 +376,14 @@ export function TransactionModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder=""
-              className="w-full px-3 py-2 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C084FC] text-[#332941]"
+              className="w-full px-3 py-2 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EB9AB2] text-[#5C435A]"
             />
           </div>
 
           {/* 4. จำนวนเงิน & วันที่เกิดรายการ (2 columns as in Sketch) */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-[#7B708A] mb-1 text-xs">
+              <label className="block font-medium text-[#9C8599] mb-1 text-xs">
                 จำนวนเงิน
               </label>
               <input
@@ -393,34 +393,34 @@ export function TransactionModal({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="0.00"
-                className="w-full px-3 py-2 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C084FC] text-[#332941] font-semibold"
+                className="w-full px-3 py-2 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EB9AB2] text-[#5C435A] font-semibold"
               />
             </div>
             <div>
-              <label className="block font-medium text-[#7B708A] mb-1 text-xs">
+              <label className="block font-medium text-[#9C8599] mb-1 text-xs">
                 วันที่เกิดรายการ
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 bg-[#F8F5FB] border border-[#EFE8F6] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C084FC] text-[#332941]"
+                className="w-full px-3 py-2 bg-[#FFF5F8] border border-[#FCE4EC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EB9AB2] text-[#5C435A]"
               />
             </div>
           </div>
 
           {/* 5. Submit Actions: [ ยกเลิก ] [ บันทึก ] */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1EDF7]">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#FDF2F6]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-[#7B708A] hover:bg-[#F8F5FB] rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-medium text-[#9C8599] hover:bg-[#FFF5F8] rounded-xl transition-colors"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] rounded-xl shadow-pastel transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#EB9AB2] hover:bg-[#D9849D] rounded-xl shadow-pastel transition-colors"
             >
               บันทึก
             </button>
@@ -455,12 +455,12 @@ export function ConfirmModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
       <div className="pastel-card w-full max-w-sm bg-white p-5 shadow-pastel space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FFF1F2] text-[#E11D48] flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-[#FFF1F2] text-[#FF8DA1] flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-sm text-[#332941]">{title}</h4>
-            <p className="text-xs text-[#7B708A] mt-0.5">{message}</p>
+            <h4 className="font-bold text-sm text-[#5C435A]">{title}</h4>
+            <p className="text-xs text-[#9C8599] mt-0.5">{message}</p>
           </div>
         </div>
 
@@ -468,7 +468,7 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onCancel}
-            className="px-3.5 py-1.5 text-xs font-medium text-[#7B708A] hover:bg-[#F8F5FB] rounded-xl transition-colors"
+            className="px-3.5 py-1.5 text-xs font-medium text-[#9C8599] hover:bg-[#FFF5F8] rounded-xl transition-colors"
           >
             ยกเลิก
           </button>

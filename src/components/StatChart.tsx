@@ -229,32 +229,32 @@ export default function StatChart({ transactions }: StatChartProps) {
     : "";
 
   return (
-    <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-[#F1EDF7] space-y-4">
+    <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-[#FDF2F6] space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 className="text-[#332941] font-bold text-sm sm:text-base flex items-center gap-2">
-          <div className="w-2 h-6 bg-[#C084FC] rounded-full"></div>
+        <h2 className="text-[#5C435A] font-bold text-sm sm:text-base flex items-center gap-2">
+          <div className="w-2 h-6 bg-[#EB9AB2] rounded-full"></div>
           สรุปรายรับ-รายจ่าย {timeframe === "day" ? "รายวัน" : timeframe === "week" ? "รายสัปดาห์" : "รายเดือน"}
         </h2>
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap bg-[#FAF5FF] p-2 rounded-xl border border-[#E9D5FF]">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap bg-[#FFF5F8] p-2 rounded-xl border border-[#EFCFE3]">
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold text-[#7B708A]">ตั้งแต่:</label>
+            <label className="text-[11px] font-semibold text-[#9C8599]">ตั้งแต่:</label>
             <input 
               type="date" 
               value={startDate}
               onChange={(e) => handleDateChange("start", e.target.value)}
-              className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC]"
+              className="text-xs px-2 py-1 rounded-lg border border-[#FCE4EC] focus:outline-none focus:ring-1 focus:ring-[#EB9AB2]"
             />
           </div>
           <div className="flex items-center gap-2">
-            <label className="text-[11px] font-semibold text-[#7B708A]">ถึง:</label>
+            <label className="text-[11px] font-semibold text-[#9C8599]">ถึง:</label>
             <select
               value={endDate === "present" ? "present" : "custom"}
               onChange={(e) => {
                 if (e.target.value === "present") handleDateChange("end", "present");
                 else handleDateChange("end", getTodayISODate());
               }}
-              className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC] cursor-pointer bg-white"
+              className="text-xs px-2 py-1 rounded-lg border border-[#FCE4EC] focus:outline-none focus:ring-1 focus:ring-[#EB9AB2] cursor-pointer bg-white"
             >
               <option value="present">ปัจจุบัน</option>
               <option value="custom">กำหนดเอง...</option>
@@ -264,17 +264,17 @@ export default function StatChart({ transactions }: StatChartProps) {
                 type="date" 
                 value={endDate}
                 onChange={(e) => handleDateChange("end", e.target.value)}
-                className="text-xs px-2 py-1 rounded-lg border border-[#EFE8F6] focus:outline-none focus:ring-1 focus:ring-[#C084FC]"
+                className="text-xs px-2 py-1 rounded-lg border border-[#FCE4EC] focus:outline-none focus:ring-1 focus:ring-[#EB9AB2]"
               />
             )}
           </div>
         </div>
       </div>
 
-      <div className="relative bg-gradient-to-b from-[#FAF5FF]/50 to-white rounded-2xl border border-[#EFE8F6] flex">
+      <div className="relative bg-gradient-to-b from-[#FFF5F8]/50 to-white rounded-2xl border border-[#FCE4EC] flex">
         
         {/* FIXED Y-AXIS */}
-        <div className="w-[40px] flex-shrink-0 relative z-10 bg-white/80 backdrop-blur-sm border-r border-[#EFE8F6]/50 rounded-l-2xl py-2 sm:py-4 pointer-events-none">
+        <div className="w-[40px] flex-shrink-0 relative z-10 bg-white/80 backdrop-blur-sm border-r border-[#FCE4EC]/50 rounded-l-2xl py-2 sm:py-4 pointer-events-none">
            {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
              const y = paddingTop + innerHeight * (1 - ratio);
              const val = Math.round(maxVal * ratio);
@@ -313,7 +313,7 @@ export default function StatChart({ transactions }: StatChartProps) {
                 {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
                   const y = paddingTop + innerHeight * (1 - ratio);
                   return (
-                    <line key={i} x1="0" y1={y} x2={chartWidth} y2={y} stroke="#EFE8F6" strokeDasharray={ratio === 0 ? undefined : "3 3"} strokeWidth="1" />
+                    <line key={i} x1="0" y1={y} x2={chartWidth} y2={y} stroke="#FCE4EC" strokeDasharray={ratio === 0 ? undefined : "3 3"} strokeWidth="1" />
                   );
                 })}
 
@@ -329,10 +329,10 @@ export default function StatChart({ transactions }: StatChartProps) {
 
                   return (
                     <g key={i}>
-                      {isHovered && <line x1={incPt.x} y1={paddingTop} x2={incPt.x} y2={baselineY} stroke="#E9D5FF" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.8" />}
+                      {isHovered && <line x1={incPt.x} y1={paddingTop} x2={incPt.x} y2={baselineY} stroke="#EFCFE3" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.8" />}
                       <circle cx={incPt.x} cy={incPt.y} r={isHovered ? 5.5 : 4} fill="#FFFFFF" stroke="#10B981" strokeWidth={isHovered ? "3" : "2.5"} className="transition-all duration-200" />
                       <circle cx={expPt.x} cy={expPt.y} r={isHovered ? 5.5 : 4} fill="#FFFFFF" stroke="#F43F5E" strokeWidth={isHovered ? "3" : "2.5"} className="transition-all duration-200" />
-                      <text x={incPt.x} y={paddingTop + innerHeight + 18} textAnchor="middle" fill={isHovered ? "#332941" : "#7B708A"} fontSize="11" fontWeight={isHovered ? "bold" : "normal"} fontFamily="inherit">{d.label}</text>
+                      <text x={incPt.x} y={paddingTop + innerHeight + 18} textAnchor="middle" fill={isHovered ? "#5C435A" : "#9C8599"} fontSize="11" fontWeight={isHovered ? "bold" : "normal"} fontFamily="inherit">{d.label}</text>
                       <rect x={incPt.x - (innerWidth / (data.length - 1 || 1)) / 2} y={0} width={innerWidth / (data.length - 1 || 1)} height={chartHeight} fill="transparent" className="cursor-pointer" onMouseEnter={() => setHoveredIndex(i)} onMouseLeave={() => setHoveredIndex(null)} onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)} />
                     </g>
                   );
@@ -344,8 +344,8 @@ export default function StatChart({ transactions }: StatChartProps) {
         
         {/* FIXED Floating Tooltip */}
         {hoveredIndex !== null && data[hoveredIndex] && (
-          <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-[#E9D5FF] shadow-lg text-xs space-y-1 pointer-events-none transition-all">
-            <div className="font-bold text-[#332941] text-xs pb-1 border-b border-[#F1EDF7]">
+          <div className="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-[#EFCFE3] shadow-lg text-xs space-y-1 pointer-events-none transition-all">
+            <div className="font-bold text-[#5C435A] text-xs pb-1 border-b border-[#FDF2F6]">
               {data[hoveredIndex].fullLabel}
             </div>
             <div className="flex items-center justify-between gap-4 text-[#065F46]">
@@ -356,9 +356,9 @@ export default function StatChart({ transactions }: StatChartProps) {
               <span>รายจ่าย:</span>
               <span className="font-bold">-{formatCurrency(data[hoveredIndex].expense)}</span>
             </div>
-            <div className="flex items-center justify-between gap-4 text-[#7B708A] pt-1 border-t border-[#F1EDF7] font-medium">
+            <div className="flex items-center justify-between gap-4 text-[#9C8599] pt-1 border-t border-[#FDF2F6] font-medium">
               <span>สุทธิ:</span>
-              <span className="font-bold text-[#332941]">{formatCurrency(data[hoveredIndex].income - data[hoveredIndex].expense)}</span>
+              <span className="font-bold text-[#5C435A]">{formatCurrency(data[hoveredIndex].income - data[hoveredIndex].expense)}</span>
             </div>
           </div>
         )}
@@ -366,9 +366,9 @@ export default function StatChart({ transactions }: StatChartProps) {
       </div>
 
       <div className="flex items-center justify-center gap-2 pt-1">
-        <button type="button" onClick={() => { setTimeframe("day"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "day" ? "bg-[#332941] text-white" : "bg-[#F8F5FB] text-[#7B708A] hover:bg-[#EFE8F6]"}`}>รายวัน</button>
-        <button type="button" onClick={() => { setTimeframe("week"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "week" ? "bg-[#332941] text-white" : "bg-[#F8F5FB] text-[#7B708A] hover:bg-[#EFE8F6]"}`}>รายสัปดาห์</button>
-        <button type="button" onClick={() => { setTimeframe("month"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "month" ? "bg-[#332941] text-white" : "bg-[#F8F5FB] text-[#7B708A] hover:bg-[#EFE8F6]"}`}>รายเดือน</button>
+        <button type="button" onClick={() => { setTimeframe("day"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "day" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายวัน</button>
+        <button type="button" onClick={() => { setTimeframe("week"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "week" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายสัปดาห์</button>
+        <button type="button" onClick={() => { setTimeframe("month"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "month" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายเดือน</button>
       </div>
     </div>
   );

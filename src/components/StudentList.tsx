@@ -236,20 +236,20 @@ export default function StudentList({
     <div className="space-y-4 font-sans relative">
       {/* HEADER SECTION (Treasurer only) */}
       {mode === "treasurer-manage" && (
-        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F1EDF7] space-y-4">
+        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#FDF2F6] space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <h2 className="text-[#332941] font-bold flex items-center gap-2">
-              <div className="w-2 h-6 bg-[#C084FC] rounded-full"></div>
+            <h2 className="text-[#5C435A] font-bold flex items-center gap-2">
+              <div className="w-2 h-6 bg-[#EB9AB2] rounded-full"></div>
               เช็คชื่อรายวัน
             </h2>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <div className="relative flex-1 sm:flex-none">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#C084FC]" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#EB9AB2]" />
                 <input
                   type="date"
                   value={checkinDate}
                   onChange={(e) => setCheckinDate(e.target.value)}
-                  className="w-full sm:w-auto pl-9 pr-3 py-2 bg-[#FAF5FF] border border-[#E9D5FF] rounded-xl text-sm font-semibold text-[#332941] focus:outline-none focus:border-[#C084FC]"
+                  className="w-full sm:w-auto pl-9 pr-3 py-2 bg-[#FFF5F8] border border-[#EFCFE3] rounded-xl text-sm font-semibold text-[#5C435A] focus:outline-none focus:border-[#EB9AB2]"
                 />
               </div>
               <button
@@ -257,8 +257,8 @@ export default function StudentList({
                 onClick={() => setIsEditMode(!isEditMode)}
                 className={`p-2 rounded-xl border transition-colors ${
                   isEditMode 
-                    ? "bg-[#332941] border-[#332941] text-white" 
-                    : "bg-[#F8F5FB] border-[#EFE8F6] text-[#7B708A] hover:bg-[#EFE8F6]"
+                    ? "bg-[#5C435A] border-[#5C435A] text-white" 
+                    : "bg-[#FFF5F8] border-[#FCE4EC] text-[#9C8599] hover:bg-[#FCE4EC]"
                 }`}
                 title="จัดการรายชื่อ"
               >
@@ -268,17 +268,17 @@ export default function StudentList({
           </div>
           
           <div className="grid grid-cols-3 gap-2">
-            <div className="bg-[#F0FDF4] border border-[#BBF7D0] p-3 rounded-2xl flex flex-col items-center justify-center">
+            <div className="bg-[#EDF8F2] border border-[#BDECD2] p-3 rounded-2xl flex flex-col items-center justify-center">
               <span className="text-[#166534] text-xs font-bold mb-1">จ่ายแล้ว</span>
-              <span className="text-xl font-black text-[#15803D]">{paidCount}</span>
+              <span className="text-xl font-black text-[#5A967C]">{paidCount}</span>
             </div>
-            <div className="bg-[#FEF2F2] border border-[#FECDD3] p-3 rounded-2xl flex flex-col items-center justify-center">
+            <div className="bg-[#FFF0F3] border border-[#FFC4D0] p-3 rounded-2xl flex flex-col items-center justify-center">
               <span className="text-[#9F1239] text-xs font-bold mb-1">ยังไม่จ่าย</span>
-              <span className="text-xl font-black text-[#BE123C]">{unpaidCount}</span>
+              <span className="text-xl font-black text-[#E57388]">{unpaidCount}</span>
             </div>
-            <div className="bg-[#FAF5FF] border border-[#E9D5FF] p-3 rounded-2xl flex flex-col items-center justify-center">
+            <div className="bg-[#FFF5F8] border border-[#EFCFE3] p-3 rounded-2xl flex flex-col items-center justify-center">
               <span className="text-[#6B21A8] text-xs font-bold mb-1">ยอดรวมวันนี้</span>
-              <span className="text-xl font-black text-[#7E22CE] truncate w-full text-center">
+              <span className="text-xl font-black text-[#D65A80] truncate w-full text-center">
                 {formatCurrency(totalFundCalculated, false)}
               </span>
             </div>
@@ -287,30 +287,30 @@ export default function StudentList({
       )}
 
       {/* LIST SECTION */}
-      <div className="bg-white rounded-3xl shadow-sm border border-[#F1EDF7] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-3xl shadow-sm border border-[#FDF2F6] overflow-hidden flex flex-col">
         {/* Toolbar */}
-        <div className="p-3 sm:p-4 border-b border-[#F1EDF7] space-y-3 bg-white z-10 shrink-0">
+        <div className="p-3 sm:p-4 border-b border-[#FDF2F6] space-y-3 bg-white z-10 shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9E94AD]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#BDA8BA]" />
             <input
               type="text"
               placeholder="ค้นหาชื่อ หรือ เลขที่..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-[#F8F5FB] border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#E9D5FF] text-[#332941]"
+              className="w-full pl-9 pr-4 py-2.5 bg-[#FFF5F8] border-none rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#EFCFE3] text-[#5C435A]"
             />
           </div>
 
           {mode === "treasurer-manage" && !isEditMode && (
-            <div className="flex bg-[#F8F5FB] p-1 rounded-xl">
+            <div className="flex bg-[#FFF5F8] p-1 rounded-xl">
               {(["all", "paid", "unpaid"] as const).map(status => (
                 <button
                   key={status}
                   onClick={() => setFilterStatus(status)}
                   className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
                     filterStatus === status 
-                      ? "bg-white text-[#9333EA] shadow-xs" 
-                      : "text-[#7B708A] hover:text-[#332941]"
+                      ? "bg-white text-[#E27396] shadow-xs" 
+                      : "text-[#9C8599] hover:text-[#5C435A]"
                   }`}
                 >
                   {status === "all" ? "ทั้งหมด" : status === "paid" ? "จ่ายแล้ว" : "ยังไม่จ่าย"}
@@ -323,7 +323,7 @@ export default function StudentList({
             <button
               type="button"
               onClick={() => setIsAddingStudent(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#FAF5FF] text-[#9333EA] hover:bg-[#F3E8FF] rounded-xl text-sm font-bold transition-colors border border-[#E9D5FF] border-dashed"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#FFF5F8] text-[#E27396] hover:bg-[#FCE4EC] rounded-xl text-sm font-bold transition-colors border border-[#EFCFE3] border-dashed"
             >
               <Plus className="w-4 h-4" />
               เพิ่มรายชื่อนักเรียน
@@ -331,8 +331,8 @@ export default function StudentList({
           )}
 
           {isAddingStudent && (
-            <div className="flex items-center gap-2 p-2 bg-[#F8F5FB] rounded-xl border border-[#EFE8F6]">
-              <div className="w-7 h-7 rounded-lg bg-[#E9D5FF] text-[#7E22CE] flex items-center justify-center text-xs font-bold shrink-0">
+            <div className="flex items-center gap-2 p-2 bg-[#FFF5F8] rounded-xl border border-[#FCE4EC]">
+              <div className="w-7 h-7 rounded-lg bg-[#EFCFE3] text-[#D65A80] flex items-center justify-center text-xs font-bold shrink-0">
                 {students.length + 1}
               </div>
               <input
@@ -348,24 +348,24 @@ export default function StudentList({
                 className="flex-1 px-2 py-1.5 text-sm bg-white border border-[#D8B4FE] rounded-lg focus:outline-none"
               />
               <div className="flex items-center gap-1 shrink-0">
-                <button onClick={handleAddStudent} className="p-1.5 bg-[#22C55E] text-white rounded-lg hover:bg-[#16A34A]"><Check className="w-4 h-4" /></button>
-                <button onClick={() => setIsAddingStudent(false)} className="p-1.5 bg-white text-[#7B708A] border border-[#EFE8F6] rounded-lg hover:bg-[#F1EDF7]"><X className="w-4 h-4" /></button>
+                <button onClick={handleAddStudent} className="p-1.5 bg-[#88D4AB] text-white rounded-lg hover:bg-[#76BFA0]"><Check className="w-4 h-4" /></button>
+                <button onClick={() => setIsAddingStudent(false)} className="p-1.5 bg-white text-[#9C8599] border border-[#FCE4EC] rounded-lg hover:bg-[#FDF2F6]"><X className="w-4 h-4" /></button>
               </div>
             </div>
           )}
         </div>
 
         {/* Scrollable List */}
-        <div className="p-2 sm:p-3 space-y-1 bg-[#F8F5FB]/50">
+        <div className="p-2 sm:p-3 space-y-1 bg-[#FFF5F8]/50">
           {isDataNotRecorded ? (
-            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3 py-10">
+            <div className="h-full flex flex-col items-center justify-center text-[#BDA8BA] space-y-3 py-10">
               <Calendar className="w-12 h-12 opacity-20" />
               <span className="text-sm font-medium text-center leading-relaxed">
                 ไม่มีการบันทึกข้อมูล<br/>ของวันที่ {formatThaiDate(checkinDate)}
               </span>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3 py-10">
+            <div className="h-full flex flex-col items-center justify-center text-[#BDA8BA] space-y-3 py-10">
               <Users className="w-12 h-12 opacity-20" />
               <span className="text-sm font-medium">ไม่พบรายชื่อ</span>
             </div>
@@ -378,18 +378,18 @@ export default function StudentList({
                   onClick={() => !isEditMode && handleToggleCheckin(student.id)}
                   className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition-all ${
                     isPaid && !isEditMode
-                      ? "bg-[#F0FDF4] border border-[#BBF7D0]"
+                      ? "bg-[#EDF8F2] border border-[#BDECD2]"
                       : isEditMode
-                      ? "bg-white border border-[#EFE8F6]"
-                      : "bg-white border border-transparent hover:border-[#EFE8F6] cursor-pointer shadow-xs"
+                      ? "bg-white border border-[#FCE4EC]"
+                      : "bg-white border border-transparent hover:border-[#FCE4EC] cursor-pointer shadow-xs"
                   }`}
                 >
                   {/* Left Side */}
                   <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${
                       isPaid && !isEditMode
-                        ? "bg-[#22C55E] text-white shadow-xs"
-                        : "bg-[#F1EDF7] text-[#7B708A]"
+                        ? "bg-[#88D4AB] text-white shadow-xs"
+                        : "bg-[#FDF2F6] text-[#9C8599]"
                     }`}>
                       {student.rollNumber}
                     </div>
@@ -400,18 +400,18 @@ export default function StudentList({
                           type="text"
                           value={editingName}
                           onChange={e => setEditingName(e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-[#C084FC] rounded-lg focus:outline-none"
+                          className="w-full px-2 py-1 text-sm border border-[#EB9AB2] rounded-lg focus:outline-none"
                           autoFocus
                           onKeyDown={e => {
                             if (e.key === "Enter") handleSaveEditStudent(student.id);
                             else if (e.key === "Escape") setEditingStudentId(null);
                           }}
                         />
-                        <button onClick={() => handleSaveEditStudent(student.id)} className="p-1 bg-[#22C55E] text-white rounded-md"><Check className="w-4 h-4" /></button>
-                        <button onClick={() => setEditingStudentId(null)} className="p-1 bg-[#F1EDF7] text-[#7B708A] rounded-md"><X className="w-4 h-4" /></button>
+                        <button onClick={() => handleSaveEditStudent(student.id)} className="p-1 bg-[#88D4AB] text-white rounded-md"><Check className="w-4 h-4" /></button>
+                        <button onClick={() => setEditingStudentId(null)} className="p-1 bg-[#FDF2F6] text-[#9C8599] rounded-md"><X className="w-4 h-4" /></button>
                       </div>
                     ) : (
-                      <div className="text-sm font-bold text-[#332941] truncate">
+                      <div className="text-sm font-bold text-[#5C435A] truncate">
                         {student.name}
                       </div>
                     )}
@@ -420,22 +420,22 @@ export default function StudentList({
                   {/* Right Side */}
                   {isEditMode ? (
                     <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
-                      <div className="flex flex-col bg-[#F8F5FB] rounded-lg border border-[#EFE8F6]">
-                        <button onClick={() => handleMoveStudent(index, index - 1)} disabled={index === 0} className="p-0.5 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20"><ChevronUp className="w-4 h-4" /></button>
-                        <button onClick={() => handleMoveStudent(index, index + 1)} disabled={index === students.length - 1} className="p-0.5 text-[#7B708A] hover:text-[#9333EA] disabled:opacity-20"><ChevronDown className="w-4 h-4" /></button>
+                      <div className="flex flex-col bg-[#FFF5F8] rounded-lg border border-[#FCE4EC]">
+                        <button onClick={() => handleMoveStudent(index, index - 1)} disabled={index === 0} className="p-0.5 text-[#9C8599] hover:text-[#E27396] disabled:opacity-20"><ChevronUp className="w-4 h-4" /></button>
+                        <button onClick={() => handleMoveStudent(index, index + 1)} disabled={index === students.length - 1} className="p-0.5 text-[#9C8599] hover:text-[#E27396] disabled:opacity-20"><ChevronDown className="w-4 h-4" /></button>
                       </div>
-                      <button onClick={() => { setEditingStudentId(student.id); setEditingName(student.name); }} className="p-2 text-[#7B708A] hover:bg-[#F3E8FF] hover:text-[#9333EA] rounded-xl"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => setConfirmDeleteId(student.id)} className="p-2 text-[#7B708A] hover:bg-[#FEF2F2] hover:text-[#E11D48] rounded-xl"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => { setEditingStudentId(student.id); setEditingName(student.name); }} className="p-2 text-[#9C8599] hover:bg-[#FCE4EC] hover:text-[#E27396] rounded-xl"><Pencil className="w-4 h-4" /></button>
+                      <button onClick={() => setConfirmDeleteId(student.id)} className="p-2 text-[#9C8599] hover:bg-[#FFF0F3] hover:text-[#FF8DA1] rounded-xl"><Trash2 className="w-4 h-4" /></button>
                     </div>
                   ) : (
                     <div className="shrink-0">
                       {isPaid ? (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#22C55E] text-white rounded-xl text-xs font-bold shadow-xs">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#88D4AB] text-white rounded-xl text-xs font-bold shadow-xs">
                           <CheckCircle2 className="w-4 h-4" /> ชำระแล้ว
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F8F5FB] text-[#7B708A] border border-[#EFE8F6] rounded-xl text-xs font-bold">
-                          <div className="w-3.5 h-3.5 rounded-full border-2 border-[#9E94AD]" /> ยังไม่ชำระ
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF5F8] text-[#9C8599] border border-[#FCE4EC] rounded-xl text-xs font-bold">
+                          <div className="w-3.5 h-3.5 rounded-full border-2 border-[#BDA8BA]" /> ยังไม่ชำระ
                         </div>
                       )}
                     </div>
@@ -449,21 +449,21 @@ export default function StudentList({
 
       {/* FOOTER ACTIONS (Treasurer only) */}
       {mode === "treasurer-manage" && (
-        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#F1EDF7] space-y-4">
-          <label className="flex items-center gap-3 p-3 rounded-2xl bg-[#F8F5FB] border border-[#EFE8F6] cursor-pointer hover:border-[#E9D5FF] transition-colors">
+        <div className="bg-white p-4 rounded-3xl shadow-sm border border-[#FDF2F6] space-y-4">
+          <label className="flex items-center gap-3 p-3 rounded-2xl bg-[#FFF5F8] border border-[#FCE4EC] cursor-pointer hover:border-[#EFCFE3] transition-colors">
             <input
               type="checkbox"
               checked={recordAsTransaction}
               onChange={(e) => setRecordAsTransaction(e.target.checked)}
-              className="w-5 h-5 rounded border-[#C084FC] text-[#9333EA] focus:ring-[#E9D5FF]"
+              className="w-5 h-5 rounded border-[#EB9AB2] text-[#E27396] focus:ring-[#EFCFE3]"
             />
-            <span className="text-sm font-semibold text-[#332941]">
+            <span className="text-sm font-semibold text-[#5C435A]">
               บันทึกเป็นรายรับลงในบัญชีอัตโนมัติ
             </span>
           </label>
 
           {successNotice && (
-            <div className="p-3 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] text-sm font-bold flex items-center justify-center gap-2">
+            <div className="p-3 rounded-2xl bg-[#EDF8F2] border border-[#BDECD2] text-[#5A967C] text-sm font-bold flex items-center justify-center gap-2">
               <CheckCircle2 className="w-5 h-5" />
               {successNotice}
             </div>
@@ -474,8 +474,8 @@ export default function StudentList({
               onClick={handleToggleAll}
               className={`px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shrink-0 ${
                 isAllPaid
-                  ? "bg-white text-[#E11D48] border border-[#FECDD3] hover:bg-[#FEF2F2]"
-                  : "bg-white text-[#22C55E] border border-[#BBF7D0] hover:bg-[#F0FDF4]"
+                  ? "bg-white text-[#FF8DA1] border border-[#FFC4D0] hover:bg-[#FFF0F3]"
+                  : "bg-white text-[#88D4AB] border border-[#BDECD2] hover:bg-[#EDF8F2]"
               }`}
             >
               {isAllPaid ? (
@@ -493,7 +493,7 @@ export default function StudentList({
             <button
               onClick={handleSaveCheckin}
               disabled={isSaving}
-              className="flex-1 py-3 bg-[#9333EA] hover:bg-[#7E22CE] text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50"
+              className="flex-1 py-3 bg-[#E27396] hover:bg-[#D65A80] text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm transition-all disabled:opacity-50"
             >
               {isSaving ? (
                 "กำลังบันทึก..."

@@ -110,7 +110,7 @@ export default function RoomDashboardPage({
 
   if (!roomData) {
     return (
-      <div className="flex items-center justify-center py-20 text-xs text-[#7B708A]">
+      <div className="flex items-center justify-center py-20 text-xs text-[#9C8599]">
         กำลังโหลด...
       </div>
     );
@@ -124,16 +124,16 @@ export default function RoomDashboardPage({
   return (
     <div className="space-y-5 animate-fadeIn max-w-4xl mx-auto">
       {/* Top Banner (Minimalist) */}
-      <div className="pastel-card p-4 sm:p-5 bg-white border border-[#E9D5FF] flex items-center justify-between gap-4">
+      <div className="pastel-card p-4 sm:p-5 bg-white border border-[#EFCFE3] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-2xl bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3] flex items-center justify-center flex-shrink-0">
             <School className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg sm:text-xl font-bold text-[#332941] flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-bold text-[#5C435A] flex items-center gap-2">
               ห้อง {displayName}
               {isSuperAdmin && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] flex items-center gap-1 shadow-xs">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#FFF1F2] text-[#FF8DA1] border border-[#FFC4D0] flex items-center gap-1 shadow-xs">
                   <ShieldCheck className="w-3 h-3" />
                   Super Admin
                 </span>
@@ -146,7 +146,7 @@ export default function RoomDashboardPage({
           <button
             type="button"
             onClick={() => setShowManualModal(true)}
-            className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl text-[#9333EA] bg-[#FAF5FF] hover:bg-[#F3E8FF] border border-[#E9D5FF] transition-all"
+            className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-xl text-[#E27396] bg-[#FFF5F8] hover:bg-[#FCE4EC] border border-[#EFCFE3] transition-all"
             title="คู่มือการใช้งาน"
           >
             <BookOpen className="w-4 h-4" />
@@ -155,7 +155,7 @@ export default function RoomDashboardPage({
           <button
             type="button"
             onClick={handleExitRoom}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-[#7B708A] hover:text-[#E11D48] bg-white hover:bg-[#FFF1F2] border border-[#EFE8F6] shadow-xs transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-[#9C8599] hover:text-[#FF8DA1] bg-white hover:bg-[#FFF1F2] border border-[#FCE4EC] shadow-xs transition-all"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">{isSuperAdmin ? "กลับหน้าแอดมิน" : "ออกจากระบบ"}</span>
@@ -163,7 +163,7 @@ export default function RoomDashboardPage({
           </button>
           <Link
             href={`/${roomSlug}/treasurer`}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#C084FC] hover:bg-[#A855F7] shadow-pastel transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#EB9AB2] hover:bg-[#D9849D] shadow-pastel transition-all"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>เหรัญญิก</span>
@@ -172,16 +172,16 @@ export default function RoomDashboardPage({
       </div>
 
       {/* 1. Top Card: ยอดเงินคงเหลือ (Prominent Large Card as in User Sketch) */}
-      <div className="pastel-card p-6 sm:p-8 bg-white border border-[#E9D5FF] text-center shadow-xs">
+      <div className="pastel-card p-6 sm:p-8 bg-white border border-[#EFCFE3] text-center shadow-xs">
         <div className="inline-flex items-center justify-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-xl bg-[#FAF5FF] text-[#C084FC] border border-[#E9D5FF] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#FFF5F8] text-[#EB9AB2] border border-[#EFCFE3] flex items-center justify-center">
             <Wallet className="w-4 h-4" />
           </div>
-          <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
+          <span className="text-xs sm:text-sm font-semibold text-[#9C8599]">
             ยอดเงินคงเหลือ
           </span>
         </div>
-        <div className="text-3xl sm:text-5xl font-extrabold text-[#332941] tracking-tight">
+        <div className="text-3xl sm:text-5xl font-extrabold text-[#5C435A] tracking-tight">
           {formatCurrency(summary.totalBalance)}
         </div>
       </div>
@@ -189,31 +189,31 @@ export default function RoomDashboardPage({
       {/* 2. Side-by-Side Cards: รายรับรวม & รายจ่ายรวม (2 Columns as in Sketch) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {/* Total Income */}
-        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#BBF7D0]/80">
+        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#BDECD2]/80">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
+            <span className="text-xs sm:text-sm font-semibold text-[#9C8599]">
               รายรับรวม
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#ECFDF5] text-[#059669] border border-[#A7F3D0] flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#ECFDF5] text-[#76BFA0] border border-[#A7F3D0] flex items-center justify-center">
               <ArrowDownLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#059669] tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#76BFA0] tracking-tight">
             +{formatCurrency(summary.totalIncome)}
           </div>
         </div>
 
         {/* Total Expense */}
-        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#FECDD3]/80">
+        <div className="pastel-card p-4 sm:p-5 bg-white border border-[#FFC4D0]/80">
           <div className="flex items-center justify-between">
-            <span className="text-xs sm:text-sm font-semibold text-[#7B708A]">
+            <span className="text-xs sm:text-sm font-semibold text-[#9C8599]">
               รายจ่ายรวม
             </span>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#FFF1F2] text-[#E11D48] border border-[#FECDD3] flex items-center justify-center">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#FFF1F2] text-[#FF8DA1] border border-[#FFC4D0] flex items-center justify-center">
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#E11D48] tracking-tight">
+          <div className="mt-2 text-xl sm:text-3xl font-extrabold text-[#FF8DA1] tracking-tight">
             -{formatCurrency(summary.totalExpense)}
           </div>
         </div>
@@ -222,18 +222,18 @@ export default function RoomDashboardPage({
       {/* 3. Class Fund Progress Bar: การเก็บเงินห้อง (เหมือนเดิม) */}
       <div className="pastel-card p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3 mb-3">
-          <h3 className="font-bold text-xs sm:text-sm text-[#332941]">
+          <h3 className="font-bold text-xs sm:text-sm text-[#5C435A]">
             การเก็บเงินห้อง ({summary.collectionRate}%)
           </h3>
 
           <div className="flex items-center gap-3 text-xs font-semibold">
-            <span className="text-[#059669]">ชำระแล้ว {summary.paidCount}</span>
-            <span className="text-[#E11D48]">ค้าง {summary.unpaidCount}</span>
+            <span className="text-[#76BFA0]">ชำระแล้ว {summary.paidCount}</span>
+            <span className="text-[#FF8DA1]">ค้าง {summary.unpaidCount}</span>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-[#F1EDF7] h-3 rounded-full overflow-hidden flex">
+        <div className="w-full bg-[#FDF2F6] h-3 rounded-full overflow-hidden flex">
           <div
             className="h-full bg-gradient-to-r from-[#50F2C8] to-[#10B981] transition-all duration-500"
             style={{ width: `${summary.collectionRate}%` }}
@@ -255,20 +255,20 @@ export default function RoomDashboardPage({
             onClick={() => setActiveTab("stats")}
             className={`relative flex items-center gap-2 rounded-t-2xl font-bold transition-all duration-300 select-none ${
               activeTab === "stats"
-                ? "bg-white text-[#9333EA] border-t-2 border-x-2 border-[#E9D5FF] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
-                : "bg-[#F3E8FF]/70 hover:bg-[#F3E8FF] text-[#7B708A] hover:text-[#332941] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
+                ? "bg-white text-[#E27396] border-t-2 border-x-2 border-[#EFCFE3] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
+                : "bg-[#FCE4EC]/70 hover:bg-[#FCE4EC] text-[#9C8599] hover:text-[#5C435A] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
             }`}
           >
             <BarChart3
               className={
                 activeTab === "stats"
-                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#9333EA]"
-                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B708A]"
+                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#E27396]"
+                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#9C8599]"
               }
             />
             <span>สถิติ</span>
             {activeTab === "stats" && (
-              <span className="w-2 h-2 rounded-full bg-[#9333EA]" />
+              <span className="w-2 h-2 rounded-full bg-[#E27396]" />
             )}
           </button>
 
@@ -278,26 +278,26 @@ export default function RoomDashboardPage({
             onClick={() => setActiveTab("history")}
             className={`relative flex items-center gap-2 rounded-t-2xl font-bold transition-all duration-300 select-none ${
               activeTab === "history"
-                ? "bg-white text-[#9333EA] border-t-2 border-x-2 border-[#E9D5FF] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
-                : "bg-[#F3E8FF]/70 hover:bg-[#F3E8FF] text-[#7B708A] hover:text-[#332941] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
+                ? "bg-white text-[#E27396] border-t-2 border-x-2 border-[#EFCFE3] pt-3.5 pb-2.5 sm:pt-4 sm:pb-3 px-5 sm:px-8 text-sm sm:text-base z-10 -mb-[2px] shadow-xs"
+                : "bg-[#FCE4EC]/70 hover:bg-[#FCE4EC] text-[#9C8599] hover:text-[#5C435A] pt-2 pb-2 px-4 sm:px-6 text-xs sm:text-sm z-0"
             }`}
           >
             <History
               className={
                 activeTab === "history"
-                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#9333EA]"
-                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7B708A]"
+                  ? "w-4 h-4 sm:w-5 sm:h-5 text-[#E27396]"
+                  : "w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#9C8599]"
               }
             />
             <span>ประวัติ</span>
             {activeTab === "history" && (
-              <span className="w-2 h-2 rounded-full bg-[#9333EA]" />
+              <span className="w-2 h-2 rounded-full bg-[#E27396]" />
             )}
           </button>
         </div>
 
         {/* Tab Content Box: Seamlessly connected with the active tab */}
-        <div className="pastel-card p-4 sm:p-6 bg-white border-2 border-[#E9D5FF] rounded-b-2xl rounded-tr-2xl relative z-0">
+        <div className="pastel-card p-4 sm:p-6 bg-white border-2 border-[#EFCFE3] rounded-b-2xl rounded-tr-2xl relative z-0">
           {activeTab === "stats" ? (
             /* Tab Content: สถิติ (Interactive Curve Chart with Week/Month/Term) */
             <StatChart transactions={roomData.transactions || []} />
@@ -307,13 +307,13 @@ export default function RoomDashboardPage({
               {/* Today's Unpaid Students Section */}
               <div>
                 {!hasRecordedToday ? (
-                  <div className="pastel-card p-4 sm:p-5 bg-white border border-[#E9D5FF] rounded-2xl flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-2xl bg-[#FAF5FF] text-[#9333EA] border border-[#E9D5FF] flex items-center justify-center flex-shrink-0">
+                  <div className="pastel-card p-4 sm:p-5 bg-white border border-[#EFCFE3] rounded-2xl flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-2xl bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3] flex items-center justify-center flex-shrink-0">
                       <Calendar className="w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-xs text-[#7B708A] font-medium">สถานะเงินห้องประจำวัน</div>
-                      <div className="text-xs sm:text-sm font-bold text-[#332941]">
+                      <div className="text-xs text-[#9C8599] font-medium">สถานะเงินห้องประจำวัน</div>
+                      <div className="text-xs sm:text-sm font-bold text-[#5C435A]">
                         ไม่มีข้อมูลบันทึกเงินห้องสำหรับวันที่: {formatThaiDate(today)}
                       </div>
                     </div>
@@ -321,8 +321,8 @@ export default function RoomDashboardPage({
                 ) : (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-[#7B708A] flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-[#C084FC]" />
+                      <span className="text-xs font-semibold text-[#9C8599] flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5 text-[#EB9AB2]" />
                         <span>รายชื่อนักเรียนค้างชำระวันนี้ ({summary.unpaidCount} คน)</span>
                       </span>
                     </div>
@@ -337,7 +337,7 @@ export default function RoomDashboardPage({
               </div>
 
               {/* Transaction History Table */}
-              <div className="pt-2 border-t border-[#F1EDF7]">
+              <div className="pt-2 border-t border-[#FDF2F6]">
                 <TransactionTable
                   transactions={roomData.transactions || []}
                   students={roomData.students || []}

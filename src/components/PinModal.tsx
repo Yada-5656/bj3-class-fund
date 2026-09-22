@@ -109,20 +109,20 @@ export default function PinModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F8F5FB]/90 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#FFF5F8]/90 backdrop-blur-md">
       <div
         className={`pastel-card w-full max-w-sm bg-white p-6 shadow-pastel space-y-5 text-center ${
           shake ? "animate-bounce" : ""
         }`}
       >
         {/* Lock Icon */}
-        <div className="w-14 h-14 mx-auto rounded-3xl bg-gradient-to-tr from-[#C084FC] to-[#A855F7] text-white flex items-center justify-center shadow-pastel">
+        <div className="w-14 h-14 mx-auto rounded-3xl bg-gradient-to-tr from-[#EB9AB2] to-[#D9849D] text-white flex items-center justify-center shadow-pastel">
           <Lock className="w-7 h-7" />
         </div>
 
         {/* Title */}
         <div>
-          <h2 className="text-lg font-bold text-[#332941]">
+          <h2 className="text-lg font-bold text-[#5C435A]">
             เหรัญญิก ({displayName})
           </h2>
         </div>
@@ -137,7 +137,7 @@ export default function PinModal({
               key={index}
               className={`w-3.5 h-3.5 rounded-full border-2 transition-all ${
                 pin.length > index
-                  ? "bg-[#C084FC] border-[#C084FC] scale-110 shadow-xs"
+                  ? "bg-[#EB9AB2] border-[#EB9AB2] scale-110 shadow-xs"
                   : "border-[#D8B4FE] bg-transparent"
               }`}
             />
@@ -146,7 +146,7 @@ export default function PinModal({
 
         {/* Error Message */}
         {error && (
-          <div className="text-xs text-[#E11D48] bg-[#FFF1F2] border border-[#FECDD3] py-1.5 px-3 rounded-xl flex items-center justify-center gap-1.5">
+          <div className="text-xs text-[#FF8DA1] bg-[#FFF1F2] border border-[#FFC4D0] py-1.5 px-3 rounded-xl flex items-center justify-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{error}</span>
           </div>
@@ -159,7 +159,7 @@ export default function PinModal({
               key={digit}
               type="button"
               onClick={() => handleKeyPress(digit)}
-              className="w-16 h-12 mx-auto rounded-2xl bg-[#F8F5FB] hover:bg-[#FAF5FF] hover:border-[#C084FC] border border-[#EFE8F6] text-lg font-bold text-[#332941] transition-all active:scale-95 flex items-center justify-center"
+              className="w-16 h-12 mx-auto rounded-2xl bg-[#FFF5F8] hover:bg-[#FFF5F8] hover:border-[#EB9AB2] border border-[#FCE4EC] text-lg font-bold text-[#5C435A] transition-all active:scale-95 flex items-center justify-center"
             >
               {digit}
             </button>
@@ -167,31 +167,31 @@ export default function PinModal({
           <button
             type="button"
             onClick={handleClear}
-            className="w-16 h-12 mx-auto rounded-2xl bg-[#FAF5FF] hover:bg-[#F3E8FF] text-xs font-semibold text-[#9333EA] transition-all active:scale-95 flex items-center justify-center"
+            className="w-16 h-12 mx-auto rounded-2xl bg-[#FFF5F8] hover:bg-[#FCE4EC] text-xs font-semibold text-[#E27396] transition-all active:scale-95 flex items-center justify-center"
           >
             ล้าง
           </button>
           <button
             type="button"
             onClick={() => handleKeyPress("0")}
-            className="w-16 h-12 mx-auto rounded-2xl bg-[#F8F5FB] hover:bg-[#FAF5FF] hover:border-[#C084FC] border border-[#EFE8F6] text-lg font-bold text-[#332941] transition-all active:scale-95 flex items-center justify-center"
+            className="w-16 h-12 mx-auto rounded-2xl bg-[#FFF5F8] hover:bg-[#FFF5F8] hover:border-[#EB9AB2] border border-[#FCE4EC] text-lg font-bold text-[#5C435A] transition-all active:scale-95 flex items-center justify-center"
           >
             0
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="w-16 h-12 mx-auto rounded-2xl bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#E11D48] transition-all active:scale-95 flex items-center justify-center"
+            className="w-16 h-12 mx-auto rounded-2xl bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#FF8DA1] transition-all active:scale-95 flex items-center justify-center"
           >
             <Delete className="w-5 h-5" />
           </button>
         </div>
 
         {/* Back Button */}
-        <div className="pt-2 border-t border-[#F1EDF7] space-y-2">
+        <div className="pt-2 border-t border-[#FDF2F6] space-y-2">
           <Link
             href={`/${roomSlug}`}
-            className="inline-flex items-center gap-1.5 text-xs text-[#7B708A] hover:text-[#332941]"
+            className="inline-flex items-center gap-1.5 text-xs text-[#9C8599] hover:text-[#5C435A]"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>แดชบอร์ด</span>
