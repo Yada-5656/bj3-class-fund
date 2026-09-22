@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Student } from "@/lib/db";
 import { ConfirmModal } from "@/components/Modals";
-import { formatCurrency, getTodayISODate } from "@/lib/utils";
+import { formatCurrency, getTodayISODate, formatThaiDate } from "@/lib/utils";
 import {
   Search,
   RotateCcw,
@@ -229,6 +229,8 @@ export default function StudentList({
     handleAutoPersistRoster(reindexed);
   };
 
+  const isDataNotRecorded = mode === "public-unpaid" && checkinHistory[checkinDate] === undefined;
+
   // --- RENDER ---
   return (
     <div className="space-y-4 font-sans relative">
@@ -355,8 +357,15 @@ export default function StudentList({
 
         {/* Scrollable List */}
         <div className="p-2 sm:p-3 space-y-1 bg-[#F8F5FB]/50">
-          {filteredStudents.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3">
+          {isDataNotRecorded ? (
+            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3 py-10">
+              <Calendar className="w-12 h-12 opacity-20" />
+              <span className="text-sm font-medium text-center leading-relaxed">
+                ไม่มีการบันทึกข้อมูล<br/>ของวันที่ {formatThaiDate(checkinDate)}
+              </span>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-[#9E94AD] space-y-3 py-10">
               <Users className="w-12 h-12 opacity-20" />
               <span className="text-sm font-medium">ไม่พบรายชื่อ</span>
             </div>
