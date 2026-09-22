@@ -509,15 +509,7 @@ export default function StudentList({
         onCancel={() => setConfirmDeleteId(null)}
       />
 
-      {/* Toggle All Confirmation Modal */}
-      <ConfirmModal
-        isOpen={!!confirmToggleAction}
-        title={confirmToggleAction === "pay_all" ? "ยืนยันชำระทั้งหมด" : "ยืนยันยกเลิกชำระทั้งหมด"}
-        message={confirmToggleAction === "pay_all" ? "แน่ใจหรือไม่ที่จะทำเครื่องหมายว่า 'ทุกคนจ่ายแล้ว' สำหรับวันนี้?" : "แน่ใจหรือไม่ที่จะ 'ยกเลิกการชำระเงินของทุกคน' สำหรับวันนี้?"}
-        confirmText="ยืนยัน"
-        onConfirm={handleToggleAll}
-        onCancel={() => setConfirmToggleAction(null)}
-      />
+      
     </div>
   );
 }
