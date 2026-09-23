@@ -65,7 +65,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
               <div className="space-y-3">
                 <h3 className="font-bold text-[#5C435A] flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] flex items-center justify-center text-[#E27396] text-xs">1</span>
+                  <span className="w-6 h-6 rounded-full bg-[#E5F6FA] text-[#77C1D1] flex items-center justify-center text-xs">1</span>
                   วิธีดูยอดเงินและสถานะการจ่าย
                 </h3>
                 <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
@@ -85,7 +85,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
 
               <div className="space-y-3">
                 <h3 className="font-bold text-[#5C435A] flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] flex items-center justify-center text-[#E27396] text-xs">2</span>
+                  <span className="w-6 h-6 rounded-full bg-[#FFFDE8] text-[#D9A619] flex items-center justify-center text-xs">2</span>
                   การอ่านกราฟรายรับ-รายจ่าย
                 </h3>
                 <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87] space-y-2">
@@ -101,17 +101,17 @@ export default function ManualModal({ onClose }: ManualModalProps) {
             <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
               <div className="space-y-3">
                 <h3 className="font-bold text-[#5C435A] flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] flex items-center justify-center text-[#E27396] text-xs">1</span>
+                  <span className="w-6 h-6 rounded-full bg-[#EDF8F2] text-[#76BFA0] flex items-center justify-center text-xs">1</span>
                   วิธีล็อกอินเข้าสู่โหมดเหรัญญิก
                 </h3>
                 <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
-                  กดปุ่ม <strong>&quot;ล็อกอินเหรัญญิก&quot;</strong> หรือไอคอนฟันเฟืองที่มุมขวาบนของหน้าห้องเรียน รหัสผ่านเริ่มต้นคือ <strong>1234</strong> (แนะนำให้เปลี่ยนรหัสผ่านในหน้าตั้งค่า)
+                  กดปุ่ม <strong>&quot;ล็อกอินเหรัญญิก&quot;</strong> หรือไอคอนฟันเฟืองที่มุมขวาบนของหน้าห้องเรียน และกรอกรหัสผ่านที่คุณได้ตั้งไว้
                 </div>
               </div>
 
               <div className="space-y-3">
                 <h3 className="font-bold text-[#5C435A] flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] flex items-center justify-center text-[#E27396] text-xs">2</span>
+                  <span className="w-6 h-6 rounded-full bg-[#F4F1FA] text-[#C084FC] flex items-center justify-center text-xs">2</span>
                   วิธีเช็คชื่อและเก็บเงิน
                 </h3>
                 <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87] space-y-2">
@@ -123,7 +123,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
 
               <div className="space-y-3">
                 <h3 className="font-bold text-[#5C435A] flex items-center gap-2 text-sm sm:text-base">
-                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] flex items-center justify-center text-[#E27396] text-xs">3</span>
+                  <span className="w-6 h-6 rounded-full bg-[#FCE4EC] text-[#E27396] flex items-center justify-center text-xs">3</span>
                   การจัดการรายรับ-รายจ่ายเพิ่มเติม
                 </h3>
                 <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
@@ -139,7 +139,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
           <div className="flex items-start gap-3 bg-white p-3 rounded-xl border border-[#FDF2F6]">
             <AlertCircle className="w-5 h-5 text-[#F59E0B] flex-shrink-0 mt-0.5" />
             <p className="text-xs text-[#9C8599] leading-relaxed">
-              <strong>กรณีจำรหัสแอดมินไม่ได้:</strong><br />
+              <strong>กรณีจำรหัสเหรัญญิกไม่ได้:</strong><br />
               ติดต่อ นายวิรัตน์ ธีรพิพัฒนปัญญา<br />
               กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี
             </p>

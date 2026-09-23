@@ -538,10 +538,17 @@ export default function AdminDashboardPage() {
             const rank = index + 1;
             const isTop3 = rank <= 3;
 
+            const bgClasses = ["bg-[#E5F6FA]", "bg-[#FFFDE8]", "bg-[#FDF2F6]", "bg-[#EDF8F2]", "bg-[#F4F1FA]"];
+            const borderClasses = ["border-[#B3DEE2]", "border-[#FCEEA8]", "border-[#FAD7E4]", "border-[#A9D8B6]", "border-[#D8B4E2]"];
+            const hoverBorderClasses = ["hover:border-[#77C1D1]", "hover:border-[#D9A619]", "hover:border-[#EB9AB2]", "hover:border-[#76BFA0]", "hover:border-[#C084FC]"];
+            
+            const colorIdx = index % 5;
+            const rowClass = `pastel-card p-4 ${bgClasses[colorIdx]} border ${borderClasses[colorIdx]} ${hoverBorderClasses[colorIdx]} transition-all flex items-center justify-between gap-3 shadow-xs`;
+
             return (
               <div
                 key={room.roomSlug}
-                className="pastel-card p-4 bg-white border border-[#FCE4EC] hover:border-[#EB9AB2]/60 transition-all flex items-center justify-between gap-3 shadow-xs"
+                className={rowClass}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {/* Rank Badge */}
