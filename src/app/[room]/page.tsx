@@ -163,7 +163,7 @@ export default function RoomDashboardPage({
           </button>
           <Link
             href={`/${roomSlug}/treasurer`}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#EB9AB2] hover:bg-[#D9849D] shadow-pastel transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#FCEEA8] hover:bg-[#FDF0B3] text-[#D9A619] shadow-pastel transition-all"
           >
             <ShieldCheck className="w-4 h-4" />
             <span>เหรัญญิก</span>

@@ -5,11 +5,11 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFF5F8;
+  --background: #FCFBF7;
   --foreground: #5C435A;
-  --primary: #EB9AB2;
-  --primary-light: #EFCFE3;
-  --primary-dark: #E27396;
+  --primary: #D8B4E2;
+  --primary-light: #F4F1FA;
+  --primary-dark: #C084FC;
   --success: #50F2C8;
   --success-light: #D1FAE5;
   --danger: #FF96A8;
@@ -18,7 +18,7 @@
 
 body {
   background-color: var(--background);
-  background-image: radial-gradient(#FAD7E4 1.5px, transparent 1.5px);
+  background-image: radial-gradient(#DFF2F5 1.5px, transparent 1.5px);
   background-size: 24px 24px;
   color: var(--foreground);
   font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

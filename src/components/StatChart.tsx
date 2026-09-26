@@ -232,7 +232,7 @@ export default function StatChart({ transactions }: StatChartProps) {
     <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-[#FDF2F6] space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h2 className="text-[#5C435A] font-bold text-sm sm:text-base flex items-center gap-2">
-          <div className="w-2 h-6 bg-[#EB9AB2] rounded-full"></div>
+          <div className="w-2 h-6 bg-[#B3DEE2] rounded-full"></div>
           สรุปรายรับ-รายจ่าย {timeframe === "day" ? "รายวัน" : timeframe === "week" ? "รายสัปดาห์" : "รายเดือน"}
         </h2>
 
@@ -366,9 +366,9 @@ export default function StatChart({ transactions }: StatChartProps) {
       </div>
 
       <div className="flex items-center justify-center gap-2 pt-1">
-        <button type="button" onClick={() => { setTimeframe("day"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "day" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายวัน</button>
-        <button type="button" onClick={() => { setTimeframe("week"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "week" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายสัปดาห์</button>
-        <button type="button" onClick={() => { setTimeframe("month"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "month" ? "bg-[#5C435A] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายเดือน</button>
+        <button type="button" onClick={() => { setTimeframe("day"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "day" ? "bg-[#C084FC] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายวัน</button>
+        <button type="button" onClick={() => { setTimeframe("week"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "week" ? "bg-[#C084FC] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายสัปดาห์</button>
+        <button type="button" onClick={() => { setTimeframe("month"); setHoveredIndex(null); }} className={`flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${timeframe === "month" ? "bg-[#C084FC] text-white" : "bg-[#FFF5F8] text-[#9C8599] hover:bg-[#FCE4EC]"}`}>รายเดือน</button>
       </div>
     </div>
   );

@@ -40,7 +40,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
               onClick={() => setActiveTab("student")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all ${
                 activeTab === "student"
-                  ? "bg-white text-[#E27396] shadow-sm"
+                  ? "bg-white text-[#C084FC] shadow-sm"
                   : "text-[#9C8599] hover:text-[#581C87]"
               }`}
             >
@@ -68,7 +68,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
                   <span className="w-6 h-6 rounded-full bg-[#E5F6FA] text-[#77C1D1] flex items-center justify-center text-xs">1</span>
                   วิธีดูยอดเงินและสถานะการจ่าย
                 </h3>
-                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
+                <div className="bg-[#F0FAFC] p-4 rounded-2xl border border-[#B3DEE2] text-sm text-[#4A8D9B]">
                   <p>ในหน้าหลักของห้อง คุณสามารถดูสถานะการจ่ายเงินของเพื่อนแต่ละคนได้จากสีของป้ายชื่อ:</p>
                   <ul className="mt-3 space-y-2">
                     <li className="flex items-center gap-2">
@@ -88,7 +88,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
                   <span className="w-6 h-6 rounded-full bg-[#FFFDE8] text-[#D9A619] flex items-center justify-center text-xs">2</span>
                   การอ่านกราฟรายรับ-รายจ่าย
                 </h3>
-                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87] space-y-2">
+                <div className="bg-[#FFFDE8] p-4 rounded-2xl border border-[#FCEEA8] text-sm text-[#D9A619] space-y-2">
                   <p>สามารถเลือกช่วงเวลา <strong>รายวัน, รายสัปดาห์, หรือรายเดือน</strong> ได้ที่ด้านล่างกราฟ</p>
                   <p>เส้นกราฟสีเขียวแทนรายรับ และสีแดงแทนรายจ่าย สามารถนำเมาส์ไปชี้ (หรือจิ้ม) ที่จุดบนกราฟเพื่อดูรายละเอียดจำนวนเงินในวันนั้นๆ</p>
                 </div>
@@ -104,7 +104,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
                   <span className="w-6 h-6 rounded-full bg-[#EDF8F2] text-[#76BFA0] flex items-center justify-center text-xs">1</span>
                   วิธีล็อกอินเข้าสู่โหมดเหรัญญิก
                 </h3>
-                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
+                <div className="bg-[#F2FBF5] p-4 rounded-2xl border border-[#A9D8B6] text-sm text-[#5A967C]">
                   กดปุ่ม <strong>&quot;ล็อกอินเหรัญญิก&quot;</strong> หรือไอคอนฟันเฟืองที่มุมขวาบนของหน้าห้องเรียน และกรอกรหัสผ่านที่คุณได้ตั้งไว้
                 </div>
               </div>
@@ -114,7 +114,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
                   <span className="w-6 h-6 rounded-full bg-[#F4F1FA] text-[#C084FC] flex items-center justify-center text-xs">2</span>
                   วิธีเช็คชื่อและเก็บเงิน
                 </h3>
-                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87] space-y-2">
+                <div className="bg-[#F8F5FB] p-4 rounded-2xl border border-[#D8B4E2] text-sm text-[#C084FC] space-y-2">
                   <p>1. ในแท็บหน้าแรก ให้ติ๊กเครื่องหมายถูกหน้ารายชื่อเพื่อนที่จ่ายเงินแล้ว</p>
                   <p>2. ระบบจะคำนวณยอดเงินรวมให้อัตโนมัติ</p>
                   <p>3. **สำคัญมาก:** ต้องกดปุ่ม <strong>&quot;บันทึกข้อมูลวันนี้&quot;</strong> ทุกครั้ง ข้อมูลถึงจะอัปเดตลงบัญชีรายรับของห้อง!</p>
@@ -126,7 +126,7 @@ export default function ManualModal({ onClose }: ManualModalProps) {
                   <span className="w-6 h-6 rounded-full bg-[#FCE4EC] text-[#E27396] flex items-center justify-center text-xs">3</span>
                   การจัดการรายรับ-รายจ่ายเพิ่มเติม
                 </h3>
-                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#EFCFE3] text-sm text-[#581C87]">
+                <div className="bg-[#FFF5F8] p-4 rounded-2xl border border-[#FAD7E4] text-sm text-[#E27396]">
                   ไปที่แท็บ <strong>&quot;รายรับ/รายจ่าย&quot;</strong> เพื่อบันทึกการใช้จ่ายอื่นๆ ของห้อง เช่น ค่าพานไหว้ครู, ค่าปริ้นงาน โดยกดปุ่ม &quot;เพิ่มรายการ&quot;
                 </div>
               </div>

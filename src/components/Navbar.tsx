@@ -19,7 +19,7 @@ export default function Navbar({ currentRoomSlug }: NavbarProps) {
   const displayName = room ? room.displayName : activeSlug ? `ม.${activeSlug.replace("-", "/")}` : "เข้าสู่ระบบ";
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#FCE4EC]">
+    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#E5F6FA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo & School Branding */}
@@ -34,7 +34,7 @@ export default function Navbar({ currentRoomSlug }: NavbarProps) {
                     BJ3 <span className="text-[#D9849D]">Class Fund</span>
                   </span>
                   {currentRoomSlug && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-white text-[#4A8D9B] border border-[#EFCFE3]">
                       {displayName}
                     </span>
                   )}
@@ -60,7 +60,7 @@ export default function Navbar({ currentRoomSlug }: NavbarProps) {
             ) : (
               <Link
                 href="/"
-                className="px-4 py-2 text-xs font-semibold bg-[#EB9AB2] hover:bg-[#D9849D] text-white rounded-xl shadow-pastel transition-colors"
+                className="px-4 py-2 text-xs font-semibold bg-[#B3DEE2] hover:bg-[#D9849D] text-white rounded-xl shadow-pastel transition-colors"
               >
                 เข้าสู่ระบบห้องเรียน
               </Link>

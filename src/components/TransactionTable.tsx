@@ -172,7 +172,7 @@ export default function TransactionTable({
                 onClick={() => setFilterType("all")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "all"
-                    ? "bg-white text-[#E27396] shadow-xs font-semibold"
+                    ? "bg-white text-[#C084FC] shadow-xs font-semibold"
                     : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
@@ -183,7 +183,7 @@ export default function TransactionTable({
                 onClick={() => setFilterType("fund")}
                 className={`px-3 py-1 text-xs rounded-lg font-medium whitespace-nowrap transition-colors ${
                   filterType === "fund"
-                    ? "bg-white text-[#E27396] shadow-xs font-semibold"
+                    ? "bg-white text-[#C084FC] shadow-xs font-semibold"
                     : "text-[#9C8599] hover:text-[#5C435A]"
                 }`}
               >
@@ -228,7 +228,7 @@ export default function TransactionTable({
         <div key={group.key} className="space-y-1">
           {/* Protruding Month Folder Tab (ยื่นออกมาด้านบนซ้าย) */}
           <div className="flex items-end px-3">
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-t-2xl font-bold bg-white text-[#E27396] border-t-2 border-x-2 border-[#EFCFE3] text-xs sm:text-sm z-10 -mb-[2px] shadow-xs select-none">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-t-2xl font-bold bg-white text-[#C084FC] border-t-2 border-x-2 border-[#EFCFE3] text-xs sm:text-sm z-10 -mb-[2px] shadow-xs select-none">
               <Calendar className="w-3.5 h-3.5 text-[#EB9AB2]" />
               <span>{group.displayMonth}</span>
             </div>
@@ -282,7 +282,7 @@ export default function TransactionTable({
                         {/* 2. ประเภท */}
                         <td className="py-3 px-4 whitespace-nowrap align-top">
                           {isFund && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFF5F8] text-[#E27396] border border-[#EFCFE3]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FFF5F8] text-[#C084FC] border border-[#EFCFE3]">
                               <Wallet className="w-3 h-3" />
                               เงินห้อง
                             </span>
@@ -326,7 +326,7 @@ export default function TransactionTable({
 
                               {isExpanded && (
                                 <div className="mt-2 p-2.5 bg-[#FFF5F8] border border-[#EFCFE3] rounded-xl animate-fadeIn space-y-1.5 max-w-md shadow-xs">
-                                  <div className="text-[11px] font-bold text-[#E27396] flex items-center justify-between pb-1 border-b border-[#FCE4EC]">
+                                  <div className="text-[11px] font-bold text-[#C084FC] flex items-center justify-between pb-1 border-b border-[#FCE4EC]">
                                     <span>คนค้างจ่ายวันที่ {formatThaiDate(tx.date)}</span>
                                     <span className="text-[#FF8DA1]">{unpaidStudents.length} คน</span>
                                   </div>
@@ -336,7 +336,7 @@ export default function TransactionTable({
                                         key={s.id}
                                         className="flex items-center gap-2 p-1.5 bg-white rounded-lg border border-[#FCE4EC] text-xs text-[#5C435A]"
                                       >
-                                        <span className="w-5 h-5 rounded-md bg-[#FFF5F8] text-[#E27396] text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-[#EFCFE3]">
+                                        <span className="w-5 h-5 rounded-md bg-[#FFF5F8] text-[#C084FC] text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-[#EFCFE3]">
                                           {s.rollNumber}
                                         </span>
                                         <span className="truncate font-medium">{s.name}</span>
@@ -367,7 +367,7 @@ export default function TransactionTable({
                                 <button
                                   type="button"
                                   onClick={() => onEdit(tx)}
-                                  className="p-1.5 text-[#9C8599] hover:text-[#E27396] hover:bg-[#FFF5F8] rounded-lg transition-colors"
+                                  className="p-1.5 text-[#9C8599] hover:text-[#C084FC] hover:bg-[#FFF5F8] rounded-lg transition-colors"
                                   title="แก้ไขรายการ"
                                 >
                                   <Edit className="w-3.5 h-3.5" />
